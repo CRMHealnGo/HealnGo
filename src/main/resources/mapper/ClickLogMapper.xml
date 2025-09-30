@@ -5,56 +5,50 @@
 
 <mapper namespace="com.example.ApiRound.mapper.ClickLogMapper">
 
-    <!-- 클릭 로그 저장 -->
+    <!-- 클릭 로그 저장 (MySQL) -->
     <insert id="insertClickLog">
-        INSERT INTO CLICK_LOGS (COMPANY_ID, CLICKED_AT)
-        VALUES (#{companyId}, CURRENT_TIMESTAMP)
+        INSERT INTO click_logs (company_id, clicked_at)
+        VALUES (#{companyId}, NOW())
     </insert>
 
-    <!-- 최근 7일간 업체별 클릭 수 + 업체 정보 -->
-    <select id="getClickCountsLast7Days" resultType="com.example.ApiRound.dto.CompanyClickCountDto">
+    <!-- 최근 7일간 업체별 클릭 수 + 업체 정보 (내림차순) -->
+    <select id="getClickCountsLast7Days"
+            resultType="com.example.ApiRound.dto.CompanyClickCountDto">
         SELECT
-            c.COMPANY_ID AS companyId,
-            i.NAME       AS companyName,
-            COUNT(*)     AS clickCount,
-            i.REGION     AS region,
-            i.SUBREGION  AS subregion,
-            i.CATEGORY   AS category
-        FROM
-            CLICK_LOGS c
-                JOIN
-            ITEM_LIST i ON c.COMPANY_ID = i.ID
-        WHERE
-            c.CLICKED_AT &gt;= SYSDATE - 7
+        c.company_id  AS companyId,
+        i.name        AS companyName,
+        COUNT(*)      AS clickCount,
+        i.region      AS region,
+        i.subregion   AS subregion,
+        i.category    AS category
+        FROM click_logs c
+        JOIN item_list i
+        ON c.company_id = i.id
+        WHERE c.clicked_at >= NOW() - INTERVAL 7 DAY
         GROUP BY
-            c.COMPANY_ID, i.NAME, i.REGION, i.SUBREGION, i.CATEGORY
-        ORDER BY
-            clickCount DESC
+        c.company_id, i.name, i.region, i.subregion, i.category
+        ORDER BY clickCount DESC
     </select>
 
-    <!-- 제일 많이 클릭된 업체 3개 (업체 정보 포함) -->
-    <select id="getTop3CompaniesLast7Days" resultType="com.example.ApiRound.dto.CompanyClickCountDto">
-        SELECT *
-        FROM (
-                 SELECT
-                     c.COMPANY_ID AS companyId,
-                     i.NAME       AS companyName,
-                     COUNT(*)     AS clickCount,
-                     i.REGION     AS region,
-                     i.SUBREGION  AS subregion,
-                     i.CATEGORY   AS category
-                 FROM
-                     CLICK_LOGS c
-                         JOIN
-                     ITEM_LIST i ON c.COMPANY_ID = i.ID
-                 WHERE
-                     c.CLICKED_AT &gt;= SYSDATE - 7
-                 GROUP BY
-                     c.COMPANY_ID, i.NAME, i.REGION, i.SUBREGION, i.CATEGORY
-                 ORDER BY
-                     clickCount DESC
-             )
-        WHERE ROWNUM &lt;= 3
+    <!-- 최근 7일 기준, 제일 많이 클릭된 업체 3개 -->
+    <!-- MySQL에서는 LIMIT로 바로 자르면 되므로 서브쿼리/ROWNUM 불필요 -->
+    <select id="getTop3CompaniesLast7Days"
+            resultType="com.example.ApiRound.dto.CompanyClickCountDto">
+        SELECT
+        c.company_id  AS companyId,
+        i.name        AS companyName,
+        COUNT(*)      AS clickCount,
+        i.region      AS region,
+        i.subregion   AS subregion,
+        i.category    AS category
+        FROM click_logs c
+        JOIN item_list i
+        ON c.company_id = i.id
+        WHERE c.clicked_at >= NOW() - INTERVAL 7 DAY
+        GROUP BY
+        c.company_id, i.name, i.region, i.subregion, i.category
+        ORDER BY clickCount DESC
+        LIMIT 3
     </select>
 
 </mapper>
