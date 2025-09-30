@@ -37,5 +37,5 @@
 #/src/main/resources/application.properties
 
 # IntelliJ IDEA workspace 설정 파일 무시
-#.idea/workspace.xml
-#src/main/resources/application.properties
+.idea/workspace.xml
+src/main/resources/application.properties
