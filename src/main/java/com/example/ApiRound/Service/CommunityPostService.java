@@ -1,19 +1,19 @@
 package com.example.ApiRound.Service;
 
-import com.example.ApiRound.dto.CommunityPostDto;
+import com.example.ApiRound.entity.CommunityPost;
 
 import java.util.List;
 
 public interface CommunityPostService {
-    List<CommunityPostDto> getAllPosts();
-    CommunityPostDto getPostbyId(int postId);
-    void createPost(CommunityPostDto post);
-    void updatePost(CommunityPostDto post);
-    void deletePost(int postId);
+    List<CommunityPost> getAllPosts();
+    CommunityPost getPostById(Long postId);
+    CommunityPost createPost(CommunityPost post);
+    CommunityPost updatePost(CommunityPost post);
+    void deletePost(Long postId);
 
     // 좋아요 관련
-    boolean hasUserLiked(int postId, String userName);
-    void incrementLikeCount(int postId);
-    void decrementLikeCount(int postId);
-    int getLikeCount(int postId);
+    boolean hasUserLiked(Long postId, String userName);
+    void incrementLikeCount(Long postId);
+    void decrementLikeCount(Long postId);
+    int getLikeCount(Long postId);
 }

@@ -1,12 +1,12 @@
 package com.example.ApiRound.Service;
 
-import com.example.ApiRound.dto.CompanyClickCountDto;
+import com.example.ApiRound.entity.ClickLog;
 
 import java.util.List;
 
 public interface ClickLogService {
     void logClick(Long companyId);
-    List<CompanyClickCountDto> getClickCountsLast7Days();
-    List<CompanyClickCountDto> getTop3CompaniesLast7Days();
-
+    List<Object[]> getClickCountsLast7Days();
+    List<Object[]> getTop3CompaniesLast7Days();
+    ClickLog saveClickLog(ClickLog clickLog);
 }

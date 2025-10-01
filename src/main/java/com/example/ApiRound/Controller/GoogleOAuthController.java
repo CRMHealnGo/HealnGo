@@ -1,10 +1,9 @@
 package com.example.ApiRound.Controller;
 
-import com.example.ApiRound.Service.SocialUserService;
+import com.example.ApiRound.Service.GoogleSocialUserService;
 import com.example.ApiRound.dto.SocialUserDTO;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.view.RedirectView;
 
-@Controller
+// @Controller  // 임시로 비활성화
 @RequestMapping("/oauth/google")
 public class GoogleOAuthController {
 
@@ -23,8 +22,7 @@ public class GoogleOAuthController {
     private String redirectUri;
 
     @Autowired
-    @Qualifier("googleSocialUserServiceImpl") //GoogleSocialUserServiceImpl 를 주입하고 싶을 때
-    private SocialUserService socialUserService;
+    private GoogleSocialUserService googleSocialUserService;
 
     // 구글 로그인 URL 생성 메서드 (클라이언트에 URL 전달하거나, 직접 링크로 사용 가능)
     @GetMapping("/login-url")
@@ -39,9 +37,10 @@ public class GoogleOAuthController {
 
     @GetMapping("/callback")
     public RedirectView googleCallback(@RequestParam String code, HttpSession session) {
-        SocialUserDTO loginUser = socialUserService.processGoogleLogin(code);
+        // SocialUserDTO loginUser = googleSocialUserService.processGoogleLogin(code);  // 임시로 주석 처리
+        SocialUserDTO loginUser = null;  // 임시로 null 설정
         session.setAttribute("loginUser", loginUser);
-        session.setAttribute("accessToken", loginUser.getAccessToken());  // 추가!
+        // session.setAttribute("accessToken", loginUser.getAccessToken());  // 임시로 주석 처리
         return new RedirectView("/main");
     }
 
