@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.view.RedirectView;
 
-@Controller
+// @Controller  // 임시로 비활성화
 @RequestMapping("/oauth/kakao")
 public class KakaoOAuthController {
 
@@ -40,9 +40,10 @@ public class KakaoOAuthController {
 
     @GetMapping("/callback")
     public RedirectView kakaoCallback(@RequestParam String code, HttpSession session) {
-        SocialUserDTO user = socialUserService.processKakaoLogin(code);
+        // SocialUserDTO user = socialUserService.processKakaoLogin(code);  // 임시로 주석 처리
+        SocialUserDTO user = null;  // 임시로 null 설정
         session.setAttribute("loginUser", user);
-        session.setAttribute("accessToken", user.getAccessToken());  // 추가!
+        // session.setAttribute("accessToken", user.getAccessToken());  // 임시로 주석 처리
         return new RedirectView("/main");
     }
 

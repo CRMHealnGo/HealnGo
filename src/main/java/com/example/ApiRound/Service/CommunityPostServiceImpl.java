@@ -1,77 +1,72 @@
 package com.example.ApiRound.Service;
 
-import com.example.ApiRound.dto.CommunityPostDto;
-import com.example.ApiRound.mapper.CommunityPostMapper;
+import com.example.ApiRound.entity.CommunityPost;
+import com.example.ApiRound.repository.CommunityPostRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
+@Transactional
 public class CommunityPostServiceImpl implements CommunityPostService {
-
-    private final CommunityPostMapper mapper;
-
-    // 생성자 주입 (필드 @Autowired 대신 깔끔하고 컴파일 안전)
-    public CommunityPostServiceImpl(CommunityPostMapper mapper) {
-        this.mapper = mapper;
-    }
-
+    
+    @Autowired
+    private CommunityPostRepository communityPostRepository;
+    
     @Override
-    public List<CommunityPostDto> getAllPosts() {
-        return mapper.findAllPosts();
+    public List<CommunityPost> getAllPosts() {
+        return communityPostRepository.findAllActivePosts();
     }
-
+    
     @Override
-    public CommunityPostDto getPostbyId(int postId) {
-        return mapper.findPostbyId(postId);
+    public CommunityPost getPostById(Long postId) {
+        return communityPostRepository.findById(postId).orElse(null);
     }
-
+    
     @Override
-    @Transactional
-    public void createPost(CommunityPostDto post) {
-        if (post == null) return;
-        // 세션에서 못 채우면 익명으로
-        if (post.getUserId() == null || post.getUserId().trim().isEmpty()) {
-            post.setUserId("익명");
+    public CommunityPost createPost(CommunityPost post) {
+        return communityPostRepository.save(post);
+    }
+    
+    @Override
+    public CommunityPost updatePost(CommunityPost post) {
+        return communityPostRepository.save(post);
+    }
+    
+    @Override
+    public void deletePost(Long postId) {
+        communityPostRepository.deleteById(postId);
+    }
+    
+    @Override
+    public boolean hasUserLiked(Long postId, String userName) {
+        // TODO: 좋아요 관련 로직 구현
+        return false;
+    }
+    
+    @Override
+    public void incrementLikeCount(Long postId) {
+        CommunityPost post = communityPostRepository.findById(postId).orElse(null);
+        if (post != null) {
+            post.setLikeCount(post.getLikeCount() + 1);
+            communityPostRepository.save(post);
         }
-        // POST_ID는 트리거가 채우게 null 유지
-        mapper.insertPost(post);
     }
-
+    
     @Override
-    @Transactional
-    public void updatePost(CommunityPostDto post) {
-        // 컨트롤러에서 postId, title, content만 채워서 보내면
-        // 매퍼 XML에서 title/content만 업데이트 하도록 이미 구성
-        if (post == null) return;
-        mapper.updatePost(post);
+    public void decrementLikeCount(Long postId) {
+        CommunityPost post = communityPostRepository.findById(postId).orElse(null);
+        if (post != null) {
+            post.setLikeCount(Math.max(0, post.getLikeCount() - 1));
+            communityPostRepository.save(post);
+        }
     }
-
+    
     @Override
-    @Transactional
-    public void deletePost(int postId) {
-        mapper.softDeletePost(postId);
-    }
-    @Override
-    public boolean hasUserLiked(int postId, String userName) {
-        return mapper.hasUserLiked(postId, userName) > 0;
-    }
-
-    @Override
-    @Transactional
-    public void incrementLikeCount(int postId) {
-        mapper.incrementLikeCount(postId);
-    }
-
-    @Override
-    @Transactional
-    public void decrementLikeCount(int postId) {
-        mapper.decrementLikeCount(postId);
-    }
-
-    @Override
-    public int getLikeCount(int postId) {
-        return mapper.getLikeCount(postId);
+    public int getLikeCount(Long postId) {
+        CommunityPost post = communityPostRepository.findById(postId).orElse(null);
+        return post != null ? post.getLikeCount() : 0;
     }
 }

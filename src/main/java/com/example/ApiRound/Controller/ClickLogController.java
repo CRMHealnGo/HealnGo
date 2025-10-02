@@ -28,8 +28,8 @@ public class ClickLogController {
 
     // 최근 7일 클릭 수 통계 조회
     @GetMapping("/stats")
-    public ResponseEntity<List<CompanyClickCountDto>> getClickCountsLast7Days() {
-        List<CompanyClickCountDto> stats = clickLogService.getClickCountsLast7Days();
+    public ResponseEntity<List<Object[]>> getClickCountsLast7Days() {
+        List<Object[]> stats = clickLogService.getClickCountsLast7Days();
         return ResponseEntity.ok(stats);
     }
 }

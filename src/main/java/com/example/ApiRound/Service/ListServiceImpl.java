@@ -1,69 +1,77 @@
 package com.example.ApiRound.Service;
 
-import com.example.ApiRound.Service.ListService;
-import com.example.ApiRound.dto.ListDto;
-import com.example.ApiRound.mapper.ListMapper;
+import com.example.ApiRound.entity.ItemList;
+import com.example.ApiRound.repository.ItemListRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 public class ListServiceImpl implements ListService {
-
-    private final ListMapper listMapper;
-
-    public ListServiceImpl(ListMapper listMapper) {
-        this.listMapper = listMapper;
-    }
-
+    
+    @Autowired
+    private ItemListRepository itemListRepository;
+    
     @Override
-    public List<ListDto> getAllList(String locale) {
-        return listMapper.findAll(locale);
+    public List<ItemList> getAllList() {
+        return itemListRepository.findAll();
     }
-
+    
     @Override
-    public ListDto getListById(Long id, String locale) {
-        return listMapper.findById(id, locale);
+    public ItemList getListById(Long id) {
+        return itemListRepository.findById(id).orElse(null);
     }
-
+    
     @Override
-    public void addList(ListDto hospital) {
-        listMapper.insert(hospital);
+    public ItemList addList(ItemList hospital) {
+        return itemListRepository.save(hospital);
     }
-
+    
     @Override
-    public List<ListDto> getListByCategory(String category, String locale) {
-        return listMapper.findByCategory(category, locale);
+    public List<ItemList> getListByCategory(String category) {
+        return itemListRepository.findByCategory(category, Pageable.unpaged()).getContent();
     }
-
+    
     @Override
-    public List<ListDto> getListByRegionAndSubregion(String region, String subRegion, String category, String locale) {
-        return listMapper.findByRegionAndCategory(region, subRegion, category, locale);
+    public List<ItemList> getListByRegionAndCategory(String region, String subRegion, String category) {
+        return itemListRepository.findByRegionAndSubregionAndCategory(region, subRegion, category, Pageable.unpaged()).getContent();
     }
-
+    
     @Override
-    public int countByRegionAndCategory(String region, String subregion, String category) {
-        return listMapper.countByRegionAndCategory(region, subregion, category);
+    public Page<ItemList> getListPaged(Pageable pageable) {
+        return itemListRepository.findAll(pageable);
     }
-
+    
     @Override
-    public List<ListDto> getListByRegionAndSubregionPaged(String region, String subregion, String category,
-                                                          int amount, int offset, String locale) {
-        return listMapper.findByRegionAndCategoryPaged(region, subregion, category, amount, offset, locale);
+    public Page<ItemList> getListByCategoryPaged(String category, Pageable pageable) {
+        return itemListRepository.findByCategory(category, pageable);
     }
-
+    
     @Override
-    public int countByCategory(String category) {
-        return listMapper.countByCategory(category);
+    public Page<ItemList> getListByRegionAndCategoryPaged(String region, String subRegion, String category, Pageable pageable) {
+        return itemListRepository.findByRegionAndSubregionAndCategory(region, subRegion, category, pageable);
     }
-
+    
     @Override
-    public List<ListDto> getListByCategoryPaged(String category, int amount, int offset, String locale) {
-        return listMapper.findByCategoryPaged(category, amount, offset, locale);
+    public long getTotalCount() {
+        return itemListRepository.count();
     }
-
+    
+    @Override
+    public long getCountByCategory(String category) {
+        return itemListRepository.countByCategory(category);
+    }
+    
+    @Override
+    public long getCountByRegionAndCategory(String region, String subRegion, String category) {
+        return itemListRepository.countByRegionAndSubregionAndCategory(region, subRegion, category);
+    }
+    
     @Override
     public List<String> getAllCategories() {
-        return listMapper.getAllCategories();
+        return itemListRepository.findAllCategories();
     }
 }

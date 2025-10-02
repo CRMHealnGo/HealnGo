@@ -9,17 +9,17 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import com.example.ApiRound.Service.ListService;
-import com.example.ApiRound.dto.ListDto;
+import com.example.ApiRound.Service.ItemListService;
+import com.example.ApiRound.entity.ItemList;
 
 @Controller
 public class TourismController {
 
-    private final ListService listService;
+    private final ItemListService itemListService;
 
     @Autowired
-    public TourismController(ListService listService) {
-        this.listService = listService;
+    public TourismController(ItemListService itemListService) {
+        this.itemListService = itemListService;
     }
 
     @GetMapping("/tourism")
@@ -32,13 +32,13 @@ public class TourismController {
 
         try {
             // 인기 패키지 데이터 (tourism 카테고리)
-            List<ListDto> popularPackages = listService.getListByCategory("tourism", locale);
+            List<ItemList> popularPackages = itemListService.getListByCategory("tourism");
             
             // 새로운 패키지 데이터 (최근 등록된 것들)
-            List<ListDto> newPackages = listService.getListByCategory("package", locale);
+            List<ItemList> newPackages = itemListService.getListByCategory("package");
             
             // 전체 패키지 데이터
-            List<ListDto> allPackages = listService.getAllList(locale);
+            List<ItemList> allPackages = itemListService.getAllList();
             
             model.addAttribute("popularPackages", popularPackages);
             model.addAttribute("newPackages", newPackages);
