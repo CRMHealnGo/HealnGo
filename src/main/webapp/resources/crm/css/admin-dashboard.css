@@ -1,0 +1,529 @@
+/* 관리자 대시보드 스타일 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* 상단 헤더 */
+.admin-header {
+    background: white;
+    padding: 1rem 2rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+}
+
+.header-left .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.header-left .logo i {
+    color: #e74c3c;
+    font-size: 1.5rem;
+}
+
+.logo-text {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.logo-subtitle {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    margin-left: 0.5rem;
+}
+
+.header-center .search-box {
+    position: relative;
+    width: 300px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.5rem 1rem 0.5rem 2.5rem;
+    border: 1px solid #ddd;
+    border-radius: 25px;
+    font-size: 0.9rem;
+}
+
+.search-icon {
+    position: absolute;
+    left: 0.8rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #7f8c8d;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.notification {
+    font-size: 1.2rem;
+    color: #7f8c8d;
+    cursor: pointer;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.user-avatar {
+    width: 35px;
+    height: 35px;
+    background: #3498db;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.user-name {
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+/* 날짜 표시 */
+.date-range {
+    background: white;
+    padding: 0.5rem 2rem;
+    margin-top: 70px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+/* 메인 컨테이너 */
+.admin-container {
+    display: flex;
+    margin-top: 0;
+}
+
+/* 사이드바 */
+.sidebar {
+    width: 250px;
+    background: #2c3e50;
+    min-height: calc(100vh - 120px);
+    padding: 2rem 0;
+    position: fixed;
+    left: 0;
+    top: 120px;
+}
+
+.nav-menu {
+    list-style: none;
+}
+
+.nav-item {
+    padding: 1rem 2rem;
+    color: #bdc3c7;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s ease;
+}
+
+.nav-item:hover {
+    background: #34495e;
+    color: white;
+}
+
+.nav-item.active {
+    background: #3498db;
+    color: white;
+}
+
+.nav-item i {
+    width: 20px;
+    text-align: center;
+}
+
+.logout-section {
+    position: absolute;
+    bottom: 2rem;
+    left: 0;
+    right: 0;
+    padding: 0 2rem;
+}
+
+.logout-link {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: #e74c3c;
+    text-decoration: none;
+    padding: 0.5rem;
+    border-radius: 5px;
+    transition: background 0.3s ease;
+}
+
+.logout-link:hover {
+    background: rgba(231, 76, 60, 0.1);
+}
+
+/* 메인 콘텐츠 */
+.main-content {
+    margin-left: 250px;
+    padding: 2rem;
+    width: calc(100% - 250px);
+}
+
+.dashboard-header {
+    margin-bottom: 2rem;
+}
+
+.dashboard-header h1 {
+    font-size: 2rem;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.dashboard-header h2 {
+    font-size: 1.5rem;
+    color: #7f8c8d;
+    font-weight: normal;
+}
+
+/* 섹션 스타일 */
+.dashboard-section {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #ecf0f1;
+}
+
+.section-header h3 {
+    font-size: 1.3rem;
+    color: #2c3e50;
+}
+
+.view-all {
+    color: #3498db;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.view-all:hover {
+    text-decoration: underline;
+}
+
+/* 차트 컨테이너 */
+.chart-container {
+    height: 300px;
+    position: relative;
+}
+
+/* 캘린더 스타일 */
+.calendar-container {
+    display: flex;
+    gap: 2rem;
+}
+
+.calendar {
+    flex: 1;
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+.calendar-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.day-header {
+    text-align: center;
+    font-weight: bold;
+    color: #7f8c8d;
+    padding: 0.5rem;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.5rem;
+}
+
+.calendar-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.calendar-day:hover {
+    background: #e3f2fd;
+}
+
+.calendar-day.today {
+    background: #3498db;
+    color: white;
+    font-weight: bold;
+}
+
+.calendar-day.marked {
+    position: relative;
+}
+
+.calendar-day.marked::after {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    background: #e74c3c;
+    border-radius: 50%;
+}
+
+/* 스케줄 상세 */
+.schedule-details {
+    flex: 1;
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+.schedule-item {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.schedule-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.schedule-date {
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.schedule-title {
+    color: #34495e;
+    margin-bottom: 0.3rem;
+    font-weight: 500;
+}
+
+.schedule-detail {
+    color: #7f8c8d;
+    margin-left: 1rem;
+    font-size: 0.9rem;
+}
+
+/* 업체 관리 스타일 */
+.company-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.company-item {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 1.5rem;
+    border-left: 4px solid #3498db;
+}
+
+.company-id {
+    font-weight: bold;
+    color: #2c3e50;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.company-name {
+    font-size: 1.2rem;
+    color: #34495e;
+    margin-bottom: 0.3rem;
+}
+
+.company-contract {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.company-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.rating-arrow.up {
+    color: #27ae60;
+}
+
+.rating-arrow.down {
+    color: #e74c3c;
+}
+
+.rating-score {
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.rating-count {
+    color: #7f8c8d;
+}
+
+.company-data {
+    display: flex;
+    gap: 2rem;
+}
+
+.data-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.data-label {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+.data-value {
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.user-icons {
+    display: flex;
+    gap: 0.2rem;
+    margin-left: 0.5rem;
+}
+
+.user-icons i {
+    color: #3498db;
+    font-size: 0.8rem;
+}
+
+/* 패키지 스타일 */
+.package-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.package-item {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-left: 4px solid #9b59b6;
+}
+
+.package-name {
+    font-weight: bold;
+    color: #2c3e50;
+    font-size: 1.1rem;
+}
+
+.package-company {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+    margin-top: 0.3rem;
+}
+
+.package-count {
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.package-count.up {
+    color: #27ae60;
+}
+
+.package-count.down {
+    color: #e74c3c;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .admin-container {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        position: static;
+        width: 100%;
+        min-height: auto;
+    }
+    
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+    }
+    
+    .calendar-container {
+        flex-direction: column;
+    }
+    
+    .company-data {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .package-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+}
