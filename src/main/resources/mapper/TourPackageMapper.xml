@@ -7,45 +7,45 @@
 
     <!-- 패키지 전체 조회 -->
     <select id="getAllPackages" resultType="com.example.ApiRound.dto.TourPackageDto">
-        SELECT
-        PACKAGE_ID,
-        NAME,
-        DESCRIPTION,
-        CATEGORY,
-        REGION,
-        IMAGE_PATH,
-        IS_RECOMMENDED,
-        CREATED_AT,
-        UPDATED_AT
-        FROM TOUR_PACKAGE
+        select
+        package_id,
+        name,
+        description,
+        category,
+        region,
+        image_path,
+        is_recommended,
+        created_at,
+        updated_at
+        from tour_package
     </select>
 
     <!-- 패키지 단건 조회 -->
     <select id="getPackageById" parameterType="long" resultType="com.example.ApiRound.dto.TourPackageDto">
-        SELECT
-        PACKAGE_ID,
-        NAME,
-        DESCRIPTION,
-        CATEGORY,
-        REGION,
-        IMAGE_PATH,
-        IS_RECOMMENDED,
-        CREATED_AT,
-        UPDATED_AT
-        FROM TOUR_PACKAGE
-        WHERE PACKAGE_ID = #{id}
+        select
+        package_id,
+        name,
+        description,
+        category,
+        region,
+        image_path,
+        is_recommended,
+        created_at,
+        updated_at
+        from tour_package
+        where package_id = #{id}
     </select>
 
-    <!-- 특정 패키지의 아이템 리스트 (조인은 추후 확장 가능) -->
+    <!-- 특정 패키지의 아이템 리스트 -->
     <select id="getItemsByPackageId" parameterType="long" resultType="com.example.ApiRound.dto.TourPackageItemDto">
-        SELECT
-        ID,
-        PACKAGE_ID,
-        ITEM_ID,
-        SEQUENCE_NO
-        FROM TOUR_PACKAGE_ITEM
-        WHERE PACKAGE_ID = #{packageId}
-        ORDER BY SEQUENCE_NO
+        select
+        id,
+        package_id,
+        item_id,
+        sequence_no
+        from tour_package_item
+        where package_id = #{packageId}
+        order by sequence_no
     </select>
 
 </mapper>

@@ -5,67 +5,65 @@
 
 <mapper namespace="com.example.ApiRound.mapper.SocialUserMapper">
 
-    <!-- resultMap 정의: DB 컬럼명과 DTO 필드명 명시 매핑 -->
+    <!-- resultMap: 그대로 사용 (컬럼 alias를 대문자로 맞춰서 select 함) -->
     <resultMap id="SocialUserResultMap" type="com.example.ApiRound.dto.SocialUserDTO">
-        <id property="userId" column="USER_ID" />
+        <id property="userId"       column="USER_ID" />
         <result property="socialId" column="SOCIAL_ID" />
-        <result property="email" column="EMAIL" />
-        <result property="name" column="NAME" />
+        <result property="email"    column="EMAIL" />
+        <result property="name"     column="NAME" />
         <result property="profileImage" column="PROFILE_IMAGE" />
         <result property="provider" column="PROVIDER" />
         <result property="createdAt" column="CREATED_AT" />
         <result property="lastLogin" column="LAST_LOGIN" />
     </resultMap>
 
-    <!-- 사용자 저장 -->
+    <!-- 사용자 저장 (user_id는 auto_increment 가정: 컬럼/값 목록에서 제외) -->
     <insert id="insertUser" parameterType="com.example.ApiRound.dto.SocialUserDTO">
-        INSERT INTO SOCIAL_USER (
-        USER_ID,
-        SOCIAL_ID,
-        EMAIL,
-        NAME,
-        PROFILE_IMAGE,
-        PROVIDER,
-        CREATED_AT,
-        LAST_LOGIN
-        ) VALUES (
-        USER_SEQ.NEXTVAL,
+        insert into social_user (
+        social_id,
+        email,
+        name,
+        profile_image,
+        provider,
+        created_at,
+        last_login
+        ) values (
         #{socialId, jdbcType=VARCHAR},
         #{email, jdbcType=VARCHAR},
         #{name, jdbcType=VARCHAR},
         #{profileImage, jdbcType=VARCHAR},
         #{provider, jdbcType=VARCHAR},
-        CURRENT_TIMESTAMP,
-        CURRENT_TIMESTAMP
+        now(),
+        now()
         )
     </insert>
 
-    <!-- 소셜 ID와 PROVIDER로 사용자 조회 -->
+    <!-- 소셜 ID와 PROVIDER로 사용자 조회 (alias를 resultMap 컬럼에 맞춤) -->
     <select id="findBySocialIdAndProvider" resultMap="SocialUserResultMap" parameterType="map">
-        SELECT
-        USER_ID,
-        SOCIAL_ID,
-        EMAIL,
-        NAME,
-        PROFILE_IMAGE,
-        PROVIDER,
-        CREATED_AT,
-        LAST_LOGIN
-        FROM SOCIAL_USER
-        WHERE SOCIAL_ID = #{socialId}
-        AND PROVIDER = #{provider}
+        select
+        user_id        as USER_ID,
+        social_id      as SOCIAL_ID,
+        email          as EMAIL,
+        name           as NAME,
+        profile_image  as PROFILE_IMAGE,
+        provider       as PROVIDER,
+        created_at     as CREATED_AT,
+        last_login     as LAST_LOGIN
+        from social_user
+        where social_id = #{socialId}
+        and provider  = #{provider}
     </select>
 
+    <!-- 사용자 업데이트 (마지막 로그인 now()) -->
     <update id="updateUser" parameterType="com.example.ApiRound.dto.SocialUserDTO">
-        UPDATE SOCIAL_USER
-        SET
-        NAME = #{name,jdbcType=VARCHAR},
-        EMAIL = #{email,jdbcType=VARCHAR},
-        PROFILE_IMAGE = #{profileImage,jdbcType=VARCHAR},
-        LAST_LOGIN = SYSDATE
-        WHERE SOCIAL_ID = #{socialId, jdbcType=VARCHAR}
-        AND PROVIDER = #{provider, jdbcType=VARCHAR}
+        update social_user
+        set
+        name          = #{name, jdbcType=VARCHAR},
+        email         = #{email, jdbcType=VARCHAR},
+        profile_image = #{profileImage, jdbcType=VARCHAR},
+        last_login    = now()
+        where social_id = #{socialId, jdbcType=VARCHAR}
+        and provider  = #{provider, jdbcType=VARCHAR}
     </update>
-
 
 </mapper>

@@ -6,112 +6,112 @@
 <mapper namespace="com.example.ApiRound.mapper.CommunityPostMapper">
 
     <resultMap id="PostMap" type="com.example.ApiRound.dto.CommunityPostDto">
-        <result property="postId" column="POST_ID"/>
-        <result property="userId" column="USER_ID"/>
-        <result property="authorName" column="AUTHOR_NAME"/>
-        <result property="title" column="TITLE"/>
-        <result property="content" column="CONTENT"/>
-        <result property="createAt" column="CREATE_AT"/>
-        <result property="likeCount" column="LIKE_COUNT"/>
-        <result property="category" column="CATEGORY"/>
-        <result property="isDeleted" column="IS_DELETED"/>
-        <result property="isUpdate" column="IS_UPDATE"/>
+        <result property="postId"     column="post_id"/>
+        <result property="userId"     column="user_id"/>
+        <result property="authorName" column="author_name"/>
+        <result property="title"      column="title"/>
+        <result property="content"    column="content"/>
+        <result property="createAt"   column="create_at"/>
+        <result property="likeCount"  column="like_count"/>
+        <result property="category"   column="category"/>
+        <result property="isDeleted"  column="is_deleted"/>
+        <result property="isUpdate"   column="is_update"/>
     </resultMap>
 
     <!-- 목록 -->
     <select id="findAllPosts" resultMap="PostMap">
-        SELECT
-            p.POST_ID,
-            p.USER_ID,
-            p.TITLE,
-            p.CONTENT,
-            p.CATEGORY,
-            p.CREATE_AT,
-            p.LIKE_COUNT,
-            p.IS_DELETED,
-            p.IS_UPDATE,
-            u.NAME as AUTHOR_NAME
-        FROM COMMUNITY_POST p
-        LEFT JOIN SOCIAL_USER u ON p.USER_ID = u.NAME
-        WHERE p.IS_DELETED = 'N'
-        ORDER BY p.CREATE_AT DESC
+        select
+        p.post_id,
+        p.user_id,
+        p.title,
+        p.content,
+        p.category,
+        p.create_at,
+        p.like_count,
+        p.is_deleted,
+        p.is_update,
+        u.name as author_name
+        from community_post p
+        left join social_user u on p.user_id = u.user_id
+        where p.is_deleted = 'N'
+        order by p.create_at desc
     </select>
 
+    <!-- 단건 조회 -->
     <select id="findPostbyId" parameterType="int" resultMap="PostMap">
-        SELECT
-            p.POST_ID,
-            p.USER_ID,
-            p.TITLE,
-            p.CONTENT,
-            p.CATEGORY,
-            p.CREATE_AT,
-            p.LIKE_COUNT,
-            p.IS_DELETED,
-            p.IS_UPDATE,
-            u.NAME as AUTHOR_NAME
-        FROM COMMUNITY_POST p
-        LEFT JOIN SOCIAL_USER u ON p.USER_ID = u.NAME
-        WHERE p.POST_ID = #{postId}
-        AND p.IS_DELETED = 'N'
+        select
+        p.post_id,
+        p.user_id,
+        p.title,
+        p.content,
+        p.category,
+        p.create_at,
+        p.like_count,
+        p.is_deleted,
+        p.is_update,
+        u.name as author_name
+        from community_post p
+        left join social_user u on p.user_id = u.user_id
+        where p.post_id = #{postId}
+        and p.is_deleted = 'N'
     </select>
 
-    <!-- 작성: POST_ID는 트리거가 채우므로 제외 -->
+    <!-- 작성: post_id 는 트리거/auto inc 가 채움 -->
     <insert id="insertPost" parameterType="com.example.ApiRound.dto.CommunityPostDto">
-        INSERT INTO COMMUNITY_POST
-        (USER_ID, TITLE, CONTENT, CATEGORY, IS_DELETED, CREATE_AT)
-        VALUES
-        (#{userId}, #{title}, #{content}, #{category}, 'N', SYSTIMESTAMP)
+        insert into community_post
+        (user_id, title, content, category, is_deleted, create_at)
+        values
+        (#{userId}, #{title}, #{content}, #{category}, 'N', now())
     </insert>
 
-    <!-- CommunityPostMapper.xml -->
+    <!-- 수정 -->
     <update id="updatePost" parameterType="com.example.ApiRound.dto.CommunityPostDto">
-        UPDATE COMMUNITY_POST
-        SET TITLE = #{title},
-        CONTENT = #{content},
-        IS_UPDATE = 'Y'
-        WHERE POST_ID = #{postId}
-        AND IS_DELETED = 'N'
+        update community_post
+        set title = #{title},
+        content = #{content},
+        is_update = 'Y'
+        where post_id = #{postId}
+        and is_deleted = 'N'
     </update>
 
     <!-- 소프트 삭제 -->
     <update id="softDeletePost" parameterType="int">
-        UPDATE community_post
-        SET is_deleted = 'Y'
-        WHERE post_id = #{postId}
-        AND is_deleted = 'N'
+        update community_post
+        set is_deleted = 'Y'
+        where post_id = #{postId}
+        and is_deleted = 'N'
     </update>
 
-        <!-- 좋아요 카운트 증가 -->
-        <update id="incrementLikeCount" parameterType="int">
-            UPDATE COMMUNITY_POST
-            SET LIKE_COUNT = NVL(LIKE_COUNT, 0) + 1
-            WHERE POST_ID = #{postId}
-              AND IS_DELETED = 'N'
-        </update>
+    <!-- 좋아요 +1 -->
+    <update id="incrementLikeCount" parameterType="int">
+        update community_post
+        set like_count = ifnull(like_count, 0) + 1
+        where post_id = #{postId}
+        and is_deleted = 'N'
+    </update>
 
-        <!-- 좋아요 카운트 감소(0 미만 방지) -->
-        <update id="decrementLikeCount" parameterType="int">
-            UPDATE COMMUNITY_POST
-            SET LIKE_COUNT = CASE WHEN NVL(LIKE_COUNT, 0) > 0 THEN LIKE_COUNT - 1 ELSE 0 END
-            WHERE POST_ID = #{postId}
-              AND IS_DELETED = 'N'
-        </update>
+    <!-- 좋아요 -1 (0 미만 방지) -->
+    <update id="decrementLikeCount" parameterType="int">
+        update community_post
+        set like_count = case when ifnull(like_count, 0) > 0 then like_count - 1 else 0 end
+        where post_id = #{postId}
+        and is_deleted = 'N'
+    </update>
 
-        <!-- 현재 좋아요 카운트 조회 -->
-        <select id="getLikeCount" parameterType="int" resultType="int">
-            SELECT NVL(LIKE_COUNT, 0)
-            FROM COMMUNITY_POST
-            WHERE POST_ID = #{postId}
-              AND IS_DELETED = 'N'
-        </select>
-
-    <!-- 좋아요 여부 확인 -->
-    <select id="hasUserLiked" resultType="int">
-        SELECT COUNT(1)
-        FROM COMMUNITY_POST
-        WHERE POST_ID = #{postId}
-          AND USER_ID = #{userId}
+    <!-- 현재 좋아요 카운트 -->
+    <select id="getLikeCount" parameterType="int" resultType="int">
+        select ifnull(like_count, 0)
+        from community_post
+        where post_id = #{postId}
+        and is_deleted = 'N'
     </select>
 
+    <!-- (임시) 해당 글을 그 유저가 쓴 건지 확인 -->
+    <select id="hasUserLiked" resultType="int">
+        select count(1)
+        from community_post
+        where post_id = #{postId}
+        and user_id = #{userId}
+    </select>
 
 </mapper>
