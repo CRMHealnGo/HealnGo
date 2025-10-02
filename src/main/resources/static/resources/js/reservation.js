@@ -24,6 +24,22 @@ function initializeReservationPage() {
     updateTotalPrice();
 }
 
+// Detail Toggle Functionality
+window.toggleDetail = function(procedureNumber) {
+    const detailContent = document.getElementById(`detail${procedureNumber}`);
+    const detailBtn = document.querySelector(`#procedure${procedureNumber}`).closest('.procedure-option').querySelector('.detail-btn');
+    
+    if (detailContent.style.display === 'none') {
+        detailContent.style.display = 'block';
+        detailBtn.textContent = '▲';
+        detailBtn.classList.add('rotated');
+    } else {
+        detailContent.style.display = 'none';
+        detailBtn.textContent = '▼';
+        detailBtn.classList.remove('rotated');
+    }
+}
+
 // Category Tab Functionality
 function setupCategoryTabs() {
     const categoryTabs = document.querySelectorAll('.category-tab');

@@ -189,6 +189,39 @@ body {
     color: #666;
     cursor: pointer;
     padding: 0.5rem;
+    transition: transform 0.3s ease;
+}
+
+.detail-btn.rotated {
+    transform: rotate(180deg);
+}
+
+.procedure-detail-content {
+    padding: 1.5rem;
+    background-color: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+    margin-top: 0.5rem;
+}
+
+.detail-section {
+    margin-bottom: 1.5rem;
+}
+
+.detail-section:last-child {
+    margin-bottom: 0;
+}
+
+.detail-section h3 {
+    color: #333;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.detail-section p {
+    color: #666;
+    line-height: 1.6;
+    font-size: 0.9rem;
 }
 
 /* Information Sections */
