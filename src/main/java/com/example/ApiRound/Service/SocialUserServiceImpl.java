@@ -28,11 +28,13 @@ public class SocialUserServiceImpl implements SocialUserService {
 
     @Override
     public SocialUserDTO processKakaoLogin(String code) {
-        return kakaoService.processKakaoLogin(code);
+        // TODO: Kakao 로그인 처리 로직 구현
+        throw new UnsupportedOperationException("Kakao 로그인 처리 로직이 구현되지 않았습니다.");
     }
 
     @Override
     public SocialUserDTO processGoogleLogin(String code) {
-        return googleService.processGoogleLogin(code);
+        // TODO: Google 로그인 처리 로직 구현
+        throw new UnsupportedOperationException("Google 로그인 처리 로직이 구현되지 않았습니다.");
     }
 }

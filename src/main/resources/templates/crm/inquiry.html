@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>문의하기 - HealnGo</title>
+    <link rel="stylesheet" href="/resources/css/styles.css">
+    <link rel="stylesheet" href="/crm/css/inquiry.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- 헤더 -->
+    <div th:replace="~{common/header :: header}"></div>
+
+    <!-- 문의 컨테이너 -->
+    <div class="inquiry-container">
+        <!-- 문의 헤더 -->
+        <div class="inquiry-header">
+            <h1 class="inquiry-title">문의하기</h1>
+        </div>
+
+        <!-- 문의 목록 -->
+        <div class="inquiry-list">
+            <!-- 문의 목록이 JavaScript로 동적으로 생성됩니다 -->
+        </div>
+    </div>
+
+    <!-- 푸터 -->
+    <div th:replace="~{common/footer :: footer}"></div>
+
+    <script src="/crm/js/inquiry.js"></script>
+</body>
+</html>

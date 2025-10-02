@@ -39,6 +39,6 @@ public class LoginController {
         model.addAttribute("kakaoLoginUrl", kakaoLoginUrl);
         model.addAttribute("googleLoginUrl", googleLoginUrl);
 
-        return "login";  // /WEB-INF/views/login.jsp (뷰 이름)
+        return "login";  // Thymeleaf 템플릿
     }
 }

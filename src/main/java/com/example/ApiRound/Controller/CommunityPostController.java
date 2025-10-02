@@ -1,7 +1,7 @@
 package com.example.ApiRound.Controller;
 
 import com.example.ApiRound.Service.CommunityPostService;
-import com.example.ApiRound.dto.CommunityPostDto;
+import com.example.ApiRound.entity.CommunityPost;
 import com.example.ApiRound.dto.SocialUserDTO;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.MediaType;
@@ -10,10 +10,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Map;
 
 @Controller
 @RequestMapping("/community")
@@ -25,34 +21,34 @@ public class CommunityPostController {
     // 목록: /community, /community/ , /community/list 모두 허용
     @GetMapping({"", "/", "/list"})
     public String listPosts(Model model, HttpSession session){
-        List<CommunityPostDto> posts = service.getAllPosts();
+        List<CommunityPost> posts = service.getAllPosts();
         SocialUserDTO loginUser = (SocialUserDTO) session.getAttribute("loginUser");
         if (loginUser != null) {
-            for (CommunityPostDto p : posts) {
+            for (CommunityPost p : posts) {
                 boolean liked = service.hasUserLiked(p.getPostId(), loginUser.getName());
-                p.setLikedByCurrentUser(liked);
+                // Entity에는 setLikedByCurrentUser 메서드가 없으므로 별도 처리 필요
             }
         }
         System.out.println("posts size: " + posts.size());
         model.addAttribute("posts", posts);
-        return "community";                 // /WEB-INF/views/community.jsp
+        return "community";
     }
 
     @GetMapping("/view/{postId}")
-    public String viewPost(@PathVariable int postId, Model model){
-        CommunityPostDto post = service.getPostbyId(postId); // 메서드명 통일 권장
+    public String viewPost(@PathVariable Long postId, Model model){
+        CommunityPost post = service.getPostById(postId);
         model.addAttribute("post", post);
         return "community/view";
     }
 
     @GetMapping("/write")
     public String writeForm(Model model){
-        model.addAttribute("post", new CommunityPostDto());
+        model.addAttribute("post", new CommunityPost());
         return "community/write";
     }
 
     @PostMapping("/write") // ← 슬래시 추가
-    public String submitWrite(@ModelAttribute CommunityPostDto post){
+    public String submitWrite(@ModelAttribute CommunityPost post){
         service.createPost(post);
         return "redirect:/community";       // ← 목록으로
         // (만약 /community/list 로 가고 싶으면 위의 @GetMapping({"", "/", "/list"}) 가 있으니 그대로 써도 됨)
@@ -73,14 +69,14 @@ public class CommunityPostController {
             return "login_required";
         }
 
-        CommunityPostDto dto = new CommunityPostDto();
-        dto.setTitle(title);
-        dto.setContent(content);
-        dto.setCategory(category);
-        dto.setUserId(loginUser.getName()); // userId 대신 사용자 이름 저장
+        CommunityPost post = new CommunityPost();
+        post.setTitle(title);
+        post.setContent(content);
+        post.setCategory(category);
+        post.setUserId(loginUser.getName()); // userId 저장
 
         try {
-            service.createPost(dto);
+            service.createPost(post);
             return "success";
         } catch (Exception e) {
             e.printStackTrace();
@@ -91,7 +87,7 @@ public class CommunityPostController {
     @PostMapping(value="/edit/fetch", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     @ResponseBody
     public String editFetch(
-            @RequestParam int postId,
+            @RequestParam Long postId,
             @RequestParam String title,
             @RequestParam String content,
             @RequestParam String category,
@@ -111,26 +107,24 @@ public class CommunityPostController {
         }
 
         // 글 작성자 확인
-        CommunityPostDto existingPost = service.getPostbyId(postId);
+        CommunityPost existingPost = service.getPostById(postId);
         if (existingPost == null) {
             return "post_not_found";
         }
 
         // 본인이 작성한 글인지 확인 (userId 대신 authorName 사용)
-        if (!loginUser.getName().equals(existingPost.getAuthorName())) {
+        if (!loginUser.getName().equals(existingPost.getUserId())) {
             return "unauthorized";
         }
 
-        // DTO 구성
-        CommunityPostDto dto = new CommunityPostDto();
-        dto.setPostId(postId);
-        dto.setTitle(title);
-        dto.setContent(content);
-        dto.setCategory(category);
+        // Entity 업데이트
+        existingPost.setTitle(title);
+        existingPost.setContent(content);
+        existingPost.setCategory(category);
 
         try {
             // 업데이트 실행
-            service.updatePost(dto);
+            service.updatePost(existingPost);
             return "success";
         } catch (Exception e) {
             e.printStackTrace();
@@ -139,14 +133,14 @@ public class CommunityPostController {
     }
 
     @GetMapping("/edit/{postId}")
-    public String editForm(@PathVariable int postId, Model model){
-        CommunityPostDto post = service.getPostbyId(postId);
+    public String editForm(@PathVariable Long postId, Model model){
+        CommunityPost post = service.getPostById(postId);
         model.addAttribute("post", post);
         return "community/edit";
     }
 
     @PostMapping("/edit")
-    public String submitEdit(@ModelAttribute CommunityPostDto post) {
+    public String submitEdit(@ModelAttribute CommunityPost post) {
         service.updatePost(post);
         return "redirect:/community/view/" + post.getPostId();
     }
@@ -154,7 +148,7 @@ public class CommunityPostController {
     // fetch 전용 삭제 (시큐리티 없음)
     @PostMapping("/delete")
     @ResponseBody
-    public String deletePostFetch(@RequestParam int postId, HttpSession session) {
+    public String deletePostFetch(@RequestParam Long postId, HttpSession session) {
         // 로그인 상태 확인
         SocialUserDTO loginUser = (SocialUserDTO) session.getAttribute("loginUser");
         if (loginUser == null) {
@@ -162,13 +156,13 @@ public class CommunityPostController {
         }
 
         // 글 작성자 확인
-        CommunityPostDto existingPost = service.getPostbyId(postId);
+        CommunityPost existingPost = service.getPostById(postId);
         if (existingPost == null) {
             return "post_not_found";
         }
 
         // 본인이 작성한 글인지 확인 (userId 대신 authorName 사용)
-        if (!loginUser.getName().equals(existingPost.getAuthorName())) {
+        if (!loginUser.getName().equals(existingPost.getUserId())) {
             return "unauthorized";
         }
 
@@ -184,7 +178,7 @@ public class CommunityPostController {
     @PostMapping("/insert")
     @ResponseBody
     public String insertPost(@RequestParam String title, @RequestParam String content) {
-        CommunityPostDto post = new CommunityPostDto();
+        CommunityPost post = new CommunityPost();
         post.setTitle(title);
         post.setContent(content);
         service.createPost(post);
@@ -194,7 +188,7 @@ public class CommunityPostController {
         // 좋아요 토글: 세션에 사용자별 likedPosts를 저장하여 토글 상태를 관리
         @PostMapping(value="/like/toggle", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
         @ResponseBody
-        public java.util.Map<String, Object> toggleLike(@RequestParam int postId, HttpSession session) {
+        public java.util.Map<String, Object> toggleLike(@RequestParam Long postId, HttpSession session) {
             java.util.Map<String, Object> resp = new java.util.HashMap<>();
             com.example.ApiRound.dto.SocialUserDTO loginUser = (com.example.ApiRound.dto.SocialUserDTO) session.getAttribute("loginUser");
             if (loginUser == null) {
@@ -203,9 +197,9 @@ public class CommunityPostController {
             }
 
             Object likedAttr = session.getAttribute("likedPosts");
-            java.util.Set<Integer> likedPosts;
+            java.util.Set<Long> likedPosts;
             if (likedAttr instanceof java.util.Set) {
-                likedPosts = (java.util.Set<Integer>) likedAttr;
+                likedPosts = (java.util.Set<Long>) likedAttr;
             } else {
                 likedPosts = new java.util.HashSet<>();
                 session.setAttribute("likedPosts", likedPosts);

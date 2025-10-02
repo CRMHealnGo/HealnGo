@@ -1,11 +1,11 @@
 package com.example.ApiRound;
 
-import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
 @SpringBootApplication
-@MapperScan("com.example.ApiRound.mapper")
+@ConfigurationPropertiesScan
 public class ApiRoundApplication {
 
 	public static void main(String[] args) {
