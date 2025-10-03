@@ -9,18 +9,7 @@
 </head>
 <body>
     <!-- Header -->
-    <header class="header">
-        <div class="header-container">
-            <div class="logo">
-                <img th:src="@{/resources/images/HealnGo_logo.png}" alt="HealnGo" class="logo-img">
-                <span class="logo-text">HealnGo</span>
-            </div>
-            <div class="header-actions">
-                <a href="#" class="translate-link">번역</a>
-                <a href="/login" class="login-link">로그인 / 회원가입</a>
-            </div>
-        </div>
-    </header>
+    <div th:replace="common/header :: header"></div>
 
     <!-- Main Content -->
     <main class="main-content">
@@ -52,7 +41,17 @@
                             </div>
                             <div class="procedure-price">55,000 원</div>
                         </label>
-                        <button class="detail-btn">▼</button>
+                        <button class="detail-btn" onclick="toggleDetail(1)">▼</button>
+                    </div>
+                    <div class="procedure-detail-content" id="detail1" style="display: none;">
+                        <div class="detail-section">
+                            <h3>시술정보</h3>
+                            <p>주름톡 볼륨은 과도하게 발달한 근육을 축소시켜 얼굴 라인을 개선하는 시술입니다. 개인의 근육량에 따라 용량이 달라지며, 근육이 많거나 사용량이 많은 경우 추가 용량이 필요할 수 있습니다. 개인의 턱 근육 위치, 움직임, 피부 타입, 노화 정도를 고려한 균형 잡힌 시술이 중요하며, 숙련된 의료진이 맞춤형 시술을 제공합니다.</p>
+                        </div>
+                        <div class="detail-section">
+                            <h3>주의사항</h3>
+                            <p>시술 부위에 따라 효과 시기가 다르지만 보통 시술 후 2-4주 후에 효과가 나타납니다. 시술 부위를 비비거나 자극하지 마세요. 둔탁한 통증이 있을 수 있지만 정상적인 반응입니다. 효과 유지를 위해 딱딱하고 씹는 음식은 피해주세요. 시술 후 2-3일간 흡연과 음주를 피해주세요. 시술 후 약 일주일간 찜질방이나 사우나 등 고온 노출을 피해주세요.</p>
+                        </div>
                     </div>
                 </div>
 
@@ -66,7 +65,17 @@
                             </div>
                             <div class="procedure-price">32,000 원</div>
                         </label>
-                        <button class="detail-btn">▼</button>
+                        <button class="detail-btn" onclick="toggleDetail(2)">▼</button>
+                    </div>
+                    <div class="procedure-detail-content" id="detail2" style="display: none;">
+                        <div class="detail-section">
+                            <h3>시술정보</h3>
+                            <p>국산 틱톡스는 과도하게 발달한 근육을 축소시켜 얼굴 라인을 개선하는 시술입니다. 개인의 근육량에 따라 용량이 달라지며, 근육이 많거나 사용량이 많은 경우 추가 용량이 필요할 수 있습니다. 개인의 턱 근육 위치, 움직임, 피부 타입, 노화 정도를 고려한 균형 잡힌 시술이 중요하며, 숙련된 의료진이 맞춤형 시술을 제공합니다.</p>
+                        </div>
+                        <div class="detail-section">
+                            <h3>주의사항</h3>
+                            <p>시술 부위에 따라 효과 시기가 다르지만 보통 시술 후 2-4주 후에 효과가 나타납니다. 시술 부위를 비비거나 자극하지 마세요. 둔탁한 통증이 있을 수 있지만 정상적인 반응입니다. 효과 유지를 위해 딱딱하고 씹는 음식은 피해주세요. 시술 후 2-3일간 흡연과 음주를 피해주세요. 시술 후 약 일주일간 찜질방이나 사우나 등 고온 노출을 피해주세요.</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -182,47 +191,7 @@
     </div>
 
     <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-content">
-            <div class="footer-left">
-                <div class="footer-logo">
-                    <img th:src="@{/resources/images/HealnGo_logo.png}" alt="HealnGo">
-                    <span>HealnGo</span>
-                </div>
-                <p>현재 한국 전역의 새로운 기준, HealnGo가 만들어갑니다.</p>
-                <p>더 건강한 여행을 떠나세요.</p>
-            </div>
-            <div class="footer-links">
-                <div class="link-column">
-                    <h4>회사 소개</h4>
-                    <a href="#">회사 소개</a>
-                    <a href="#">인재 채용</a>
-                    <a href="#">문의하기</a>
-                </div>
-                <div class="link-column">
-                    <h4>서비스</h4>
-                    <a href="#">서비스</a>
-                    <a href="#">제휴 문의</a>
-                    <a href="#">추천 페이지</a>
-                </div>
-                <div class="link-column">
-                    <h4>고객 지원</h4>
-                    <a href="#">자주 묻는 질문</a>
-                    <a href="#">이용약관</a>
-                    <a href="#">개인정보처리방침</a>
-                </div>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2023 HealnGo. 모든 권리 보유.</p>
-            <div class="social-icons">
-                <a href="#">📘</a>
-                <a href="#">🐦</a>
-                <a href="#">📺</a>
-                <a href="#">📷</a>
-            </div>
-        </div>
-    </footer>
+    <div th:replace="common/footer :: footer"></div>
 
     <script th:src="@{/resources/js/reservation.js}"></script>
 </body>
