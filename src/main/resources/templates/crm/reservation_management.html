@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>예약 관리 - HealnGo Admin</title>
+    <link rel="stylesheet" href="/resources/css/styles.css">
+    <link rel="stylesheet" href="/crm/css/reservation_management.css">
+    <link rel="stylesheet" href="/crm/css/company_sidebar.css">
+    <link rel="stylesheet" href="/crm/css/company_header.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- 사이드바 -->
+    <div th:replace="common/company_sidebar"></div>
+    
+    <!-- 메인 컨텐츠 -->
+    <div class="main-content">
+        <!-- 헤더 -->
+        <div th:replace="common/company_header :: company_header"></div>
+
+        <!-- 페이지 컨텐츠 -->
+        <div class="page-content">
+            <div class="page-header">
+                <h1 class="page-title">피부과병원_힝거피부과</h1>
+                <h2 class="section-title">예약 관리</h2>
+            </div>
+
+            <div class="page-content-container">            
+                <!-- 메인 달력 영역 -->
+                <div class="calendar-container">
+                    <!-- 달력 -->
+                    <div class="calendar">
+                        <div class="calendar-header">
+                            <button class="nav-btn" id="prevMonth">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <h3 class="month-year" id="currentMonth">2024년 10월</h3>
+                            <button class="nav-btn" id="nextMonth">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="calendar-grid">
+                            <div class="weekdays">
+                                <div class="weekday">일</div>
+                                <div class="weekday">월</div>
+                                <div class="weekday">화</div>
+                                <div class="weekday">수</div>
+                                <div class="weekday">목</div>
+                                <div class="weekday">금</div>
+                                <div class="weekday">토</div>
+                            </div>
+                            
+                            <div class="days" id="calendarDays">
+                                <!-- 달력 날짜들이 JavaScript로 동적으로 생성됩니다 -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 최근 업데이트 -->
+                    <div class="recent-updates">
+                        <h3>최근 업데이트</h3>
+                        <div class="update-list">
+                            <div class="update-item">
+                                <span class="update-text">둥그리둥둥님께서 10월 20일 오전 11시 예약 하셨습니다.</span>
+                            </div>
+                            <div class="update-item">
+                                <span class="update-text">둥그리둥둥님께서 10월 20일 오전 11시 예약 하셨습니다.</span>
+                            </div>
+                            <div class="update-item">
+                                <span class="update-text">둥그리둥둥님께서 10월 20일 오전 11시 예약 하셨습니다.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 오른쪽 사이드바 -->
+                <div class="sidebar-right">
+                    <div class="today-schedule">
+                        <h3>금일 일정</h3>
+                        <div class="schedule-date">10월 3일</div>
+                        <div class="schedule-list">
+                            <div class="schedule-item">
+                                <span class="schedule-text">신규 이벤트 공지</span>
+                            </div>
+                            <div class="schedule-item">
+                                <span class="schedule-text">계절상품 선정</span>
+                            </div>
+                            <div class="schedule-item">
+                                <span class="schedule-text">베스트 리뷰러 선정</span>
+                            </div>
+                            <div class="schedule-item reservation">
+                                <span class="schedule-text">서울깍쟁이 님 오전 12시 울쎄라핌 예약</span>
+                            </div>
+                            <div class="schedule-item reservation">
+                                <span class="schedule-text">둥그리둥둥님께서 10월 20일 오전 11시 예약 하셨습니다.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </div>
+</div>
+
+<!-- 일정 추가 모달 -->
+<div id="eventModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>일정 추가</h2>
+            <span class="close" onclick="closeModal()">&times;</span>
+        </div>
+        <form id="eventForm">
+            <div class="form-group">
+                <label for="eventTitle">제목</label>
+                <input type="text" id="eventTitle" name="title" placeholder="일정 제목을 입력하세요" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="eventDate">날짜</label>
+                <input type="date" id="eventDate" name="date" required>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="eventStartTime">시작 시간</label>
+                    <input type="time" id="eventStartTime" name="startTime" required>
+                </div>
+                <div class="form-group">
+                    <label for="eventEndTime">종료 시간</label>
+                    <input type="time" id="eventEndTime" name="endTime" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="eventDescription">설명</label>
+                <textarea id="eventDescription" name="description" placeholder="일정에 대한 설명을 입력하세요" rows="3"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="eventLocation">장소</label>
+                <input type="text" id="eventLocation" name="location" placeholder="장소를 입력하세요">
+            </div>
+            
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="googleSyncEnabled" name="googleSyncEnabled" value="true">
+                    <span class="checkmark"></span>
+                    구글 캘린더와 동기화
+                </label>
+                <small class="form-help">체크하면 구글 캘린더에도 일정이 추가됩니다</small>
+            </div>
+            
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="closeModal()">취소</button>
+                <button type="submit" class="btn-save">저장</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="/crm/js/company_sidebar.js"></script>
+    <script src="/crm/js/company_header.js"></script>
+    <script src="/crm/js/reservation_management.js"></script>
+</body>
+</html>
