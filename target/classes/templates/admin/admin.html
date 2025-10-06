@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealnGo Admin Dashboard</title>
+    
+    <!-- CSS 파일들 -->
+    <link rel="stylesheet" href="/static/crm/css/manager_sidebar.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        /* 기본 리셋 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+            background-color: #f8f9fa !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            display: block !important;
+            min-height: 100vh !important;
+        }
+        
+        /* 메인 컨테이너 */
+        .dashboard-container {
+            display: flex !important;
+            min-height: 100vh !important;
+            background-color: #f8f9fa !important;
+        }
+        
+        /* 사이드바 영역 */
+        .sidebar-area {
+            width: 250px !important;
+            flex-shrink: 0 !important;
+            background-color: #f8f9fa !important;
+            padding: 20px !important;
+            position: fixed !important;
+            top: 80px !important;
+            left: 0 !important;
+            height: calc(100vh - 80px) !important;
+            z-index: 999 !important;
+        }
+        
+        /* 메인 콘텐츠 영역 */
+        .main-content-area {
+            flex: 1 !important;
+            background-color: #f8f9fa !important;
+            min-height: 100vh !important;
+            display: flex !important;
+            flex-direction: column !important;
+            margin-top: 80px !important;
+        }
+        
+        /* 상단 헤더 - 이미지와 동일하게 */
+        .top-header {
+            background: white !important;
+            padding: 15px 30px !important;
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+            margin-bottom: 20px !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            z-index: 1000 !important;
+            width: 100% !important;
+        }
+        
+        .header-left {
+            display: flex !important;
+            align-items: center !important;
+            gap: 20px !important;
+        }
+        
+        .logo-section {
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
+            pointer-events: none !important;
+            cursor: default !important;
+        }
+        
+        .logo-icon {
+            width: 40px !important;
+            height: 40px !important;
+            background: linear-gradient(135deg, #ff6b9d, #4ecdc4) !important;
+            border-radius: 50% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            color: white !important;
+            font-size: 18px !important;
+        }
+        
+        .logo-text {
+            font-size: 24px !important;
+            font-weight: bold !important;
+            color: #2c3e50 !important;
+            pointer-events: none !important;
+            cursor: default !important;
+        }
+        
+        .logo-tagline {
+            font-size: 12px !important;
+            color: #7f8c8d !important;
+            margin-top: -5px !important;
+            pointer-events: none !important;
+            cursor: default !important;
+        }
+        
+        .search-bar {
+            position: relative !important;
+        }
+        
+        .search-input {
+            padding: 10px 40px 10px 15px !important;
+            border: 1px solid #ddd !important;
+            border-radius: 20px !important;
+            width: 300px !important;
+            font-size: 14px !important;
+        }
+        
+        .search-icon {
+            position: absolute !important;
+            right: 15px !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            color: #7f8c8d !important;
+        }
+        
+        .header-right {
+            display: flex !important;
+            align-items: center !important;
+            gap: 20px !important;
+        }
+        
+        .notification-btn {
+            background: none !important;
+            border: none !important;
+            font-size: 20px !important;
+            color: #7f8c8d !important;
+            cursor: pointer !important;
+        }
+        
+        .profile-section {
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
+        }
+        
+        .profile-img {
+            width: 35px !important;
+            height: 35px !important;
+            border-radius: 50% !important;
+            background: #3498db !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            color: white !important;
+            font-weight: bold !important;
+        }
+        
+        .profile-text {
+            font-size: 14px !important;
+            color: #2c3e50 !important;
+        }
+        
+        .date-range {
+            display: flex !important;
+            align-items: center !important;
+            gap: 5px !important;
+            font-size: 14px !important;
+            color: #7f8c8d !important;
+        }
+        
+        /* 메인 콘텐츠 */
+        .main-content {
+            padding: 0 30px 30px 30px !important;
+            flex: 1 !important;
+            overflow-y: auto !important;
+            margin-left: 250px !important;
+        }
+        
+        .page-title {
+            font-size: 28px !important;
+            font-weight: bold !important;
+            color: #2c3e50 !important;
+            margin-bottom: 5px !important;
+        }
+        
+        .page-subtitle {
+            font-size: 18px !important;
+            color: #7f8c8d !important;
+            margin-bottom: 30px !important;
+        }
+        
+        /* 카드 그리드 */
+        .cards-grid {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            grid-template-rows: 1fr 1fr !important;
+            gap: 20px !important;
+            height: calc(100vh - 200px) !important;
+        }
+        
+        .card {
+            background: white !important;
+            border-radius: 12px !important;
+            padding: 25px !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
+            overflow: hidden !important;
+        }
+        
+        .card-header {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            margin-bottom: 20px !important;
+        }
+        
+        .card-title {
+            font-size: 18px !important;
+            font-weight: 600 !important;
+            color: #2c3e50 !important;
+        }
+        
+        .view-all-link {
+            color: #3498db !important;
+            text-decoration: none !important;
+            font-size: 14px !important;
+        }
+        
+        /* 사용자 관리 카드 */
+        .user-chart-container {
+            height: 200px !important;
+            position: relative !important;
+        }
+        
+        /* 캘린더 카드 */
+        .calendar-container {
+            display: flex !important;
+            gap: 20px !important;
+            height: 100% !important;
+        }
+        
+        .calendar-grid {
+            flex: 1 !important;
+            min-width: 200px !important;
+        }
+        
+        .calendar-header {
+            display: grid !important;
+            grid-template-columns: repeat(7, 1fr) !important;
+            gap: 2px !important;
+            margin-bottom: 10px !important;
+        }
+        
+        .calendar-day-header {
+            text-align: center !important;
+            font-size: 12px !important;
+            color: #7f8c8d !important;
+            padding: 8px 4px !important;
+            font-weight: 600 !important;
+        }
+        
+        .calendar-days {
+            display: grid !important;
+            grid-template-columns: repeat(7, 1fr) !important;
+            gap: 2px !important;
+        }
+        
+        .calendar-day {
+            text-align: center !important;
+            padding: 8px 4px !important;
+            font-size: 14px !important;
+            border-radius: 4px !important;
+            cursor: pointer !important;
+            transition: background-color 0.2s !important;
+            min-height: 30px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            color: #2c3e50 !important;
+        }
+        
+        .calendar-day:hover {
+            background-color: #f8f9fa !important;
+        }
+        
+        .calendar-day.has-event {
+            background-color: #e3f2fd !important;
+            color: #1976d2 !important;
+            font-weight: 600 !important;
+        }
+        
+        .calendar-day.today {
+            background-color: #3498db !important;
+            color: white !important;
+            font-weight: 600 !important;
+        }
+        
+        .schedule-section {
+            flex: 1 !important;
+            padding-left: 20px !important;
+            border-left: 1px solid #eee !important;
+        }
+        
+        .schedule-date {
+            font-size: 16px !important;
+            font-weight: 600 !important;
+            color: #2c3e50 !important;
+            margin-bottom: 15px !important;
+        }
+        
+        .schedule-item {
+            margin-bottom: 10px !important;
+            font-size: 14px !important;
+            color: #555 !important;
+        }
+        
+        .schedule-item::before {
+            content: "•" !important;
+            color: #3498db !important;
+            margin-right: 8px !important;
+        }
+        
+        .timeline {
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
+            margin-top: 20px !important;
+        }
+        
+        .timeline-dot {
+            width: 12px !important;
+            height: 12px !important;
+            background-color: #3498db !important;
+            border-radius: 50% !important;
+        }
+        
+        .timeline-line {
+            flex: 1 !important;
+            height: 2px !important;
+            background-color: #3498db !important;
+        }
+        
+        /* 업체 관리 카드 */
+        .company-list {
+            height: 100% !important;
+            overflow-y: auto !important;
+        }
+        
+        .company-item {
+            display: flex !important;
+            align-items: center !important;
+            gap: 15px !important;
+            padding: 15px !important;
+            border: 1px solid #eee !important;
+            border-radius: 8px !important;
+            margin-bottom: 15px !important;
+        }
+        
+        .company-icon {
+            width: 40px !important;
+            height: 40px !important;
+            border-radius: 8px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            color: white !important;
+            font-weight: bold !important;
+        }
+        
+        .company-info {
+            flex: 1 !important;
+        }
+        
+        .company-name {
+            font-size: 16px !important;
+            font-weight: 600 !important;
+            color: #2c3e50 !important;
+            margin-bottom: 5px !important;
+        }
+        
+        .company-id {
+            font-size: 12px !important;
+            color: #7f8c8d !important;
+            margin-bottom: 5px !important;
+        }
+        
+        .company-date {
+            font-size: 12px !important;
+            color: #7f8c8d !important;
+        }
+        
+        .company-rating {
+            text-align: right !important;
+        }
+        
+        .rating-stars {
+            font-size: 14px !important;
+            color: #f39c12 !important;
+            margin-bottom: 5px !important;
+        }
+        
+        .rating-count {
+            font-size: 12px !important;
+            color: #7f8c8d !important;
+        }
+        
+        .company-data {
+            display: flex !important;
+            gap: 15px !important;
+            margin-top: 10px !important;
+            font-size: 12px !important;
+        }
+        
+        .data-item {
+            display: flex !important;
+            align-items: center !important;
+            gap: 5px !important;
+        }
+        
+        .data-label {
+            color: #7f8c8d !important;
+        }
+        
+        .data-value {
+            color: #2c3e50 !important;
+            font-weight: 600 !important;
+        }
+        
+        .profile-avatars {
+            display: flex !important;
+            align-items: center !important;
+            gap: 2px !important;
+        }
+        
+        .profile-avatar {
+            width: 20px !important;
+            height: 20px !important;
+            border-radius: 50% !important;
+            background: #3498db !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            color: white !important;
+            font-size: 10px !important;
+        }
+        
+        /* 문의 & 신고 카드 */
+        .inquiry-list {
+            height: 100% !important;
+            overflow-y: auto !important;
+        }
+        
+        .inquiry-item {
+            display: flex !important;
+            align-items: flex-start !important;
+            gap: 15px !important;
+            padding: 15px !important;
+            border: 1px solid #eee !important;
+            border-radius: 8px !important;
+            margin-bottom: 15px !important;
+        }
+        
+        .inquiry-avatar {
+            width: 40px !important;
+            height: 40px !important;
+            border-radius: 50% !important;
+            background: #e74c3c !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            color: white !important;
+            font-weight: bold !important;
+        }
+        
+        .inquiry-content {
+            flex: 1 !important;
+        }
+        
+        .inquiry-name {
+            font-size: 16px !important;
+            font-weight: 600 !important;
+            color: #2c3e50 !important;
+            margin-bottom: 5px !important;
+        }
+        
+        .inquiry-role {
+            font-size: 12px !important;
+            color: #7f8c8d !important;
+            margin-bottom: 10px !important;
+        }
+        
+        .inquiry-message {
+            font-size: 14px !important;
+            color: #555 !important;
+            margin-bottom: 10px !important;
+        }
+        
+        .inquiry-actions {
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
+        }
+        
+        .attachment-icon {
+            color: #7f8c8d !important;
+            font-size: 14px !important;
+        }
+        
+        .view-more {
+            color: #3498db !important;
+            text-decoration: none !important;
+            font-size: 14px !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 5px !important;
+        }
+        
+        /* 사이드바 스타일 오버라이드 */
+        .sidebar {
+            width: 100% !important;
+            background-color: #f8f9fa !important;
+            color: #333 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            height: 100% !important;
+            position: relative !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            z-index: 1 !important;
+        }
+        
+        .sidebar-header {
+            display: none !important;
+        }
+        
+        .logo {
+            display: none !important;
+        }
+        
+        .logo-img {
+            display: none !important;
+        }
+        
+        .sidebar-nav {
+            flex: 1 !important;
+        }
+        
+        .nav-item {
+            margin-bottom: 5px !important;
+        }
+        
+        .nav-link {
+            display: flex !important;
+            align-items: center !important;
+            padding: 12px 15px !important;
+            color: #7f8c8d !important;
+            text-decoration: none !important;
+            transition: all 0.3s ease !important;
+            border-radius: 8px !important;
+            border-left: none !important;
+        }
+        
+        .nav-link:hover {
+            background-color: #e9ecef !important;
+            color: #3498db !important;
+        }
+        
+        .nav-link.active {
+            background-color: #3498db !important;
+            color: white !important;
+        }
+        
+        .nav-link i {
+            margin-right: 12px !important;
+            width: 20px !important;
+            text-align: center !important;
+        }
+        
+        .sidebar-footer {
+            padding: 0 !important;
+            border-top: none !important;
+        }
+        
+        .logout-btn {
+            width: 100% !important;
+            padding: 12px 15px !important;
+            background: none !important;
+            border: none !important;
+            color: #7f8c8d !important;
+            text-align: left !important;
+            cursor: pointer !important;
+            border-radius: 8px !important;
+            transition: all 0.3s ease !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+        }
+        
+        .logout-btn:hover {
+            background-color: #e9ecef !important;
+            color: #e74c3c !important;
+        }
+        
+        /* manager_header.html 연결 완전 차단 */
+        .main-header {
+            display: none !important;
+        }
+        
+        header.main-header {
+            display: none !important;
+        }
+        
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .dashboard-container {
+                flex-direction: column !important;
+            }
+            
+            .sidebar-area {
+                width: 100% !important;
+                padding: 10px !important;
+                position: relative !important;
+                top: 0 !important;
+                height: auto !important;
+            }
+            
+            .main-content {
+                margin-left: 0 !important;
+                margin-top: 0 !important;
+            }
+            
+            .main-content-area {
+                margin-top: 0 !important;
+            }
+            
+            .cards-grid {
+                grid-template-columns: 1fr !important;
+                grid-template-rows: auto !important;
+                height: auto !important;
+            }
+            
+            .search-input {
+                width: 200px !important;
+            }
+            
+            .calendar-container {
+                flex-direction: column !important;
+            }
+            
+            .schedule-section {
+                padding-left: 0 !important;
+                border-left: none !important;
+                border-top: 1px solid #eee !important;
+                padding-top: 20px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- 사이드바 -->
+        <div class="sidebar-area">
+            <div th:replace="common/manager_sidebar :: manager_sidebar"></div>
+        </div>
+        
+        <!-- 메인 콘텐츠 -->
+        <div class="main-content-area">
+            <!-- 상단 헤더 (인라인) -->
+            <div class="top-header">
+                <div class="header-left">
+                    <div class="logo-section">
+                        <div class="logo-icon">❤️</div>
+                        <div>
+                            <div class="logo-text">HealnGo</div>
+                            <div class="logo-tagline">Care first, then go</div>
+                        </div>
+                    </div>
+                    <div class="search-bar">
+                        <input type="text" class="search-input" placeholder="Search">
+                        <i class="fas fa-search search-icon"></i>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <button class="notification-btn">
+                        <i class="fas fa-bell"></i>
+                    </button>
+                    <div class="profile-section">
+                        <div class="profile-img">정</div>
+                        <div class="profile-text">관리자 정민서</div>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="date-range">
+                        <i class="fas fa-calendar"></i>
+                        <span>Sep 16, 2025 - Oct 16, 2025</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 메인 콘텐츠 -->
+            <div class="main-content">
+                <h1 class="page-title">관리자 모드</h1>
+                <h2 class="page-subtitle">Dashboard</h2>
+                
+                <!-- 카드 그리드 -->
+                <div class="cards-grid">
+                    <!-- 사용자 관리 카드 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">사용자 관리</h3>
+                            <a href="#" class="view-all-link">View all ></a>
+                        </div>
+                        <div class="user-chart-container">
+                            <canvas id="userChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- 10월 캘린더 카드 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">10월</h3>
+                        </div>
+                        <div class="calendar-container">
+                            <div class="calendar-grid">
+                                <div class="calendar-header">
+                                    <div class="calendar-day-header">일</div>
+                                    <div class="calendar-day-header">월</div>
+                                    <div class="calendar-day-header">화</div>
+                                    <div class="calendar-day-header">수</div>
+                                    <div class="calendar-day-header">목</div>
+                                    <div class="calendar-day-header">금</div>
+                                    <div class="calendar-day-header">토</div>
+                                </div>
+                                <div class="calendar-days">
+                                    <!-- 10월 1주차 -->
+                                    <div class="calendar-day"></div>
+                                    <div class="calendar-day">01</div>
+                                    <div class="calendar-day has-event">02</div>
+                                    <div class="calendar-day">03</div>
+                                    <div class="calendar-day">04</div>
+                                    <div class="calendar-day">05</div>
+                                    <div class="calendar-day">06</div>
+                                    
+                                    <!-- 10월 2주차 -->
+                                    <div class="calendar-day">07</div>
+                                    <div class="calendar-day has-event">08</div>
+                                    <div class="calendar-day has-event">09</div>
+                                    <div class="calendar-day has-event">10</div>
+                                    <div class="calendar-day">11</div>
+                                    <div class="calendar-day">12</div>
+                                    <div class="calendar-day">13</div>
+                                    
+                                    <!-- 10월 3주차 -->
+                                    <div class="calendar-day">14</div>
+                                    <div class="calendar-day">15</div>
+                                    <div class="calendar-day">16</div>
+                                    <div class="calendar-day has-event">17</div>
+                                    <div class="calendar-day">18</div>
+                                    <div class="calendar-day today">19</div>
+                                    <div class="calendar-day">20</div>
+                                    
+                                    <!-- 10월 4주차 -->
+                                    <div class="calendar-day">21</div>
+                                    <div class="calendar-day">22</div>
+                                    <div class="calendar-day">23</div>
+                                    <div class="calendar-day">24</div>
+                                    <div class="calendar-day">25</div>
+                                    <div class="calendar-day">26</div>
+                                    <div class="calendar-day">27</div>
+                                    
+                                    <!-- 10월 5주차 -->
+                                    <div class="calendar-day">28</div>
+                                    <div class="calendar-day">29</div>
+                                    <div class="calendar-day">30</div>
+                                    <div class="calendar-day">31</div>
+                                    <div class="calendar-day"></div>
+                                    <div class="calendar-day"></div>
+                                    <div class="calendar-day"></div>
+                                </div>
+                            </div>
+                            <div class="schedule-section">
+                                <div class="schedule-date">10/13</div>
+                                <div class="schedule-item">밝은미소 패키지 예약</div>
+                                <div class="schedule-item">반짝피부과 입점</div>
+                                <div class="schedule-item">반짝피부과 광고일(13-16)</div>
+                                <div class="schedule-item">공지사항</div>
+                                <div style="margin-left: 10px; font-size: 12px; color: #7f8c8d;">
+                                    -업데이트 공지 올라감.<br>
+                                    -고객 신고 처리 공지 올라감
+                                </div>
+                                
+                                <div class="schedule-date" style="margin-top: 20px;">10/16</div>
+                                <div class="schedule-item">입점 업체 결제처리</div>
+                                <div class="schedule-item">해맑치과 입점</div>
+                                <div class="schedule-item">해맑치과 광고일(16~19)</div>
+                                <div class="schedule-item">공지사항</div>
+                                <div style="margin-left: 10px; font-size: 12px; color: #7f8c8d;">
+                                    -고객 신고 처리 공지 올라감
+                                </div>
+                                
+                                <div class="timeline">
+                                    <div class="timeline-dot"></div>
+                                    <div class="timeline-line"></div>
+                                    <div class="timeline-dot"></div>
+                                    <div class="timeline-line"></div>
+                                    <div class="timeline-dot"></div>
+                                    <div class="timeline-line"></div>
+                                    <div class="timeline-dot"></div>
+                                    <div class="timeline-line"></div>
+                                    <div class="timeline-dot"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 업체 관리 카드 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">업체 관리</h3>
+                            <a href="#" class="view-all-link">View all ></a>
+                        </div>
+                        <div class="company-list">
+                            <div class="company-item">
+                                <div class="company-icon" style="background: linear-gradient(135deg, #ff6b9d, #4ecdc4);">123</div>
+                                <div class="company-info">
+                                    <div class="company-name">123성형외과</div>
+                                    <div class="company-id">PN0001265</div>
+                                    <div class="company-date">계약일 Sep 12, 2021</div>
+                                    <div class="company-data">
+                                        <div class="data-item">
+                                            <span class="data-label">상담</span>
+                                            <span class="data-value">947</span>
+                                        </div>
+                                        <div class="data-item">
+                                            <span class="data-label">이벤트</span>
+                                            <span class="data-value">13</span>
+                                        </div>
+                                        <div class="data-item">
+                                            <span class="data-label">예약건</span>
+                                            <div class="profile-avatars">
+                                                <div class="profile-avatar">A</div>
+                                                <div class="profile-avatar">B</div>
+                                                <div class="profile-avatar">C</div>
+                                                <span style="margin-left: 5px; font-size: 12px; color: #7f8c8d;">+2</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="company-rating">
+                                    <div class="rating-stars">↑4.8★(288)</div>
+                                </div>
+                            </div>
+                            
+                            <div class="company-item">
+                                <div class="company-icon" style="background: linear-gradient(135deg, #4ecdc4, #45b7d1);">하</div>
+                                <div class="company-info">
+                                    <div class="company-name">하나한의원</div>
+                                    <div class="company-id">PN0001221</div>
+                                    <div class="company-date">계약일 Sep 10, 2020</div>
+                                    <div class="company-data">
+                                        <div class="data-item">
+                                            <span class="data-label">상담</span>
+                                            <span class="data-value">1075</span>
+                                        </div>
+                                        <div class="data-item">
+                                            <span class="data-label">이벤트</span>
+                                            <span class="data-value">4</span>
+                                        </div>
+                                        <div class="data-item">
+                                            <span class="data-label">예약건</span>
+                                            <div class="profile-avatars">
+                                                <div class="profile-avatar">D</div>
+                                                <div class="profile-avatar">E</div>
+                                                <div class="profile-avatar">F</div>
+                                                <span style="margin-left: 5px; font-size: 12px; color: #7f8c8d;">+1</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="company-rating">
+                                    <div class="rating-stars">↑4.7★(312)</div>
+                                </div>
+                            </div>
+                            
+                            <div class="company-item">
+                                <div class="company-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">새</div>
+                                <div class="company-info">
+                                    <div class="company-name">새하얀피부과</div>
+                                    <div class="company-id">PN0001290</div>
+                                    <div class="company-date">계약일 May 28, 2024</div>
+                                    <div class="company-data">
+                                        <div class="data-item">
+                                            <span class="data-label">상담</span>
+                                            <span class="data-value">966</span>
+                                        </div>
+                                        <div class="data-item">
+                                            <span class="data-label">이벤트</span>
+                                            <span class="data-value">20</span>
+                                        </div>
+                                        <div class="data-item">
+                                            <span class="data-label">예약건</span>
+                                            <div class="profile-avatars">
+                                                <div class="profile-avatar">G</div>
+                                                <div class="profile-avatar">H</div>
+                                                <div class="profile-avatar">I</div>
+                                                <span style="margin-left: 5px; font-size: 12px; color: #7f8c8d;">+5</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="company-rating">
+                                    <div class="rating-stars" style="color: #e74c3c;">↓4.2★(162)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 문의 & 신고 접수 카드 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">문의 & 신고 접수</h3>
+                        </div>
+                        <div class="inquiry-list">
+                            <div class="inquiry-item">
+                                <div class="inquiry-avatar">기</div>
+                                <div class="inquiry-content">
+                                    <div class="inquiry-name">기쁨 성형외과</div>
+                                    <div class="inquiry-role">눈 전문 성형외과</div>
+                                    <div class="inquiry-message">
+                                        <i class="fas fa-comment" style="color: #3498db; margin-right: 5px;"></i>
+                                        병원에서 진행하는 프로모션을 광고하고 싶어요.
+                                    </div>
+                                    <div class="inquiry-actions">
+                                        <i class="fas fa-paperclip attachment-icon"></i>
+                                        <span style="font-size: 12px; color: #7f8c8d;">Attached files to the task.</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="inquiry-item">
+                                <div class="inquiry-avatar">E</div>
+                                <div class="inquiry-content">
+                                    <div class="inquiry-name">Emily Tyler</div>
+                                    <div class="inquiry-role">사용자</div>
+                                    <div class="inquiry-message">
+                                        <i class="fas fa-comment" style="color: #3498db; margin-right: 5px;"></i>
+                                        바밤바피부과에서 이상한 연락을 보내서 신고하고 싶어요.
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div style="text-align: center; margin-top: 20px;">
+                                <a href="#" class="view-more">
+                                    View more
+                                    <i class="fas fa-chevron-down"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="/static/crm/js/manager_sidebar.js"></script>
+    <script>
+        // 사용자 차트 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('userChart');
+            if (ctx) {
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['4월', '5월', '6월', '7월', '8월', '9월', '10월'],
+                        datasets: [{
+                            label: '외국인 사용객',
+                            data: [36, 24, 30, 59, 77, 95, 89],
+                            borderColor: '#e74c3c',
+                            backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        }, {
+                            label: '한국인 사용객',
+                            data: [50, 60, 52, 44, 58, 62, 80],
+                            borderColor: '#3498db',
+                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.1)'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
