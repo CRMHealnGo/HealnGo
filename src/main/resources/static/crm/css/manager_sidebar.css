@@ -5,32 +5,24 @@
     box-sizing: border-box;
 }
 
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #F4F9FD;
-    display: flex;
-    height: 100vh;
-}
+/* body 스타일은 admin-dashboard-body에서 오버라이드됨 */
 
 /* 사이드바 */
 .sidebar {
-    width: 250px;
-    background-color: white;
-    color: white;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    position: fixed;
-    left: 0;
-    top: 0;
-    z-index: 1000;
-    margin: 20px;
-    border-radius: 20px;
+    width: 100% !important;
+    background-color: white !important;
+    color: #333 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100vh !important;
+    position: relative !important;
+    border-radius: 20px !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
 }
 
 .sidebar-header {
-    padding: 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 20px !important;
+    border-bottom: 1px solid #e9ecef !important;
 }
 
 .logo {
@@ -79,15 +71,15 @@ body {
 }
 
 .nav-link:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: #3F8CFF;
+    background-color: #f8f9fa !important;
+    color: #3F8CFF !important;
 }
 
 .nav-link.active,
 .nav-item.active .nav-link {
-    background-color: #3F8CFF;
-    color: white;
-    border-left-color: white;
+    background-color: #3F8CFF !important;
+    color: white !important;
+    border-left-color: white !important;
 }
 
 .nav-link i {
@@ -98,8 +90,8 @@ body {
 
 /* 로그아웃 버튼 */
 .sidebar-footer {
-    padding: 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 20px !important;
+    border-top: 1px solid #e9ecef !important;
 }
 
 .logout-btn {
