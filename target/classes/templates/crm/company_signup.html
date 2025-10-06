@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회사 회원가입 - HealnGo</title>
+    <link rel="stylesheet" href="/resources/css/styles.css">
+    <link rel="stylesheet" href="/crm/css/company_signup.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="signup-container">
+        <!-- 왼쪽 사이드바 -->
+        <div class="signup-sidebar">
+            <div class="sidebar-content">
+                <div class="logo-section">
+                    <div class="logo">
+                        <img src="/crm/images/로고 블랙.png.png" alt="HealnGo Logo" class="logo-img">
+                    </div>
+                </div>
+                
+                <div class="progress-steps">
+                    <div class="step" id="step1">
+                        <div class="step-circle active">
+                            <span class="step-number">1</span>
+                        </div>
+                        <span class="step-text">핸드폰 인증</span>
+                    </div>
+                    
+                    <div class="step" id="step2">
+                        <div class="step-circle">
+                            <span class="step-number">2</span>
+                        </div>
+                        <span class="step-text">회사 정보</span>
+                    </div>
+                    
+                    <div class="step" id="step3">
+                        <div class="step-circle">
+                            <span class="step-number">3</span>
+                        </div>
+                        <span class="step-text">팀원 초대</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 오른쪽 메인 컨텐츠 -->
+        <div class="signup-main">
+            <!-- Step 1: 전화번호 인증 -->
+            <div class="step-content active" id="step1-content">
+                <div class="step-header">
+                    <span class="step-indicator">STEP 1/3</span>
+                    <h2 class="step-title">핸드폰 인증</h2>
+                </div>
+                
+                <form class="signup-form" id="step1-form">
+                    <div class="form-group">
+                        <label>핸드폰 번호</label>
+                        <div class="phone-input-group">
+                            <input type="tel" class="phone-number" id="phoneNumber" placeholder="010-1234-5678" required>
+                            <button type="button" class="btn-send-sms" onclick="sendSMS()">인증하기</button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>인증번호</label>
+                        <input type="text" class="verification-code" id="smsCode" placeholder="인증번호를 입력하세요" required>
+                    </div>
+                    
+                    <div class="sms-info" id="smsInfo" style="display: none;">
+                        <i class="fas fa-info-circle"></i>
+                        <span>SMS was sent to your number <span id="sentNumber"></span> It will be valid for <span id="timer">01:25</span></span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" class="email-input" id="email" placeholder="youremail@gmail.com" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Create Password</label>
+                        <div class="password-input-group">
+                            <input type="password" class="password-input" id="password" placeholder="비밀번호를 입력하세요" required>
+                            <i class="fas fa-eye password-toggle" onclick="togglePassword()"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn-next" onclick="nextStep()">Next Step <i class="fas fa-arrow-right"></i></button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Step 2: 회사 정보 -->
+            <div class="step-content" id="step2-content">
+                <div class="step-header">
+                    <span class="step-indicator">STEP 2/3</span>
+                    <h2 class="step-title">Tell about your company</h2>
+                </div>
+                
+                <form class="signup-form" id="step2-form">
+                    <div class="form-group">
+                        <label>병원명 (Company's Name)</label>
+                        <input type="text" class="company-name" id="companyName" placeholder="Company's Name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>사업자번호 (Company's number)</label>
+                        <input type="text" class="company-number" id="companyNumber" placeholder="Company's number" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>병원 종류 (Hospital Type)</label>
+                        <div class="dropdown-container">
+                            <select class="hospital-type" id="hospitalType" required>
+                                <option value="">선택하세요</option>
+                                <option value="성형외과">성형외과</option>
+                                <option value="피부과">피부과</option>
+                                <option value="치과">치과</option>
+                                <option value="약국">약국</option>
+                                <option value="한의학">한의학</option>
+                                <option value="마사지">마사지</option>
+                                <option value="왁싱">왁싱</option>
+                            </select>
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>직급 (Position/Title)</label>
+                        <div class="dropdown-container">
+                            <select class="position" id="position" required>
+                                <option value="">선택하세요</option>
+                                <option value="대표">대표</option>
+                                <option value="이사">이사</option>
+                                <option value="부장">부장</option>
+                                <option value="과장">과장</option>
+                                <option value="대리">대리</option>
+                                <option value="사원">사원</option>
+                            </select>
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn-previous" onclick="previousStep()"><i class="fas fa-arrow-left"></i> Previous</button>
+                        <button type="button" class="btn-next" onclick="nextStep()">Next Step <i class="fas fa-arrow-right"></i></button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Step 3: 팀원 초대 -->
+            <div class="step-content" id="step3-content">
+                <div class="step-header">
+                    <span class="step-indicator">STEP 3/3</span>
+                    <h2 class="step-title">Invite Team Members</h2>
+                </div>
+                
+                <form class="signup-form" id="step3-form">
+                    <div class="team-members-section">
+                        <div class="member-input-group">
+                            <label>Member's Email</label>
+                            <input type="email" class="member-email" placeholder="memberemail@gmail.com">
+                            <button type="button" class="btn-add-member" onclick="addMember()">+ Add another Member</button>
+                        </div>
+                        
+                        <div class="members-list" id="membersList">
+                            <!-- 동적으로 추가될 팀원 목록 -->
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn-previous" onclick="previousStep()"><i class="fas fa-arrow-left"></i> Previous</button>
+                        <button type="button" class="btn-next" onclick="submitSignup()">Next Step <i class="fas fa-arrow-right"></i></button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 성공 페이지 -->
+            <div class="step-content success-page" id="success-content" style="display: none;">
+                <div class="success-illustration">
+                    <img src="/crm/images/kanban-success.png" alt="Success" class="success-image">
+                </div>
+                <h2 class="success-title">You are successfully registered!</h2>
+                <button type="button" class="btn-start" onclick="goToDashboard()">Let's Start <i class="fas fa-arrow-right"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/crm/js/company_signup.js"></script>
+</body>
+</html>

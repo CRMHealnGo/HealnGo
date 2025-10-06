@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>사용자 관리 - HealnGo Admin</title>
+    <link rel="stylesheet" href="/resources/css/styles.css">
+    <link rel="stylesheet" href="/crm/css/manager_user.css">
+    <link rel="stylesheet" href="/crm/css/manager_sidebar.css">
+    <link rel="stylesheet" href="/crm/css/manager_header.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- 사이드바 -->
+    <div th:replace="common/manager_sidebar"></div>
+    
+    <!-- 메인 컨텐츠 -->
+    <div class="main-content">
+        <!-- 헤더 -->
+        <div th:replace="common/manager_header :: manager_header"></div>
+
+        <!-- 페이지 컨텐츠 -->
+        <div class="page-content">
+            <div class="page-header">
+                <h1 class="page-title">HealnGo, 관리자 모드</h1>
+                <h2 class="section-title">사용자 관리</h2>
+            </div>
+
+            <!-- 검색바 -->
+            <div class="search-bar">
+                <input type="text" placeholder="검색어를 입력해주세요" class="search-input-main" th:value="${search}">
+                <button type="button" class="search-icon-btn" onclick="performSearch()">
+                    <img src="/crm/images/돋보기 아이콘.png" alt="Search" class="search-icon">
+                </button>
+            </div>
+
+            <!-- 사용자 목록 -->
+            <div class="user-list">
+                <!-- 검색 결과가 없을 때 메시지 -->
+                <div th:if="${users.isEmpty()}" class="no-results">
+                    <p>검색 결과가 없습니다.</p>
+                </div>
+                
+                <div th:each="user : ${users}" class="user-card">
+                    <div class="user-id" th:text="${user.userId}">00014</div>
+                    <div class="user-info">
+                        <div class="user-avatar">
+                            <div class="avatar-gradient"></div>
+                        </div>
+                        <div class="user-details">
+                            <div class="username" th:text="${user.username}">둥그리둥둥 님</div>
+                            <div class="join-date" th:text="'가입일 ' + ${user.joinDate}">가입일 Sep 12, 2021</div>
+                            <div class="user-data">
+                                <div class="data-label">Data</div>
+                                <div class="data-item">
+                                    <span class="label">이름</span>
+                                    <span class="value" th:text="${user.name}">김은아</span>
+                                </div>
+                                <div class="data-item">
+                                    <span class="label">이메일</span>
+                                    <span class="value" th:text="${user.email}">euneun@gmail.com</span>
+                                </div>
+                                <div class="data-item">
+                                    <span class="label">신고여부</span>
+                                    <div class="report-checkboxes">
+                                        <input type="checkbox" class="report-checkbox" th:checked="${user.reportCount >= 1}">
+                                        <input type="checkbox" class="report-checkbox" th:checked="${user.reportCount >= 2}">
+                                        <input type="checkbox" class="report-checkbox" th:checked="${user.reportCount >= 3}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 페이지네이션 -->
+            <div th:replace="common/pagination :: generic-pagination"></div>
+        </div>
+    </div>
+
+    <script src="/static/crm/js/manager_sidebar.js"></script>
+    <script src="/static/crm/js/manager_user.js"></script>
+</body>
+</html>

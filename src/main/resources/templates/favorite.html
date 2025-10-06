@@ -20,7 +20,21 @@
 
     <!-- 즐겨찾기 목록 -->
     <div class="favorite-list">
-        <div id="favorites-content">
+        <!-- 로그인하지 않은 사용자 메시지 -->
+        <div th:if="${!isLoggedIn}" class="login-prompt">
+            <div class="login-prompt-content">
+                <i class="fas fa-heart-broken"></i>
+                <h3>로그인이 필요한 서비스입니다</h3>
+                <p>즐겨찾기 기능을 사용하려면 로그인해주세요.</p>
+                <div class="login-actions">
+                    <a th:href="@{/login}" class="login-btn">로그인</a>
+                    <a th:href="@{/crm/signup}" class="signup-btn">회원가입</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 로그인한 사용자 즐겨찾기 목록 -->
+        <div th:if="${isLoggedIn}" id="favorites-content">
             <!-- JavaScript로 내용이 채워집니다 -->
         </div>
     </div>

@@ -38,7 +38,7 @@
 </div>
 
 <!-- Generic Pagination Fragment for other pages -->
-<div th:fragment="generic-pagination" class="pagination" th:if="${totalPages > 1}">
+<div th:fragment="generic-pagination" class="pagination" th:if="${totalPages >= 1}">
     <a th:if="${pageNo > 1}" th:href="${baseUrl + '?pageNo=1' + (amount != null ? '&amount=' + amount : '')}" class="page-link">&laquo;</a>
     <a th:if="${pageNo > 1}" th:href="${baseUrl + '?pageNo=' + (pageNo - 1) + (amount != null ? '&amount=' + amount : '')}" class="page-link">&lt;</a>
     
