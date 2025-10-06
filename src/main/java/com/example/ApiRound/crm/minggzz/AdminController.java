@@ -118,6 +118,56 @@ public class AdminController {
         return "admin/reservations";
     }
 
+    /**
+     * 업체 메인페이지 (힝거 피부과)
+     */
+    @GetMapping("/company")
+    public String company(Model model) {
+        // 업체 대시보드 데이터 (실제로는 서비스에서 가져와야 함)
+        Map<String, Object> companyStats = new HashMap<>();
+        companyStats.put("foreignTouristIncrease", "15% 증가");
+        companyStats.put("koreanTouristIncrease", "5% 증가");
+        companyStats.put("newEventProducts", "4건");
+        
+        model.addAttribute("companyStats", companyStats);
+        
+        // 예약 차트 데이터
+        Map<String, Object> reservationChartData = getReservationChartData();
+        model.addAttribute("reservationChartData", reservationChartData);
+        
+        // 후기 데이터
+        List<Map<String, Object>> reviews = getCompanyReviews();
+        model.addAttribute("reviews", reviews);
+        
+        // 인기 이벤트 데이터
+        List<Map<String, Object>> popularEvents = getPopularEvents();
+        model.addAttribute("popularEvents", popularEvents);
+        
+        return "crm/company";
+    }
+
+    /**
+     * 의료 서비스 관리 페이지
+     */
+    @GetMapping("/medical-services")
+    public String medicalServices(Model model) {
+        // 의료 서비스 데이터 (실제로는 서비스에서 가져와야 함)
+        List<Map<String, Object>> medicalServices = getMedicalServices();
+        model.addAttribute("medicalServices", medicalServices);
+        
+        return "crm/medical_services";
+    }
+
+    /**
+     * 이벤트 등록 페이지
+     */
+    @GetMapping("/event-registration")
+    public String eventRegistration(Model model) {
+        // 이벤트 등록 페이지 데이터 (실제로는 서비스에서 가져와야 함)
+        // 예: 기존 태그 목록, 카테고리 목록 등
+        return "crm/event_registration";
+    }
+
     // 임시 데이터 생성 메서드들 (실제로는 서비스에서 구현)
     private List<Map<String, Object>> getRecentActivities() {
         List<Map<String, Object>> activities = new ArrayList<>();
@@ -218,5 +268,129 @@ public class AdminController {
         }
         
         return reservations;
+    }
+
+    // 업체 페이지용 데이터 생성 메서드들
+    private Map<String, Object> getReservationChartData() {
+        Map<String, Object> chartData = new HashMap<>();
+        
+        // 외국인 사용객 데이터
+        List<Integer> foreignUsers = List.of(36, 24, 30, 44, 58, 77, 89);
+        chartData.put("foreignUsers", foreignUsers);
+        
+        // 한국인 사용객 데이터
+        List<Integer> koreanUsers = List.of(50, 60, 52, 59, 62, 80, 70);
+        chartData.put("koreanUsers", koreanUsers);
+        
+        // 월별 라벨
+        List<String> months = List.of("4월", "5월", "6월", "7월", "8월", "9월", "10월");
+        chartData.put("months", months);
+        
+        return chartData;
+    }
+
+    private List<Map<String, Object>> getCompanyReviews() {
+        List<Map<String, Object>> reviews = new ArrayList<>();
+        
+        // 브이라인 리프팅 리뷰
+        Map<String, Object> review1 = new HashMap<>();
+        review1.put("name", "브이라인 리프팅");
+        review1.put("productId", "PN0001265");
+        review1.put("rating", "4.8★(288)");
+        review1.put("price", "290,000원");
+        review1.put("text", "한국어 리뷰 텍스트...\nEnglish review text...\n일본어 리뷰 텍스트...");
+        reviews.add(review1);
+        
+        // 울쎄라피 프라임 리뷰
+        Map<String, Object> review2 = new HashMap<>();
+        review2.put("name", "울쎄라피 프라임");
+        review2.put("productId", "PN0001265");
+        review2.put("rating", "4.9★(140)");
+        review2.put("price", "1,290,000원");
+        review2.put("text", "한국어 리뷰 텍스트...\nEnglish review text...\n일본어 리뷰 텍스트...");
+        reviews.add(review2);
+        
+        // 힝거 어깨필러 리뷰
+        Map<String, Object> review3 = new HashMap<>();
+        review3.put("name", "힝거 어깨필러");
+        review3.put("productId", "PN0001265");
+        review3.put("rating", "4.9★(49)");
+        review3.put("price", "1,100,000원");
+        review3.put("text", "일본어 리뷰 텍스트...\n한국어 리뷰 텍스트...");
+        reviews.add(review3);
+        
+        return reviews;
+    }
+
+    private List<Map<String, Object>> getPopularEvents() {
+        List<Map<String, Object>> events = new ArrayList<>();
+        
+        // 브이라인 리프팅 이벤트
+        Map<String, Object> event1 = new HashMap<>();
+        event1.put("name", "브이라인 리프팅");
+        event1.put("price", "290,000원");
+        event1.put("count", "553+");
+        event1.put("trend", "up");
+        events.add(event1);
+        
+        // 모공제로 모공주사 이벤트
+        Map<String, Object> event2 = new HashMap<>();
+        event2.put("name", "모공제로 모공주사");
+        event2.put("price", "380,000원");
+        event2.put("count", "200+");
+        event2.put("trend", "down");
+        events.add(event2);
+        
+        // 백옥같은 피부 레이저 이벤트
+        Map<String, Object> event3 = new HashMap<>();
+        event3.put("name", "백옥같은 피부 레이저");
+        event3.put("price", "1,090,000원");
+        event3.put("count", "110+");
+        event3.put("trend", "down");
+        events.add(event3);
+        
+        return events;
+    }
+
+    private List<Map<String, Object>> getMedicalServices() {
+        List<Map<String, Object>> services = new ArrayList<>();
+        
+        // 브이라인 리프팅 1
+        Map<String, Object> service1 = new HashMap<>();
+        service1.put("productCode", "PN0001265");
+        service1.put("name", "브이라인 리프팅");
+        service1.put("rating", "4.8★(288)");
+        service1.put("eventPrice", "이벤트 가 290,000원");
+        service1.put("category", "lifting");
+        services.add(service1);
+        
+        // 브이라인 리프팅 2
+        Map<String, Object> service2 = new HashMap<>();
+        service2.put("productCode", "PN0001265");
+        service2.put("name", "브이라인 리프팅");
+        service2.put("rating", "4.9★(140)");
+        service2.put("eventPrice", "이벤트 가 1,290,000원");
+        service2.put("category", "lifting");
+        services.add(service2);
+        
+        // 브이라인 리프팅 3
+        Map<String, Object> service3 = new HashMap<>();
+        service3.put("productCode", "PN0001265");
+        service3.put("name", "브이라인 리프팅");
+        service3.put("rating", "4.9★(49)");
+        service3.put("eventPrice", "이벤트 가 1,100,000원");
+        service3.put("category", "lifting");
+        services.add(service3);
+        
+        // 모공주사
+        Map<String, Object> service4 = new HashMap<>();
+        service4.put("productCode", "PN0001265");
+        service4.put("name", "모공주사");
+        service4.put("rating", "4.9★(128)");
+        service4.put("eventPrice", "이벤트 가 380,000원");
+        service4.put("category", "pore");
+        services.add(service4);
+        
+        return services;
     }
 }
