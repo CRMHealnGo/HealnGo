@@ -71,12 +71,19 @@ public class FavoriteItemController {
     @GetMapping
     public String getFavoritesPage(Model model, HttpSession session) {
         SocialUserDTO user = getLoginUser(session);
-        if (user == null) return "redirect:/login";
-
-        List<ItemList> favorites = favoriteItemService.getFavoritesByUserId(user.getId());
-
-        model.addAttribute("favorites", favorites);
-        model.addAttribute("totalCount", favorites.size());
+        
+        if (user != null) {
+            // 로그인한 사용자: 실제 즐겨찾기 데이터 표시
+            List<ItemList> favorites = favoriteItemService.getFavoritesByUserId(user.getId());
+            model.addAttribute("favorites", favorites);
+            model.addAttribute("totalCount", favorites.size());
+            model.addAttribute("isLoggedIn", true);
+        } else {
+            // 비로그인 사용자: 빈 즐겨찾기 목록 표시
+            model.addAttribute("favorites", new java.util.ArrayList<>());
+            model.addAttribute("totalCount", 0);
+            model.addAttribute("isLoggedIn", false);
+        }
 
         return "favorite"; // 즐겨찾기 전용 JSP 사용
     }

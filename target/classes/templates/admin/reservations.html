@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>예약 관리 - HealnGo Admin</title>
+    <link rel="stylesheet" href="/static/crm/css/manager_sidebar.css">
+    <link rel="stylesheet" href="/static/crm/css/manager_header.css">
+    <link rel="stylesheet" href="/static/crm/css/admin_reservations.css">
+    <style>
+        /* 추가 스타일 오버라이드 */
+        body {
+            display: block !important;
+            background-color: #F4F9FD !important;
+        }
+    </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- 사이드바 -->
+    <div th:replace="common/manager_sidebar"></div>
+    
+    <!-- 메인 컨텐츠 -->
+    <div class="admin-main-content">
+        <!-- 헤더 -->
+        <div th:replace="common/manager_header :: manager_header"></div>
+
+        <!-- 페이지 컨텐츠 -->
+        <div class="admin-page-content">
+            <!-- 페이지 헤더 -->
+            <div class="page-header">
+                <h1 class="page-title">예약 관리</h1>
+                <div class="page-actions">
+                    <button class="btn btn-secondary">
+                        <i class="fas fa-download"></i>
+                        엑셀 다운로드
+                    </button>
+                    <button class="btn btn-primary">
+                        <i class="fas fa-calendar-plus"></i>
+                        예약 생성
+                    </button>
+                </div>
+            </div>
+
+            <!-- 통계 카드 -->
+            <div class="reservation-stats">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-number">320</h3>
+                        <p class="stat-label">이번 달 예약</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-number">280</h3>
+                        <p class="stat-label">완료된 예약</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-number">25</h3>
+                        <p class="stat-label">취소된 예약</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-won-sign"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-number">15,000,000</h3>
+                        <p class="stat-label">이번 달 매출</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 필터 및 검색 -->
+            <div class="filters-section">
+                <div class="search-bar">
+                    <div class="search-input-wrapper">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" placeholder="고객명, 업체명으로 검색..." class="search-input" 
+                               th:value="${search}" id="searchInput">
+                    </div>
+                    <button type="button" class="btn btn-search" onclick="performSearch()">
+                        검색
+                    </button>
+                </div>
+                
+                <div class="filter-controls">
+                    <select class="filter-select" id="statusFilter">
+                        <option value="">전체 상태</option>
+                        <option value="reserved">예약</option>
+                        <option value="confirmed">확정</option>
+                        <option value="completed">완료</option>
+                        <option value="cancelled">취소</option>
+                    </select>
+                    
+                    <input type="date" class="filter-date" id="dateFrom" placeholder="시작일">
+                    <input type="date" class="filter-date" id="dateTo" placeholder="종료일">
+                    
+                    <button class="btn btn-filter" onclick="applyFilters()">
+                        <i class="fas fa-filter"></i>
+                        필터 적용
+                    </button>
+                </div>
+            </div>
+
+            <!-- 예약 목록 -->
+            <div class="reservations-table-container">
+                <div class="table-header">
+                    <div class="table-info">
+                        <span class="total-count">총 <strong th:text="${totalReservations}">320</strong>건</span>
+                    </div>
+                    <div class="table-actions">
+                        <button class="btn btn-sm btn-secondary" onclick="selectAll()">
+                            전체 선택
+                        </button>
+                        <button class="btn btn-sm btn-success" onclick="bulkAction('confirm')">
+                            선택 확정
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="bulkAction('cancel')">
+                            선택 취소
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="reservations-table">
+                        <thead>
+                            <tr>
+                                <th class="checkbox-column">
+                                    <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()">
+                                </th>
+                                <th>예약 ID</th>
+                                <th>고객명</th>
+                                <th>업체명</th>
+                                <th>서비스</th>
+                                <th>예약일시</th>
+                                <th>상태</th>
+                                <th>금액</th>
+                                <th>액션</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="reservation : ${reservations}" class="reservation-row">
+                                <td class="checkbox-column">
+                                    <input type="checkbox" class="reservation-checkbox" th:value="${reservation.id}">
+                                </td>
+                                <td class="reservation-id" th:text="${reservation.id}">1</td>
+                                <td class="user-name" th:text="${reservation.userName}">김고객</td>
+                                <td class="company-name" th:text="${reservation.companyName}">서울병원</td>
+                                <td class="service" th:text="${reservation.service}">진료</td>
+                                <td class="reservation-datetime">
+                                    <div class="date" th:text="${reservation.date}">2024-01-15</div>
+                                    <div class="time" th:text="${reservation.time}">14:00</div>
+                                </td>
+                                <td class="reservation-status">
+                                    <span class="status-badge" 
+                                          th:classappend="${reservation.status == '완료'} ? 'status-completed' : 
+                                                          (reservation.status == '예약') ? 'status-reserved' : 'status-cancelled'"
+                                          th:text="${reservation.status}">예약</span>
+                                </td>
+                                <td class="amount" th:text="${#numbers.formatDecimal(reservation.amount, 0, 'COMMA', 0, 'POINT')} + '원'">50,000원</td>
+                                <td class="actions">
+                                    <div class="action-buttons">
+                                        <button class="btn btn-sm btn-info" onclick="viewReservation(th:attr="data-id=${reservation.id})">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-warning" onclick="editReservation(th:attr="data-id=${reservation.id})">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button th:if="${reservation.status == '예약'}" 
+                                                class="btn btn-sm btn-success" 
+                                                onclick="confirmReservation(th:attr="data-id=${reservation.id})">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        <button th:if="${reservation.status != '완료' and reservation.status != '취소'}" 
+                                                class="btn btn-sm btn-danger" 
+                                                onclick="cancelReservation(th:attr="data-id=${reservation.id})">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 페이지네이션 -->
+            <div class="pagination-container">
+                <div class="pagination-info">
+                    <span>페이지 <strong th:text="${currentPage}">1</strong> / <strong th:text="${totalPages}">32</strong></span>
+                </div>
+                <div class="pagination">
+                    <button class="pagination-btn" th:if="${currentPage > 1}" 
+                            th:onclick="'goToPage(' + ${currentPage - 1} + ')'">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    
+                    <span th:each="pageNum : ${#numbers.sequence(1, totalPages)}" 
+                          th:if="${pageNum >= currentPage - 2 and pageNum <= currentPage + 2}">
+                        <button class="pagination-btn" 
+                                th:classappend="${pageNum == currentPage} ? 'active'"
+                                th:onclick="'goToPage(' + ${pageNum} + ')'"
+                                th:text="${pageNum}">1</button>
+                    </span>
+                    
+                    <button class="pagination-btn" th:if="${currentPage < totalPages}" 
+                            th:onclick="'goToPage(' + ${currentPage + 1} + ')'">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 예약 상세 모달 -->
+    <div id="reservationDetailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>예약 상세 정보</h3>
+                <span class="close" onclick="closeModal('reservationDetailModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="reservationDetailContent">
+                    <!-- 예약 상세 정보가 여기에 로드됩니다 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/crm/js/manager_sidebar.js"></script>
+    <script src="/static/crm/js/admin_reservations.js"></script>
+</body>
+</html>
