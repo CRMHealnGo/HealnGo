@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>업체 관리 - HealnGo</title>
+    <link rel="stylesheet" href="/crm/css/admin_manage_company.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- 사이드바 -->
+        <div th:replace="common/admin_sidebar :: admin_sidebar"></div>
+        
+        <!-- 메인 컨텐츠 -->
+        <div class="main-content">
+            <!-- 헤더 -->
+            <header class="admin-header">
+                <div class="header-left">
+                    <div class="search-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search">
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="notification-icon">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <div class="user-info">
+                        <i class="fas fa-user-circle"></i>
+                        <span>관리자 Yoyo</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- 페이지 컨텐츠 -->
+            <div class="page-content">
+                <div class="content-main">
+                    <!-- 브레드크럼 & 제목 -->
+                    <div class="page-header">
+                        <div class="breadcrumb">HealnGo, 관리자 모드</div>
+                        <h1 class="page-title">업체 관리</h1>
+                    </div>
+                    
+                    <!-- 통계 카드 -->
+                    <div class="stats-cards">
+                        <div class="stat-card">
+                            <div class="stat-number">326</div>
+                            <div class="stat-change positive">+12</div>
+                            <div class="stat-label">전체 업체</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">13</div>
+                            <div class="stat-change positive">+3</div>
+                            <div class="stat-label">이번달 신규</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">6</div>
+                            <div class="stat-change positive">+1</div>
+                            <div class="stat-label">신고 접수</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">2</div>
+                            <div class="stat-change neutral">0</div>
+                            <div class="stat-label">제재 중</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 업체 관리 섹션 -->
+                    <div class="company-management-section">
+                        <div class="section-header">
+                            <h2>업체 관리</h2>
+                            <a href="#" class="view-all-link">View all ></a>
+                        </div>
+                        
+                        <!-- 검색 바 -->
+                        <div class="search-section">
+                            <div class="search-input-wrapper">
+                                <input type="text" placeholder="업체명 또는 ID로 검색" class="company-search">
+                                <button class="search-btn">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- 필터 탭 -->
+                        <div class="filter-tabs">
+                            <button class="filter-tab active">전체</button>
+                            <button class="filter-tab">정상</button>
+                            <button class="filter-tab">신고 접수</button>
+                            <button class="filter-tab">제재중</button>
+                            <button class="filter-tab">휴면</button>
+                        </div>
+                        
+                        <!-- 업체 리스트 -->
+                        <div class="company-list">
+                            <!-- 업체 1 -->
+                            <div class="company-item">
+                                <div class="company-info">
+                                    <div class="company-icon">
+                                        <i class="fas fa-building"></i>
+                                    </div>
+                                    <div class="company-details">
+                                        <div class="company-id">PN0001265</div>
+                                        <div class="company-name">123성형외과</div>
+                                        <div class="company-status normal">정상</div>
+                                    </div>
+                                </div>
+                                <div class="company-metrics">
+                                    <div class="contract-date">계약일 Sep 12, 2021</div>
+                                    <div class="rating-info">
+                                        <i class="fas fa-arrow-up"></i>
+                                        <span class="rating">4.8</span>
+                                        <i class="fas fa-star"></i>
+                                        <span class="review-count">(288)</span>
+                                    </div>
+                                </div>
+                                <div class="company-data">
+                                    <div class="data-header">이 업체의 Data</div>
+                                    <div class="data-items">
+                                        <div class="data-item">
+                                            <span class="data-label">상품</span>
+                                            <span class="data-value">947</span>
+                                        </div>
+                                        <div class="data-item">
+                                            <span class="data-label">리뷰</span>
+                                            <span class="data-value">13</span>
+                                        </div>
+                                    </div>
+                                    <div class="sales-info">
+                                        <span class="sales-amount">926 만원</span>
+                                        <span class="sales-label">이번달 매출</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 업체 2 -->
+                            <div class="company-item">
+                                <div class="company-info">
+                                    <div class="company-icon">
+                                        <i class="fas fa-building"></i>
+                                    </div>
+                                    <div class="company-details">
+                                        <div class="company-id">PN0001221</div>
+                                        <div class="company-name">하나한의원</div>
+                                        <div class="company-status normal">정상</div>
+                                    </div>
+                                </div>
+                                <div class="company-metrics">
+                                    <div class="contract-date">계약일 Sep 10, 2020</div>
+                                    <div class="rating-info">
+                                        <i class="fas fa-arrow-up"></i>
+                                        <span class="rating">4.7</span>
+                                        <i class="fas fa-star"></i>
+                                        <span class="review-count">(312)</span>
+                                    </div>
+                                </div>
+                                <div class="company-data">
+                                    <div class="data-header">이 업체의 Data</div>
+                                    <div class="data-items">
+                                        <div class="data-item">
+                                            <span class="data-label">상품</span>
+                                            <span class="data-value">1075</span>
+                                        </div>
+                                        <div class="data-item">
+                                            <span class="data-label">리뷰</span>
+                                            <span class="data-value">4</span>
+                                        </div>
+                                    </div>
+                                    <div class="sales-info">
+                                        <span class="sales-amount">1,057 만원</span>
+                                        <span class="sales-label">이번달 매출</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 업체 3 -->
+                            <div class="company-item">
+                                <div class="company-info">
+                                    <div class="company-icon">
+                                        <i class="fas fa-building"></i>
+                                    </div>
+                                    <div class="company-details">
+                                        <div class="company-id">PN0001290</div>
+                                        <div class="company-name">새하얀피부과</div>
+                                        <div class="company-status report">
+                                            <span>신고 접수</span>
+                                            <span class="report-count">2건 신고</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="company-metrics">
+                                    <div class="contract-date">계약일 May 28, 2024</div>
+                                    <div class="rating-info">
+                                        <i class="fas fa-arrow-down"></i>
+                                        <span class="rating">4.2</span>
+                                        <i class="fas fa-star"></i>
+                                        <span class="review-count">(162)</span>
+                                    </div>
+                                </div>
+                                <div class="company-data">
+                                    <div class="data-header">이 업체의 Data</div>
+                                    <div class="data-items">
+                                        <div class="data-item">
+                                            <span class="data-label">상품</span>
+                                            <span class="data-value">966</span>
+                                        </div>
+                                        <div class="data-item">
+                                            <span class="data-label">리뷰</span>
+                                            <span class="data-value">20</span>
+                                        </div>
+                                    </div>
+                                    <div class="sales-info">
+                                        <span class="sales-amount">560 만원</span>
+                                        <span class="sales-label">이번달 매출</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 업체 4 -->
+                            <div class="company-item">
+                                <div class="company-info">
+                                    <div class="company-icon">
+                                        <i class="fas fa-building"></i>
+                                    </div>
+                                    <div class="company-details">
+                                        <div class="company-id">PN0001221</div>
+                                        <div class="company-name">Yoyo의원</div>
+                                        <div class="company-status normal">정상</div>
+                                    </div>
+                                </div>
+                                <div class="company-metrics">
+                                    <div class="contract-date">계약일 Sep 10, 2020</div>
+                                    <div class="rating-info">
+                                        <i class="fas fa-arrow-up"></i>
+                                        <span class="rating">4.7</span>
+                                        <i class="fas fa-star"></i>
+                                        <span class="review-count">(312)</span>
+                                    </div>
+                                </div>
+                                <div class="company-data">
+                                    <div class="data-header">이 업체의 Data</div>
+                                    <div class="data-items">
+                                        <div class="data-item">
+                                            <span class="data-label">상품</span>
+                                            <span class="data-value">605</span>
+                                        </div>
+                                        <div class="data-item">
+                                            <span class="data-label">리뷰</span>
+                                            <span class="data-value">4</span>
+                                        </div>
+                                    </div>
+                                    <div class="sales-info">
+                                        <span class="sales-amount">1,324만원</span>
+                                        <span class="sales-label">이번달 매출</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 우측 사이드바 -->
+                <div class="content-sidebar">
+                    <!-- 업체 상세 정보 -->
+                    <div class="sidebar-section">
+                        <h3>업체 상세 정보</h3>
+                        <div class="selected-company">
+                            <div class="company-logo">
+                                <div class="logo-shape"></div>
+                            </div>
+                            <div class="company-basic-info">
+                                <div class="company-id">PN0001221</div>
+                                <div class="company-name">Yoyo의원</div>
+                            </div>
+                        </div>
+                        <div class="company-details-table">
+                            <div class="detail-row">
+                                <span class="detail-label">담당자</span>
+                                <span class="detail-value">YoyoKang</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">연락처</span>
+                                <span class="detail-value">010-0000-0000</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">주소</span>
+                                <span class="detail-value">서울시 강남구</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">계약일</span>
+                                <span class="detail-value">Sep 10, 2020</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">상태</span>
+                                <span class="detail-value status-normal">정상</span>
+                            </div>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn">상품 목록</button>
+                            <button class="action-btn">상세 페이지</button>
+                        </div>
+                    </div>
+                    
+                    <!-- 업체 문의 & 신고 접수 -->
+                    <div class="sidebar-section">
+                        <h3>업체 문의 & 신고 접수</h3>
+                        <div class="inquiry-list">
+                            <div class="inquiry-item">
+                                <div class="inquiry-avatar">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="inquiry-content">
+                                    <div class="inquiry-user">
+                                        <div class="user-name">기쁨 성형외과</div>
+                                        <div class="user-type">눈 전문 성형외과</div>
+                                    </div>
+                                    <div class="inquiry-message">
+                                        <i class="fas fa-comment"></i>
+                                        <span>병원에서 진행하는 프로모션을 광고하고 싶어요.</span>
+                                    </div>
+                                    <div class="inquiry-attachment">
+                                        <i class="fas fa-paperclip"></i>
+                                        <span>Attached files to the task</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="inquiry-item">
+                                <div class="inquiry-avatar">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="inquiry-content">
+                                    <div class="inquiry-user">
+                                        <div class="user-name">Emily Tyler</div>
+                                        <div class="user-type">사용자</div>
+                                    </div>
+                                    <div class="inquiry-message">
+                                        <i class="fas fa-comment"></i>
+                                        <span>바밤바피부과에서 이상한 연락을 보내서 신고하고 싶어요.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="view-more">
+                            <a href="#">View more</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/crm/js/admin_manage_company.js"></script>
+</body>
+</html>
