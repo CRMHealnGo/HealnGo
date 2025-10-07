@@ -168,6 +168,30 @@ public class AdminController {
         return "crm/event_registration";
     }
 
+    /**
+     * 문의 & 채팅 페이지
+     */
+    @GetMapping("/inquiry-chat")
+    public String inquiryChat(Model model) {
+        // 문의 목록 데이터 (실제로는 서비스에서 가져와야 함)
+        List<Map<String, Object>> inquiries = getInquiries();
+        model.addAttribute("inquiries", inquiries);
+        
+        return "crm/inquiry_chat";
+    }
+
+    /**
+     * 문의/신고 접수 페이지
+     */
+    @GetMapping("/inquiry-report")
+    public String inquiryReport(Model model) {
+        // 문의/신고 목록 데이터 (실제로는 서비스에서 가져와야 함)
+        List<Map<String, Object>> reports = getInquiryReports();
+        model.addAttribute("reports", reports);
+        
+        return "crm/inquiry_report";
+    }
+
     // 임시 데이터 생성 메서드들 (실제로는 서비스에서 구현)
     private List<Map<String, Object>> getRecentActivities() {
         List<Map<String, Object>> activities = new ArrayList<>();
@@ -392,5 +416,137 @@ public class AdminController {
         services.add(service4);
         
         return services;
+    }
+
+    private List<Map<String, Object>> getInquiries() {
+        List<Map<String, Object>> inquiries = new ArrayList<>();
+        
+        // 김민수 문의
+        Map<String, Object> inquiry1 = new HashMap<>();
+        inquiry1.put("id", 1);
+        inquiry1.put("userName", "김민수");
+        inquiry1.put("time", "2분 전");
+        inquiry1.put("preview", "안녕하세요. 브이라인 리프팅에 대해 문의드립니다. 가격과 시술 시간이 궁금합니다.");
+        inquiry1.put("status", "new");
+        inquiry1.put("unreadCount", 3);
+        inquiries.add(inquiry1);
+        
+        // 이영희 문의
+        Map<String, Object> inquiry2 = new HashMap<>();
+        inquiry2.put("id", 2);
+        inquiry2.put("userName", "이영희");
+        inquiry2.put("time", "1시간 전");
+        inquiry2.put("preview", "예약 변경 요청드립니다. 다음 주로 연기하고 싶습니다.");
+        inquiry2.put("status", "in-progress");
+        inquiry2.put("unreadCount", 0);
+        inquiries.add(inquiry2);
+        
+        // 박준호 문의
+        Map<String, Object> inquiry3 = new HashMap<>();
+        inquiry3.put("id", 3);
+        inquiry3.put("userName", "박준호");
+        inquiry3.put("time", "3시간 전");
+        inquiry3.put("preview", "시술 후 주의사항에 대해 알려주세요.");
+        inquiry3.put("status", "resolved");
+        inquiry3.put("unreadCount", 0);
+        inquiries.add(inquiry3);
+        
+        // 최수진 문의
+        Map<String, Object> inquiry4 = new HashMap<>();
+        inquiry4.put("id", 4);
+        inquiry4.put("userName", "최수진");
+        inquiry4.put("time", "1일 전");
+        inquiry4.put("preview", "울쎄라피 시술에 대해 상담받고 싶습니다.");
+        inquiry4.put("status", "new");
+        inquiry4.put("unreadCount", 1);
+        inquiries.add(inquiry4);
+        
+        // 정다은 문의
+        Map<String, Object> inquiry5 = new HashMap<>();
+        inquiry5.put("id", 5);
+        inquiry5.put("userName", "정다은");
+        inquiry5.put("time", "2일 전");
+        inquiry5.put("preview", "예약 취소 요청드립니다.");
+        inquiry5.put("status", "in-progress");
+        inquiry5.put("unreadCount", 0);
+        inquiries.add(inquiry5);
+        
+        return inquiries;
+    }
+
+    private List<Map<String, Object>> getInquiryReports() {
+        List<Map<String, Object>> reports = new ArrayList<>();
+        
+        // 시술 후 부작용 문의
+        Map<String, Object> report1 = new HashMap<>();
+        report1.put("id", 1);
+        report1.put("type", "inquiry");
+        report1.put("title", "시술 후 부작용 문의");
+        report1.put("reporterName", "김민수");
+        report1.put("reporterPhone", "010-1234-5678");
+        report1.put("reporterEmail", "kim@example.com");
+        report1.put("description", "브이라인 리프팅 시술을 받은 후 얼굴이 부어오르고 통증이 있습니다. 정상적인 반응인지 확인하고 싶습니다.");
+        report1.put("status", "pending");
+        report1.put("priority", "high");
+        report1.put("createdDate", "2024-01-15 14:30");
+        reports.add(report1);
+        
+        // 의료진 태도 문제 신고
+        Map<String, Object> report2 = new HashMap<>();
+        report2.put("id", 2);
+        report2.put("type", "report");
+        report2.put("title", "의료진 태도 문제 신고");
+        report2.put("reporterName", "이영희");
+        report2.put("reporterPhone", "010-2345-6789");
+        report2.put("reporterEmail", "lee@example.com");
+        report2.put("description", "시술 중 의료진이 불친절하고 무성의한 태도로 시술을 진행했습니다. 환자에 대한 기본적인 예의가 부족했습니다.");
+        report2.put("status", "processing");
+        report2.put("priority", "medium");
+        report2.put("createdDate", "2024-01-14 16:45");
+        reports.add(report2);
+        
+        // 예약 변경 요청
+        Map<String, Object> report3 = new HashMap<>();
+        report3.put("id", 3);
+        report3.put("type", "inquiry");
+        report3.put("title", "예약 변경 요청");
+        report3.put("reporterName", "박준호");
+        report3.put("reporterPhone", "010-3456-7890");
+        report3.put("reporterEmail", "park@example.com");
+        report3.put("description", "개인 사정으로 인해 예약된 시술 일정을 다음 주로 변경하고 싶습니다. 가능한지 확인 부탁드립니다.");
+        report3.put("status", "resolved");
+        report3.put("priority", "low");
+        report3.put("createdDate", "2024-01-13 10:20");
+        reports.add(report3);
+        
+        // 시설 청결도 문제 신고
+        Map<String, Object> report4 = new HashMap<>();
+        report4.put("id", 4);
+        report4.put("type", "report");
+        report4.put("title", "시설 청결도 문제 신고");
+        report4.put("reporterName", "최수진");
+        report4.put("reporterPhone", "010-4567-8901");
+        report4.put("reporterEmail", "choi@example.com");
+        report4.put("description", "병원 내부 시설이 불결하고 위생상 문제가 있다고 생각됩니다. 정기적인 청소와 소독이 필요합니다.");
+        report4.put("status", "rejected");
+        report4.put("priority", "medium");
+        report4.put("createdDate", "2024-01-12 09:15");
+        reports.add(report4);
+        
+        // 시술 비용 환불 요청
+        Map<String, Object> report5 = new HashMap<>();
+        report5.put("id", 5);
+        report5.put("type", "inquiry");
+        report5.put("title", "시술 비용 환불 요청");
+        report5.put("reporterName", "정다은");
+        report5.put("reporterPhone", "010-5678-9012");
+        report5.put("reporterEmail", "jung@example.com");
+        report5.put("description", "시술 결과가 만족스럽지 않아 환불을 요청합니다. 계약서에 명시된 환불 정책에 따라 처리해주세요.");
+        report5.put("status", "pending");
+        report5.put("priority", "high");
+        report5.put("createdDate", "2024-01-11 15:30");
+        reports.add(report5);
+        
+        return reports;
     }
 }
