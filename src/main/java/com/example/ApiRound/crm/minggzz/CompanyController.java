@@ -3,6 +3,7 @@ package com.example.ApiRound.crm.minggzz;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.ArrayList;
@@ -39,6 +40,7 @@ public class CompanyController {
         List<Map<String, Object>> popularEvents = getPopularEvents();
         model.addAttribute("popularEvents", popularEvents);
         
+        model.addAttribute("sidebarType", "company");
         return "crm/company";
     }
 
@@ -51,6 +53,7 @@ public class CompanyController {
         List<Map<String, Object>> medicalServices = getMedicalServices();
         model.addAttribute("medicalServices", medicalServices);
         
+        model.addAttribute("sidebarType", "company");
         return "crm/medical_services";
     }
 
@@ -61,6 +64,7 @@ public class CompanyController {
     public String eventRegistration(Model model) {
         // 이벤트 등록 페이지 데이터 (실제로는 서비스에서 가져와야 함)
         // 예: 기존 태그 목록, 카테고리 목록 등
+        model.addAttribute("sidebarType", "company");
         return "crm/event_registration";
     }
 
@@ -73,6 +77,7 @@ public class CompanyController {
         List<Map<String, Object>> inquiries = getInquiries();
         model.addAttribute("inquiries", inquiries);
         
+        model.addAttribute("sidebarType", "company");
         return "crm/inquiry_chat";
     }
 
@@ -84,8 +89,22 @@ public class CompanyController {
         // 문의/신고 목록 데이터 (실제로는 서비스에서 가져와야 함)
         List<Map<String, Object>> reports = getInquiryReports();
         model.addAttribute("reports", reports);
+        model.addAttribute("sidebarType", "company");
         
         return "crm/inquiry_report";
+    }
+
+    /**
+     * 문의/신고 상세 페이지 (업체용)
+     */
+    @GetMapping("/inquiry-report/detail/{id}")
+    public String inquiryReportDetail(@PathVariable("id") Long id, Model model) {
+        // 문의/신고 상세 데이터 (실제로는 서비스에서 가져와야 함)
+        Map<String, Object> report = getInquiryReportById(id);
+        model.addAttribute("report", report);
+        model.addAttribute("sidebarType", "company");
+        
+        return "crm/inquiry_detail";
     }
 
     // 업체 페이지용 데이터 생성 메서드들
@@ -342,5 +361,15 @@ public class CompanyController {
         reports.add(report5);
         
         return reports;
+    }
+
+    private Map<String, Object> getInquiryReportById(Long id) {
+        // 실제로는 DB에서 조회해야 함
+        List<Map<String, Object>> reports = getInquiryReports();
+        
+        return reports.stream()
+                .filter(report -> report.get("id").equals(id.intValue()))
+                .findFirst()
+                .orElse(new HashMap<>());
     }
 }

@@ -3,6 +3,7 @@ package com.example.ApiRound.crm.minggzz;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -118,6 +119,50 @@ public class AdminController {
         return "admin/reservations";
     }
 
+    /**
+     * 문의/신고 접수 페이지 (관리자용)
+     */
+    @GetMapping("/inquiry-report")
+    public String inquiryReport(
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "search", required = false) String search,
+            @RequestParam(value = "type", required = false) String type,
+            @RequestParam(value = "status", required = false) String status,
+            Model model) {
+        
+        // 문의/신고 목록 데이터 (실제로는 서비스에서 가져와야 함)
+        List<Map<String, Object>> reports = getInquiryReports();
+        model.addAttribute("reports", reports);
+        
+        // 페이지네이션 정보
+        int totalReports = reports.size(); // 실제로는 DB에서 조회
+        int totalPages = (int) Math.ceil((double) totalReports / size);
+        
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("totalReports", totalReports);
+        model.addAttribute("search", search);
+        model.addAttribute("type", type);
+        model.addAttribute("status", status);
+        model.addAttribute("sidebarType", "admin");
+        
+        return "crm/inquiry_report";
+    }
+
+    /**
+     * 문의/신고 상세 페이지 (관리자용)
+     */
+    @GetMapping("/inquiry-report/detail/{id}")
+    public String inquiryReportDetail(@PathVariable("id") Long id, Model model) {
+        // 문의/신고 상세 데이터 (실제로는 서비스에서 가져와야 함)
+        Map<String, Object> report = getInquiryReportById(id);
+        model.addAttribute("report", report);
+        model.addAttribute("sidebarType", "admin");
+        
+        return "crm/inquiry_detail";
+    }
+
     // 임시 데이터 생성 메서드들 (실제로는 서비스에서 구현)
     private List<Map<String, Object>> getRecentActivities() {
         List<Map<String, Object>> activities = new ArrayList<>();
@@ -218,5 +263,96 @@ public class AdminController {
         }
         
         return reservations;
+    }
+
+    private List<Map<String, Object>> getInquiryReports() {
+        List<Map<String, Object>> reports = new ArrayList<>();
+        
+        // 시술 후 부작용 문의
+        Map<String, Object> report1 = new HashMap<>();
+        report1.put("id", 1);
+        report1.put("type", "inquiry");
+        report1.put("title", "시술 후 부작용 문의");
+        report1.put("reporterName", "김민수");
+        report1.put("reporterPhone", "010-1234-5678");
+        report1.put("reporterEmail", "kim@example.com");
+        report1.put("companyName", "힝거 피부과");
+        report1.put("description", "브이라인 리프팅 시술을 받은 후 얼굴이 부어오르고 통증이 있습니다. 정상적인 반응인지 확인하고 싶습니다.");
+        report1.put("status", "pending");
+        report1.put("priority", "high");
+        report1.put("createdDate", "2024-01-15 14:30");
+        reports.add(report1);
+        
+        // 의료진 태도 문제 신고
+        Map<String, Object> report2 = new HashMap<>();
+        report2.put("id", 2);
+        report2.put("type", "report");
+        report2.put("title", "의료진 태도 문제 신고");
+        report2.put("reporterName", "이영희");
+        report2.put("reporterPhone", "010-2345-6789");
+        report2.put("reporterEmail", "lee@example.com");
+        report2.put("companyName", "서울 성형외과");
+        report2.put("description", "시술 중 의료진이 불친절하고 무성의한 태도로 시술을 진행했습니다. 환자에 대한 기본적인 예의가 부족했습니다.");
+        report2.put("status", "processing");
+        report2.put("priority", "medium");
+        report2.put("createdDate", "2024-01-14 16:45");
+        reports.add(report2);
+        
+        // 예약 변경 요청
+        Map<String, Object> report3 = new HashMap<>();
+        report3.put("id", 3);
+        report3.put("type", "inquiry");
+        report3.put("title", "예약 변경 요청");
+        report3.put("reporterName", "박준호");
+        report3.put("reporterPhone", "010-3456-7890");
+        report3.put("reporterEmail", "park@example.com");
+        report3.put("companyName", "강남 치과");
+        report3.put("description", "개인 사정으로 인해 예약된 시술 일정을 다음 주로 변경하고 싶습니다. 가능한지 확인 부탁드립니다.");
+        report3.put("status", "resolved");
+        report3.put("priority", "low");
+        report3.put("createdDate", "2024-01-13 10:20");
+        reports.add(report3);
+        
+        // 시설 청결도 문제 신고
+        Map<String, Object> report4 = new HashMap<>();
+        report4.put("id", 4);
+        report4.put("type", "report");
+        report4.put("title", "시설 청결도 문제 신고");
+        report4.put("reporterName", "최수진");
+        report4.put("reporterPhone", "010-4567-8901");
+        report4.put("reporterEmail", "choi@example.com");
+        report4.put("companyName", "제주 한의원");
+        report4.put("description", "병원 내부 시설이 불결하고 위생상 문제가 있다고 생각됩니다. 정기적인 청소와 소독이 필요합니다.");
+        report4.put("status", "rejected");
+        report4.put("priority", "medium");
+        report4.put("createdDate", "2024-01-12 09:15");
+        reports.add(report4);
+        
+        // 시술 비용 환불 요청
+        Map<String, Object> report5 = new HashMap<>();
+        report5.put("id", 5);
+        report5.put("type", "inquiry");
+        report5.put("title", "시술 비용 환불 요청");
+        report5.put("reporterName", "정다은");
+        report5.put("reporterPhone", "010-5678-9012");
+        report5.put("reporterEmail", "jung@example.com");
+        report5.put("companyName", "부산 피부과");
+        report5.put("description", "시술 결과가 만족스럽지 않아 환불을 요청합니다. 계약서에 명시된 환불 정책에 따라 처리해주세요.");
+        report5.put("status", "pending");
+        report5.put("priority", "high");
+        report5.put("createdDate", "2024-01-11 15:30");
+        reports.add(report5);
+        
+        return reports;
+    }
+
+    private Map<String, Object> getInquiryReportById(Long id) {
+        // 실제로는 DB에서 조회해야 함
+        List<Map<String, Object>> reports = getInquiryReports();
+        
+        return reports.stream()
+                .filter(report -> report.get("id").equals(id.intValue()))
+                .findFirst()
+                .orElse(new HashMap<>());
     }
 }

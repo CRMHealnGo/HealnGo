@@ -621,7 +621,8 @@
     <div class="detail-dashboard-container">
         <!-- 사이드바 -->
         <div class="detail-sidebar-area">
-            <div th:replace="common/admin_sidebar :: admin_sidebar"></div>
+            <div th:if="${sidebarType == 'admin'}" th:replace="common/admin_sidebar :: admin_sidebar"></div>
+            <div th:if="${sidebarType == 'company'}" th:replace="common/company_sidebar :: company_sidebar"></div>
         </div>
         
         <!-- 메인 콘텐츠 -->
@@ -762,7 +763,7 @@
 
     <!-- JavaScript -->
     <script src="/static/crm/js/manager_sidebar.js"></script>
-    <script>
+    <script th:inline="javascript">
         // 문의/신고 상세 페이지에서 사이드바 활성 상태 설정
         document.addEventListener('DOMContentLoaded', function() {
             // 모든 nav-link에서 active 클래스 제거
@@ -770,7 +771,9 @@
             allNavLinks.forEach(link => link.classList.remove('active'));
             
             // 문의/신고 접수 링크에 active 클래스 추가
-            const inquiryReportLink = document.querySelector('a[href="/company/inquiry-report"]');
+            const sidebarType = /*[[${sidebarType}]]*/ 'admin';
+            const inquiryReportPath = sidebarType === 'admin' ? '/admin/inquiry-report' : '/company/inquiry-report';
+            const inquiryReportLink = document.querySelector('a[href="' + inquiryReportPath + '"]');
             if (inquiryReportLink) {
                 inquiryReportLink.classList.add('active');
             }
@@ -778,7 +781,9 @@
         
         // 목록으로 돌아가기
         function goBack() {
-            window.location.href = '/company/inquiry-report';
+            const sidebarType = /*[[${sidebarType}]]*/ 'admin';
+            const listPath = sidebarType === 'admin' ? '/admin/inquiry-report' : '/company/inquiry-report';
+            window.location.href = listPath;
         }
         
         // 상태 변경
