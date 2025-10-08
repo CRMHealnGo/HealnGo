@@ -390,3 +390,4 @@ function showNotification(message, type = 'info') {
         }
     }, 3000);
 }
+

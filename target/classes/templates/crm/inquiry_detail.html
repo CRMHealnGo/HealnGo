@@ -770,7 +770,7 @@
             allNavLinks.forEach(link => link.classList.remove('active'));
             
             // 문의/신고 접수 링크에 active 클래스 추가
-            const inquiryReportLink = document.querySelector('a[href="/admin/inquiry-report"]');
+            const inquiryReportLink = document.querySelector('a[href="/company/inquiry-report"]');
             if (inquiryReportLink) {
                 inquiryReportLink.classList.add('active');
             }
@@ -778,7 +778,7 @@
         
         // 목록으로 돌아가기
         function goBack() {
-            window.location.href = '/admin/inquiry-report';
+            window.location.href = '/company/inquiry-report';
         }
         
         // 상태 변경
