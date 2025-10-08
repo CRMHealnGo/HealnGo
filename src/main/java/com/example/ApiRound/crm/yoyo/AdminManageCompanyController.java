@@ -17,7 +17,7 @@ public class AdminManageCompanyController {
         model.addAttribute("reportsReceived", 6);
         model.addAttribute("underSanction", 2);
         
-        return "crm/admin_manage_company";
+        return "admin/admin_manage_company";
     }
 
 
