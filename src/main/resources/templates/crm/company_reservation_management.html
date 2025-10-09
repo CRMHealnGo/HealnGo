@@ -4,23 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>예약 관리 - HealnGo Admin</title>
-    <link rel="stylesheet" href="/static/css/styles.css">
-    <link rel="stylesheet" href="/static/crm/css/reservation_management.css">
-    <link rel="stylesheet" href="/static/crm/css/manager_sidebar.css">
-    <link rel="stylesheet" href="/static/crm/css/manager_header.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/crm/css/company_reservation_management.css">
+    <link rel="stylesheet" href="/crm/css/company_sidebar.css">
+    <link rel="stylesheet" href="/crm/css/company_header.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <!-- 사이드바 -->
-    <div th:if="${sidebarType == 'admin'}" th:replace="common/admin_sidebar :: admin_sidebar"></div>
-    <div th:if="${sidebarType == 'company' or sidebarType == null}" th:replace="common/company_sidebar :: company_sidebar"></div>
-    
-    <!-- 메인 컨텐츠 -->
-    <div class="main-content">
-        <!-- 헤더 -->
-        <div th:if="${sidebarType == 'admin'}" th:replace="common/manager_header :: manager_header"></div>
-        <div th:if="${sidebarType == 'company' or sidebarType == null}" th:replace="common/company_header :: company_header"></div>
-
+    <div class="dashboard-container">
+        <!-- 사이드바 -->
+        <div th:replace="~{common/company_sidebar :: company_sidebar}"></div>
+        
+        <!-- 메인 콘텐츠 -->
+        <div class="main-content">
+            <!-- 헤더 -->
+            <div th:replace="~{common/company_header :: company_header}"></div>
+            
         <!-- 페이지 컨텐츠 -->
         <div class="page-content">
             <div class="page-header">
@@ -102,6 +100,7 @@
                     </div>
                 </div>
             </div>
+        </div>
     </div>
 </div>
 
@@ -161,8 +160,6 @@
     </div>
 </div>
 
-<script src="/crm/js/company_sidebar.js"></script>
-    <script src="/crm/js/company_header.js"></script>
-    <script src="/crm/js/reservation_management.js"></script>
+    <script src="/crm/js/company_reservation_management.js"></script>
 </body>
 </html>

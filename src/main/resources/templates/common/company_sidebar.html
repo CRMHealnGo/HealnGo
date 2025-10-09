@@ -1,13 +1,22 @@
-<!-- 업체용 사이드바 Fragment -->
-<div th:fragment="company_sidebar" class="sidebar">
-        <div class="sidebar-header">
-            <div class="logo-section">
-                <div class="logo-text">HealnGo</div>
-                <div class="logo-tagline">Care first, then go</div>
-            </div>
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+<!-- Company Sidebar Fragment -->
+<th:block th:fragment="company_sidebar">
+    <link rel="stylesheet" href="/static/crm/css/company_sidebar.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+<div class="sidebar">
+    <div class="sidebar-header">
+        <div class="logo">
+            <img src="/crm/images/로고 블랙.png.png" alt="HealnGo Logo" class="logo-img">
         </div>
+    </div>
 
-        <nav class="sidebar-nav">
+    <nav class="sidebar-nav">
             <ul class="nav-list">
                 <li class="nav-item">
                     <a href="/company" class="nav-link">
@@ -22,7 +31,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="/company/reservation-management" class="nav-link">
+                    <a href="/company/company_reservation_management" class="nav-link">
                         <i class="fas fa-calendar-alt"></i>
                         <span>예약 관리</span>
                     </a>
@@ -66,10 +75,15 @@
             </ul>
         </nav>
 
-        <div class="sidebar-footer">
-            <button class="logout-btn">
-                <i class="fas fa-arrow-right"></i>
-                <span>Logout</span>
-            </button>
-        </div>
+    <div class="sidebar-footer">
+        <button class="logout-btn" onclick="confirmLogout()">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+        </button>
+    </div>
 </div>
+
+<script src="/static/crm/js/company_sidebar.js"></script>
+</th:block>
+</body>
+</html>

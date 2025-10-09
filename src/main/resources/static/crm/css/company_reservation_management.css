@@ -1,5 +1,17 @@
 /* 예약 관리 페이지 스타일 */
 
+/* 기본 레이아웃 */
+.dashboard-container {
+    display: flex;
+    min-height: 100vh;
+    background-color: #f8f9fa;
+}
+
+.main-content {
+    flex: 1;
+    margin-left: 290px; /* 사이드바 너비(250px) + margin(40px) */
+}
+
 /* 페이지 컨텐츠 */
 .page-content {
     padding: 30px;

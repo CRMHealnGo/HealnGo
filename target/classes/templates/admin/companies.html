@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>업체 관리 - HealnGo Admin</title>
-    <link rel="stylesheet" href="/static/crm/css/manager_sidebar.css">
-    <link rel="stylesheet" href="/static/crm/css/manager_header.css">
-    <link rel="stylesheet" href="/static/crm/css/admin_companies.css">
+    <link rel="stylesheet" href="/crm/css/admin_sidebar.css">
+    <link rel="stylesheet" href="/crm/css/admin_header.css">
+    <link rel="stylesheet" href="/crm/css/admin_companies.css">
     <style>
         /* 추가 스타일 오버라이드 */
         body {
@@ -23,7 +23,7 @@
     <!-- 메인 컨텐츠 -->
     <div class="admin-main-content">
         <!-- 헤더 -->
-        <div th:replace="common/manager_header :: manager_header"></div>
+        <div th:replace="common/admin_header :: admin_header"></div>
 
         <!-- 페이지 컨텐츠 -->
         <div class="admin-page-content">
@@ -203,7 +203,6 @@
         </div>
     </div>
 
-    <script src="/static/crm/js/manager_sidebar.js"></script>
-    <script src="/static/crm/js/admin_companies.js"></script>
+    <script src="/crm/js/admin_companies.js"></script>
 </body>
 </html>

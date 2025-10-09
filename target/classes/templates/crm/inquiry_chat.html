@@ -6,7 +6,9 @@
     <title>문의 & 채팅 - 힝거 피부과</title>
     
     <!-- CSS 파일들 -->
-    <link rel="stylesheet" href="/static/crm/css/manager_sidebar.css">
+    <link rel="stylesheet" href="/crm/css/company_sidebar.css">
+    <link rel="stylesheet" href="/crm/css/company_header.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <style>
@@ -511,101 +513,6 @@
             text-align: center !important;
         }
         
-        /* 사이드바 스타일 오버라이드 */
-        .sidebar {
-            width: 100% !important;
-            background-color: white !important;
-            color: #333 !important;
-            display: flex !important;
-            flex-direction: column !important;
-            height: 100% !important;
-            position: relative !important;
-            border-radius: 0 !important;
-            box-shadow: none !important;
-            z-index: 1 !important;
-        }
-        
-        .sidebar-header {
-            padding: 20px !important;
-            border-bottom: none !important;
-            margin-bottom: 30px !important;
-        }
-        
-        .logo-section {
-            text-align: center !important;
-        }
-        
-        .logo-text {
-            font-size: 24px !important;
-            font-weight: bold !important;
-            color: #2c3e50 !important;
-            margin-bottom: 5px !important;
-        }
-        
-        .logo-tagline {
-            font-size: 12px !important;
-            color: #7f8c8d !important;
-        }
-        
-        .sidebar-nav {
-            flex: 1 !important;
-        }
-        
-        .nav-item {
-            margin-bottom: 5px !important;
-        }
-        
-        .nav-link {
-            display: flex !important;
-            align-items: center !important;
-            padding: 12px 15px !important;
-            color: #7f8c8d !important;
-            text-decoration: none !important;
-            transition: all 0.3s ease !important;
-            border-radius: 8px !important;
-            border-left: none !important;
-        }
-        
-        .nav-link:hover {
-            background-color: #e9ecef !important;
-            color: #3498db !important;
-        }
-        
-        .nav-link.active {
-            background-color: #3498db !important;
-            color: white !important;
-        }
-        
-        .nav-link i {
-            margin-right: 12px !important;
-            width: 20px !important;
-            text-align: center !important;
-        }
-        
-        .sidebar-footer {
-            padding: 0 !important;
-            border-top: none !important;
-        }
-        
-        .logout-btn {
-            width: 100% !important;
-            padding: 12px 15px !important;
-            background: none !important;
-            border: none !important;
-            color: #7f8c8d !important;
-            text-align: left !important;
-            cursor: pointer !important;
-            border-radius: 8px !important;
-            transition: all 0.3s ease !important;
-            display: flex !important;
-            align-items: center !important;
-            gap: 12px !important;
-        }
-        
-        .logout-btn:hover {
-            background-color: #e9ecef !important;
-            color: #e74c3c !important;
-        }
         
         /* 반응형 디자인 */
         @media (max-width: 768px) {
@@ -641,36 +548,14 @@
     </style>
 </head>
 <body>
-    <div class="inquiry-dashboard-container">
+    <div class="dashboard-container">
         <!-- 사이드바 -->
-        <div class="inquiry-sidebar-area">
-            <div th:replace="common/company_sidebar :: company_sidebar"></div>
-        </div>
+        <div th:replace="common/company_sidebar :: company_sidebar"></div>
         
         <!-- 메인 콘텐츠 -->
-        <div class="inquiry-main-content-area">
-            <!-- 상단 헤더 -->
-            <div class="inquiry-top-header">
-                <div class="inquiry-header-left">
-                    <div class="inquiry-search-bar">
-                        <input type="text" class="inquiry-search-input" placeholder="Search">
-                        <i class="fas fa-search inquiry-search-icon"></i>
-                    </div>
-                </div>
-                <div class="inquiry-header-center">
-                    <h1 class="inquiry-header-title">피부과병원_힝거피부과</h1>
-                </div>
-                <div class="inquiry-header-right">
-                    <button class="inquiry-notification-btn">
-                        <i class="fas fa-bell"></i>
-                    </button>
-                    <div class="inquiry-profile-section">
-                        <div class="inquiry-profile-img">힝</div>
-                        <div class="inquiry-profile-text">힝거 피부과</div>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                </div>
-            </div>
+        <div class="main-content">
+            <!-- 헤더 -->
+            <div th:replace="common/company_header :: company_header"></div>
             
             <!-- 메인 콘텐츠 -->
             <div class="inquiry-main-content">
