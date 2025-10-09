@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>마케팅 - HealnGo</title>
+    <link rel="stylesheet" href="/crm/css/company_sidebar.css">
+    <link rel="stylesheet" href="/crm/css/company_header.css">
+    <link rel="stylesheet" href="/crm/css/company_marketing.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- 사이드바 -->
+    <div th:replace="common/company_sidebar :: company_sidebar"></div>
+    
+    <!-- 메인 콘텐츠 -->
+    <div class="main-content">
+        <!-- 헤더 -->
+        <div th:replace="common/company_header :: company_header"></div>
+        
+        <!-- 페이지 타이틀 -->
+        <div class="marketing-header">
+            <h1 class="marketing-title">
+                <i class="fas fa-bullhorn"></i>
+                마케팅
+            </h1>
+            <p class="marketing-subtitle">프로모션, 쿠폰, 노출 관리를 한 곳에서</p>
+        </div>
+        
+        <!-- 탭 네비게이션 -->
+        <div class="marketing-tabs">
+            <ul class="tab-list">
+                <li class="tab-item active" data-tab="overview">개요</li>
+                <li class="tab-item" data-tab="placement">노출 관리</li>
+                <li class="tab-item" data-tab="coupons">쿠폰</li>
+                <li class="tab-item" data-tab="messages">메시지</li>
+                <li class="tab-item" data-tab="assets">에셋</li>
+                <li class="tab-item" data-tab="analytics">분석</li>
+                <li class="tab-item" data-tab="help">도움말</li>
+            </ul>
+        </div>
+        
+        <!-- 탭 콘텐츠 영역 -->
+        <div class="marketing-content-area">
+            <!-- 탭1: 개요 (Overview) -->
+            <div id="overview-tab" class="tab-content active">
+                <!-- KPI 카드 -->
+                <div class="kpi-cards">
+                    <div class="kpi-card">
+                        <div class="kpi-icon"><i class="fas fa-eye"></i></div>
+                        <div class="kpi-content">
+                            <div class="kpi-label">노출수</div>
+                            <div class="kpi-value" th:text="${#numbers.formatInteger(totalImpressions, 0, 'COMMA')}">125,000</div>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon"><i class="fas fa-mouse-pointer"></i></div>
+                        <div class="kpi-content">
+                            <div class="kpi-label">클릭수</div>
+                            <div class="kpi-value" th:text="${#numbers.formatInteger(totalClicks, 0, 'COMMA')}">8,500</div>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon"><i class="fas fa-comments"></i></div>
+                        <div class="kpi-content">
+                            <div class="kpi-label">문의수</div>
+                            <div class="kpi-value" th:text="${#numbers.formatInteger(totalInquiries, 0, 'COMMA')}">450</div>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon"><i class="fas fa-calendar-check"></i></div>
+                        <div class="kpi-content">
+                            <div class="kpi-label">예약수</div>
+                            <div class="kpi-value" th:text="${#numbers.formatInteger(totalReservations, 0, 'COMMA')}">180</div>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon"><i class="fas fa-percentage"></i></div>
+                        <div class="kpi-content">
+                            <div class="kpi-label">전환율</div>
+                            <div class="kpi-value"><span th:text="${conversionRate}">2.12</span>%</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 차트 및 리스트 -->
+                <div class="overview-grid">
+                    <div class="chart-card">
+                        <h3 class="card-title">노출·클릭 추이</h3>
+                        <canvas id="trendsChart"></canvas>
+                    </div>
+                    <div class="list-card">
+                        <h3 class="card-title">인기 노출 콘텐츠</h3>
+                        <div class="top-content-list">
+                            <div class="top-content-item">
+                                <span class="rank">1</span>
+                                <span class="name">브이라인 리프팅</span>
+                                <span class="clicks">2,450 클릭</span>
+                                <span class="conversion">3.2%</span>
+                            </div>
+                            <div class="top-content-item">
+                                <span class="rank">2</span>
+                                <span class="name">울쎄라피 프라임</span>
+                                <span class="clicks">1,890 클릭</span>
+                                <span class="conversion">2.8%</span>
+                            </div>
+                            <div class="top-content-item">
+                                <span class="rank">3</span>
+                                <span class="name">모공 주사</span>
+                                <span class="clicks">1,120 클릭</span>
+                                <span class="conversion">2.1%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 빠른 실행 -->
+                <div class="quick-actions">
+                    <button class="action-btn primary" onclick="switchTab('placement')">
+                        <i class="fas fa-bullseye"></i>
+                        노출 요청
+                    </button>
+                    <button class="action-btn success" onclick="switchTab('coupons')">
+                        <i class="fas fa-ticket-alt"></i>
+                        쿠폰 생성
+                    </button>
+                    <button class="action-btn info" onclick="switchTab('messages')">
+                        <i class="fas fa-paper-plane"></i>
+                        메시지 발송 요청
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 탭2: 노출 관리 (Placement) -->
+            <div id="placement-tab" class="tab-content">
+                <div class="tab-header">
+                    <h2 class="tab-title">노출 관리</h2>
+                    <button class="btn-new" onclick="openPlacementModal()">
+                        <i class="fas fa-plus"></i>
+                        새 노출 요청
+                    </button>
+                </div>
+                
+                <!-- 필터 바 -->
+                <div class="filter-bar">
+                    <select class="filter-select" id="placementStatusFilter">
+                        <option value="all">전체 상태</option>
+                        <option value="approved">승인완료</option>
+                        <option value="pending">대기중</option>
+                        <option value="rejected">반려</option>
+                    </select>
+                    <select class="filter-select" id="placementSlotFilter">
+                        <option value="all">전체 슬롯</option>
+                        <option value="home-hero">홈 히어로</option>
+                        <option value="home-card">홈 카드</option>
+                        <option value="category">카테고리</option>
+                        <option value="detail">상세</option>
+                    </select>
+                    <input type="date" class="filter-date" id="placementStartDate">
+                    <input type="date" class="filter-date" id="placementEndDate">
+                    <input type="text" class="filter-search" placeholder="검색...">
+                </div>
+                
+                <!-- 노출 요청 테이블 -->
+                <div class="data-table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>제목</th>
+                                <th>슬롯 위치</th>
+                                <th>대상</th>
+                                <th>기간</th>
+                                <th>상태</th>
+                                <th>우선순위</th>
+                                <th>클릭수</th>
+                                <th>관리</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="placement : ${placements}">
+                                <td th:text="${placement.title}">브이라인 리프팅 홈 배너</td>
+                                <td><span class="slot-badge" th:text="${placement.slot}">홈 히어로</span></td>
+                                <td th:text="${placement.target}">브이라인 리프팅</td>
+                                <td><span th:text="${placement.startDate}">2025-10-01</span> ~ <span th:text="${placement.endDate}">2025-10-31</span></td>
+                                <td>
+                                    <span class="status-badge" 
+                                          th:classappend="${placement.status == '승인완료'} ? 'approved' : (${placement.status == '대기중'} ? 'pending' : 'rejected')"
+                                          th:text="${placement.status}">승인완료</span>
+                                </td>
+                                <td>
+                                    <span class="priority-badge" 
+                                          th:classappend="${placement.priority == '높음'} ? 'high' : 'normal'"
+                                          th:text="${placement.priority}">높음</span>
+                                </td>
+                                <td th:text="${#numbers.formatInteger(placement.clicks, 0, 'COMMA')}">2,450</td>
+                                <td>
+                                    <button class="btn-sm" onclick="alert('미리보기')"><i class="fas fa-eye"></i></button>
+                                    <button class="btn-sm" onclick="alert('수정')"><i class="fas fa-edit"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 탭3: 쿠폰 (Coupons) -->
+            <div id="coupons-tab" class="tab-content">
+                <div class="tab-header">
+                    <h2 class="tab-title">쿠폰 관리</h2>
+                    <button class="btn-new" onclick="openCouponModal()">
+                        <i class="fas fa-plus"></i>
+                        쿠폰 만들기
+                    </button>
+                </div>
+                
+                <!-- 쿠폰 테이블 -->
+                <div class="data-table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>쿠폰명</th>
+                                <th>유형</th>
+                                <th>할인</th>
+                                <th>대상</th>
+                                <th>유효기간</th>
+                                <th>발급수</th>
+                                <th>사용수</th>
+                                <th>사용률</th>
+                                <th>상태</th>
+                                <th>관리</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="coupon : ${coupons}">
+                                <td class="font-weight-bold" th:text="${coupon.name}">가을맞이 10% 할인</td>
+                                <td th:text="${coupon.type}">정율</td>
+                                <td th:text="${coupon.discount}">10%</td>
+                                <td th:text="${coupon.target}">전체 서비스</td>
+                                <td th:text="${coupon.validUntil}">2025-10-31</td>
+                                <td th:text="${#numbers.formatInteger(coupon.issued, 0, 'COMMA')}">500</td>
+                                <td th:text="${#numbers.formatInteger(coupon.used, 0, 'COMMA')}">87</td>
+                                <td>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" th:style="|width: ${coupon.used * 100 / coupon.issued}%|"></div>
+                                    </div>
+                                    <span th:text="${#numbers.formatDecimal(coupon.used * 100.0 / coupon.issued, 1, 1)}">17.4</span>%
+                                </td>
+                                <td><span class="status-badge approved" th:text="${coupon.status}">진행중</span></td>
+                                <td>
+                                    <button class="btn-sm" onclick="alert('수정')"><i class="fas fa-edit"></i></button>
+                                    <button class="btn-sm danger" onclick="alert('종료')"><i class="fas fa-stop"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 탭4: 메시지 (Messages) -->
+            <div id="messages-tab" class="tab-content">
+                <div class="message-form-wrapper">
+                    <h2 class="tab-title" style="margin-bottom: 30px; text-align: center;">메시지 발송</h2>
+                    <form class="message-form" onsubmit="submitMessage(event)">
+                        <div class="form-section">
+                            <h3 class="section-title">발송 대상</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">세그먼트 선택</label>
+                                    <select class="form-select">
+                                        <option>전체 고객</option>
+                                        <option>최근 30일 예약 고객</option>
+                                        <option>VIP 고객</option>
+                                        <option>장기 미방문 고객</option>
+                                        <option>첫 방문 고객</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">발송 채널</label>
+                                    <select class="form-select">
+                                        <option>앱 푸시</option>
+                                        <option>SMS</option>
+                                        <option>이메일</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-section">
+                            <h3 class="section-title">메시지 내용</h3>
+                            <div class="form-group">
+                                <label class="form-label">제목</label>
+                                <input type="text" class="form-input" placeholder="메시지 제목">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">본문</label>
+                                <textarea class="form-textarea" rows="5" placeholder="메시지 본문을 입력하세요"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">링크 URL (선택)</label>
+                                <input type="url" class="form-input" placeholder="https://">
+                            </div>
+                        </div>
+                        
+                        <div class="form-section">
+                            <h3 class="section-title">발송 설정</h3>
+                            <div class="form-group">
+                                <label class="form-label">발송 시점</label>
+                                <div class="radio-group">
+                                    <label><input type="radio" name="sendTime" value="immediate" checked> 즉시 발송</label>
+                                    <label><input type="radio" name="sendTime" value="scheduled"> 예약 발송</label>
+                                </div>
+                                <input type="datetime-local" class="form-input" id="scheduledTime" style="display:none; margin-top:10px;">
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn-preview">미리보기</button>
+                            <button type="submit" class="btn-submit">발송 요청</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- 탭5: 에셋 (Assets) -->
+            <div id="assets-tab" class="tab-content">
+                <div class="tab-header">
+                    <h2 class="tab-title">에셋 라이브러리</h2>
+                    <button class="btn-new" onclick="openAssetUpload()">
+                        <i class="fas fa-upload"></i>
+                        파일 업로드
+                    </button>
+                </div>
+                
+                <!-- 에셋 탭 -->
+                <div class="asset-tabs">
+                    <button class="asset-tab-btn active" data-asset-tab="images">이미지</button>
+                    <button class="asset-tab-btn" data-asset-tab="videos">동영상</button>
+                    <button class="asset-tab-btn" data-asset-tab="templates">문구 템플릿</button>
+                </div>
+                
+                <!-- 배너 규격 가이드 -->
+                <div class="banner-guide">
+                    <h4><i class="fas fa-info-circle"></i> 배너 규격 가이드</h4>
+                    <ul>
+                        <li><strong>홈 히어로:</strong> 1920×560px</li>
+                        <li><strong>홈 카드:</strong> 600×220px</li>
+                        <li><strong>카테고리:</strong> 800×300px</li>
+                        <li><strong>상세:</strong> 1200×400px</li>
+                    </ul>
+                </div>
+                
+                <!-- 에셋 그리드 -->
+                <div class="assets-grid" id="imagesTab">
+                    <div class="asset-item">
+                        <div class="asset-thumbnail">
+                            <img src="/crm/images/sample-banner.jpg" alt="Banner" onerror="this.src='/resources/images/default-banner.jpg'">
+                        </div>
+                        <div class="asset-info">
+                            <div class="asset-name">브이라인배너.jpg</div>
+                            <div class="asset-meta">1920×560 • 홈 히어로</div>
+                        </div>
+                        <div class="asset-actions">
+                            <button class="btn-icon"><i class="fas fa-download"></i></button>
+                            <button class="btn-icon"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 탭6: 분석 (Analytics) -->
+            <div id="analytics-tab" class="tab-content">
+                <div class="tab-header">
+                    <h2 class="tab-title">성과 분석</h2>
+                    <div class="export-buttons">
+                        <button class="btn-export"><i class="fas fa-file-csv"></i> CSV</button>
+                        <button class="btn-export"><i class="fas fa-file-excel"></i> XLSX</button>
+                    </div>
+                </div>
+                
+                <!-- 퍼널 차트 -->
+                <div class="chart-card">
+                    <h3 class="card-title">마케팅 퍼널</h3>
+                    <canvas id="funnelChart"></canvas>
+                </div>
+                
+                <!-- 슬롯별 성과 -->
+                <div class="chart-card">
+                    <h3 class="card-title">슬롯별 성과</h3>
+                    <canvas id="slotPerformanceChart"></canvas>
+                </div>
+                
+                <!-- 상세 데이터 테이블 -->
+                <div class="data-table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>대상</th>
+                                <th>슬롯</th>
+                                <th>조회</th>
+                                <th>클릭</th>
+                                <th>문의</th>
+                                <th>예약</th>
+                                <th>전환율</th>
+                                <th>쿠폰 사용</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>브이라인 리프팅</td>
+                                <td>홈 히어로</td>
+                                <td>78,450</td>
+                                <td>2,450</td>
+                                <td>156</td>
+                                <td>78</td>
+                                <td>3.2%</td>
+                                <td>23</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 탭7: 도움말 (Help) -->
+            <div id="help-tab" class="tab-content">
+                <div class="help-tabs">
+                    <button class="help-tab-btn active" data-help-tab="guide">운영가이드</button>
+                    <button class="help-tab-btn" data-help-tab="policy">승인정책</button>
+                    <button class="help-tab-btn" data-help-tab="inquiry">문의등록</button>
+                    <button class="help-tab-btn" data-help-tab="history">이전문의내역</button>
+                </div>
+                
+                <!-- 운영가이드 -->
+                <div id="guideTab" class="help-content active">
+                    <div class="guide-card">
+                        <h3>노출 슬롯 안내</h3>
+                        <ul>
+                            <li><strong>홈 히어로:</strong> 메인 페이지 상단 대형 배너 (최대 노출 효과)</li>
+                            <li><strong>홈 카드:</strong> 메인 페이지 카드형 섹션</li>
+                            <li><strong>카테고리:</strong> 카테고리 페이지 상단</li>
+                            <li><strong>상세:</strong> 서비스 상세 페이지</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- 승인정책 -->
+                <div id="policyTab" class="help-content">
+                    <div class="guide-card">
+                        <h3>노출 승인 정책</h3>
+                        <ul>
+                            <li>홈 히어로 슬롯: 영업일 기준 3일 이내 검토</li>
+                            <li>허위·과장 광고는 즉시 반려</li>
+                            <li>이미지 규격 미준수 시 반려</li>
+                            <li>경쟁사 비방 콘텐츠 금지</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- 문의등록 -->
+                <div id="inquiryTab" class="help-content">
+                    <form class="inquiry-form">
+                        <div class="form-group">
+                            <label class="form-label">제목</label>
+                            <input type="text" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">유형</label>
+                            <select class="form-select">
+                                <option>노출</option>
+                                <option>쿠폰</option>
+                                <option>메시지</option>
+                                <option>정책</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">내용</label>
+                            <textarea class="form-textarea" rows="5"></textarea>
+                        </div>
+                        <button type="submit" class="btn-submit">등록</button>
+                    </form>
+                </div>
+                
+                <!-- 이전문의내역 -->
+                <div id="historyTab" class="help-content">
+                    <div class="data-table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>제목</th>
+                                    <th>유형</th>
+                                    <th>상태</th>
+                                    <th>등록일</th>
+                                    <th>담당자</th>
+                                    <th>마지막답변</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>홈 배너 승인 기간 문의</td>
+                                    <td>노출</td>
+                                    <td><span class="status-badge approved">완료</span></td>
+                                    <td>2025-09-20</td>
+                                    <td>운영팀</td>
+                                    <td>2025-09-21</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 노출 요청 모달 -->
+    <div id="placementModal" class="modal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h3>새 노출 요청</h3>
+                <button class="modal-close" onclick="closePlacementModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="placementForm">
+                    <div class="form-group">
+                        <label class="form-label">대상 선택</label>
+                        <input type="text" class="form-input" placeholder="서비스/이벤트 검색...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">노출 슬롯</label>
+                        <select class="form-select">
+                            <option>홈 히어로</option>
+                            <option>홈 카드</option>
+                            <option>카테고리</option>
+                            <option>상세</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">시작일</label>
+                            <input type="date" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">종료일</label>
+                            <input type="date" class="form-input">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">우선순위</label>
+                        <select class="form-select">
+                            <option>보통</option>
+                            <option>높음</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">랜딩 URL</label>
+                        <input type="url" class="form-input" placeholder="https://">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">배너 이미지</label>
+                        <input type="file" class="form-input" accept="image/*">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary">임시저장</button>
+                        <button type="submit" class="btn-primary">승인요청</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 쿠폰 생성 모달 -->
+    <div id="couponModal" class="modal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h3>쿠폰 만들기</h3>
+                <button class="modal-close" onclick="closeCouponModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="couponForm">
+                    <div class="form-group">
+                        <label class="form-label">쿠폰명</label>
+                        <input type="text" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">설명</label>
+                        <input type="text" class="form-input">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">유형</label>
+                            <select class="form-select">
+                                <option>정율 (%)</option>
+                                <option>정액 (원)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">할인값</label>
+                            <input type="number" class="form-input">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">최소 결제 금액</label>
+                        <input type="number" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">발급 한도</label>
+                        <input type="number" class="form-input" placeholder="전체 발급 수">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">유효 시작일</label>
+                            <input type="date" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">유효 종료일</label>
+                            <input type="date" class="form-input">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary">취소</button>
+                        <button type="submit" class="btn-primary">쿠폰 생성</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="/crm/js/company_sidebar.js"></script>
+    <script src="/crm/js/company_header.js"></script>
+    <script src="/crm/js/company_marketing.js"></script>
+</body>
+</html>
+
