@@ -50,48 +50,47 @@ public class AdminController {
             @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestParam(value = "search", required = false) String search,
             Model model) {
-        
+
         // 사용자 목록 데이터 (실제로는 서비스에서 가져와야 함)
         List<Map<String, Object>> users = getUsers(page, size, search);
         model.addAttribute("users", users);
-        
+
         // 페이지네이션 정보
         int totalUsers = 1250; // 실제로는 DB에서 조회
         int totalPages = (int) Math.ceil((double) totalUsers / size);
-        
+
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", totalPages);
         model.addAttribute("totalUsers", totalUsers);
         model.addAttribute("search", search);
-        
+
         return "admin/users";
     }
-
     /**
      * 업체 관리 페이지
-     */
+
     @GetMapping("/companies")
     public String companies(
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestParam(value = "search", required = false) String search,
             Model model) {
-        
+
         // 업체 목록 데이터 (실제로는 서비스에서 가져와야 함)
         List<Map<String, Object>> companies = getCompanies(page, size, search);
         model.addAttribute("companies", companies);
-        
+
         // 페이지네이션 정보
         int totalCompanies = 45; // 실제로는 DB에서 조회
         int totalPages = (int) Math.ceil((double) totalCompanies / size);
-        
+
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", totalPages);
         model.addAttribute("totalCompanies", totalCompanies);
         model.addAttribute("search", search);
-        
+
         return "admin/companies";
-    }
+    }*/
 
     /**
      * 예약 관리 페이지
