@@ -1,10 +1,153 @@
-/* 예약 관리 페이지 스타일 */
+/* 이벤트/프로모션 신청 관리 페이지 스타일 */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
     background-color: #F4F9FD !important;
     margin: 0 !important;
     padding: 0 !important;
     display: block !important;
+}
+
+/* 이벤트 유형 배지 */
+.type-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: white;
+}
+
+.type-event {
+    background: #3498db;
+}
+
+.type-promotion {
+    background: #9b59b6;
+}
+
+.type-discount {
+    background: #e67e22;
+}
+
+/* 상태 배지 추가 */
+.status-pending {
+    background: #f39c12;
+}
+
+.status-approved {
+    background: #27ae60;
+}
+
+.status-rejected {
+    background: #e74c3c;
+}
+
+.status-active {
+    background: #3498db;
+}
+
+.status-completed {
+    background: #95a5a6;
+}
+
+/* 반려 버튼 스타일 */
+.btn-reject {
+    padding: 12px 24px;
+    border: none;
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(231, 76, 60, 0.2);
+}
+
+.btn-reject:hover {
+    background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+    box-shadow: 0 4px 16px rgba(231, 76, 60, 0.4);
+    transform: translateY(-2px);
+}
+
+.btn-reject:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(231, 76, 60, 0.2);
+}
+
+/* 체크박스 레이블 스타일 */
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+    padding: 10px 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.checkbox-label:hover {
+    background: #e9ecef;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: #3F8CFF;
+}
+
+.checkbox-label span:not(.checkmark) {
+    font-size: 14px;
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+/* 폼 헬프 텍스트 */
+.form-help {
+    display: block;
+    margin-top: 8px;
+    font-size: 13px;
+    color: #7f8c8d;
+    font-style: italic;
+    padding-left: 5px;
+}
+
+/* 모달 폼 그룹 */
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 15px;
+}
+
+.form-group textarea {
+    width: 100%;
+    padding: 15px;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: all 0.3s ease;
+    resize: vertical;
+    line-height: 1.6;
+}
+
+.form-group textarea:focus {
+    border-color: #3F8CFF;
+    box-shadow: 0 0 0 4px rgba(63, 140, 255, 0.1);
+    background-color: #f8fbff;
+}
+
+.form-group textarea::placeholder {
+    color: #adb5bd;
 }
 
 .admin-main-content {
@@ -285,7 +428,8 @@ body {
 }
 
 /* 테이블 컨테이너 */
-.reservations-table-container {
+.reservations-table-container,
+.events-table-container {
     background: white;
     border-radius: 12px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -320,26 +464,31 @@ body {
     overflow-x: auto;
 }
 
-.reservations-table {
+.reservations-table,
+.events-table {
     width: 100%;
     border-collapse: collapse;
 }
 
 .reservations-table th,
-.reservations-table td {
+.reservations-table td,
+.events-table th,
+.events-table td {
     padding: 15px;
     text-align: left;
     border-bottom: 1px solid #e9ecef;
 }
 
-.reservations-table th {
+.reservations-table th,
+.events-table th {
     background: #f8f9fa;
     font-weight: 600;
     color: #2c3e50;
     font-size: 14px;
 }
 
-.reservations-table td {
+.reservations-table td,
+.events-table td {
     font-size: 14px;
     color: #495057;
 }
@@ -347,6 +496,15 @@ body {
 .checkbox-column {
     width: 50px;
     text-align: center;
+}
+
+/* 테이블 행 스타일 */
+.event-row {
+    transition: background-color 0.3s ease;
+}
+
+.event-row:hover {
+    background-color: #f8f9fa;
 }
 
 .reservation-id {
@@ -482,41 +640,230 @@ body {
     background-color: white;
     margin: 5% auto;
     padding: 0;
-    border-radius: 12px;
+    border-radius: 16px;
     width: 90%;
     max-width: 600px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 
 .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px 25px;
-    border-bottom: 1px solid #e9ecef;
+    padding: 25px 30px;
+    border-bottom: 2px solid #e9ecef;
+    background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);
 }
 
+.modal-header h2,
 .modal-header h3 {
     margin: 0;
-    font-size: 18px;
-    font-weight: 600;
+    font-size: 20px;
+    font-weight: 700;
     color: #2c3e50;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.modal-header h2::before {
+    content: '⚠️';
+    font-size: 24px;
 }
 
 .close {
-    font-size: 24px;
+    font-size: 28px;
     font-weight: bold;
-    color: #6c757d;
+    color: #adb5bd;
     cursor: pointer;
-    transition: color 0.3s ease;
+    transition: all 0.3s ease;
+    padding: 5px;
+    line-height: 1;
 }
 
 .close:hover {
-    color: #2c3e50;
+    color: #e74c3c;
+    transform: rotate(90deg) scale(1.2);
 }
 
-.modal-body {
-    padding: 25px;
+/* 모달 액션 영역 */
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 30px;
+    padding-top: 25px;
+    border-top: 2px solid #e9ecef;
+}
+
+.btn-cancel {
+    padding: 12px 24px;
+    border: 2px solid #dee2e6;
+    background: white;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #6c757d;
+}
+
+.btn-cancel:hover {
+    background: #f8f9fa;
+    border-color: #adb5bd;
+    color: #495057;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.modal-body,
+.modal form {
+    padding: 30px;
+}
+
+/* 큰 모달 */
+.modal-large {
+    max-width: 800px;
+}
+
+/* 이벤트 상세 정보 */
+.event-detail {
+    display: grid;
+    gap: 20px;
+    max-height: 70vh;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+/* 스크롤바 스타일 */
+.event-detail::-webkit-scrollbar {
+    width: 8px;
+}
+
+.event-detail::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.event-detail::-webkit-scrollbar-thumb {
+    background: #3F8CFF;
+    border-radius: 10px;
+}
+
+.event-detail::-webkit-scrollbar-thumb:hover {
+    background: #2d7ce5;
+}
+
+.detail-section {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    border-left: 4px solid #3F8CFF;
+}
+
+.detail-section h3 {
+    margin: 0 0 15px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #2c3e50;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.detail-row {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    gap: 15px;
+    padding: 12px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-row label {
+    font-weight: 600;
+    color: #495057;
+    font-size: 14px;
+}
+
+.detail-row span {
+    color: #2c3e50;
+    font-size: 14px;
+}
+
+.detail-highlight {
+    background: #fff3cd;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #ffc107;
+    margin-top: 15px;
+}
+
+.detail-highlight strong {
+    color: #856404;
+}
+
+/* 폼 입력 필드 스타일 */
+.form-group input[type="text"],
+.form-group input[type="date"],
+.form-group select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="date"]:focus,
+.form-group select:focus {
+    border-color: #3F8CFF;
+    box-shadow: 0 0 0 4px rgba(63, 140, 255, 0.1);
+    background-color: #f8fbff;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+/* 저장 버튼 */
+.btn-save {
+    padding: 12px 24px;
+    border: none;
+    background: linear-gradient(135deg, #3F8CFF 0%, #2d7ce5 100%);
+    color: white;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(63, 140, 255, 0.3);
+}
+
+.btn-save:hover {
+    background: linear-gradient(135deg, #2d7ce5 0%, #1a66d1 100%);
+    box-shadow: 0 4px 16px rgba(63, 140, 255, 0.4);
+    transform: translateY(-2px);
 }
 
 /* 반응형 디자인 */

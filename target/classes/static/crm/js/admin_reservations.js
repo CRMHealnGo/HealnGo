@@ -1,8 +1,11 @@
-// 예약 관리 페이지 JavaScript
+// 이벤트/프로모션 신청 관리 페이지 JavaScript
 
 document.addEventListener('DOMContentLoaded', function() {
     initializeEventListeners();
     initializeTable();
+    setupRejectFormHandler();
+    setupEditFormHandler();
+    setupModalCloseEvents();
 });
 
 // 이벤트 리스너 초기화
@@ -12,10 +15,51 @@ function initializeEventListeners() {
     if (searchInput) {
         searchInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
-                performSearch();
+                searchEvents();
             }
         });
     }
+}
+
+// 반려 폼 제출 핸들러
+function setupRejectFormHandler() {
+    const rejectForm = document.getElementById('rejectForm');
+    if (rejectForm) {
+        rejectForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            processReject();
+        });
+    }
+}
+
+// 수정 폼 제출 핸들러
+function setupEditFormHandler() {
+    const editForm = document.getElementById('editEventForm');
+    if (editForm) {
+        editForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            processEditEvent();
+        });
+    }
+}
+
+// 모달 외부 클릭 이벤트
+function setupModalCloseEvents() {
+    window.addEventListener('click', function(event) {
+        const rejectModal = document.getElementById('rejectModal');
+        const editModal = document.getElementById('editEventModal');
+        const detailModal = document.getElementById('eventDetailModal');
+        
+        if (event.target === rejectModal) {
+            closeRejectModal();
+        }
+        if (event.target === editModal) {
+            closeEditEventModal();
+        }
+        if (event.target === detailModal) {
+            closeEventDetailModal();
+        }
+    });
 }
 
 // 테이블 초기화
@@ -27,18 +71,18 @@ function initializeTable() {
 // 체크박스 이벤트 설정
 function setupCheckboxEvents() {
     const selectAllCheckbox = document.getElementById('selectAllCheckbox');
-    const reservationCheckboxes = document.querySelectorAll('.reservation-checkbox');
+    const eventCheckboxes = document.querySelectorAll('.event-checkbox');
     
     if (selectAllCheckbox) {
         selectAllCheckbox.addEventListener('change', function() {
-            reservationCheckboxes.forEach(checkbox => {
+            eventCheckboxes.forEach(checkbox => {
                 checkbox.checked = this.checked;
             });
             updateBulkActions();
         });
     }
     
-    reservationCheckboxes.forEach(checkbox => {
+    eventCheckboxes.forEach(checkbox => {
         checkbox.addEventListener('change', function() {
             updateSelectAllCheckbox();
             updateBulkActions();
@@ -49,18 +93,18 @@ function setupCheckboxEvents() {
 // 전체 선택 체크박스 업데이트
 function updateSelectAllCheckbox() {
     const selectAllCheckbox = document.getElementById('selectAllCheckbox');
-    const reservationCheckboxes = document.querySelectorAll('.reservation-checkbox');
-    const checkedCount = document.querySelectorAll('.reservation-checkbox:checked').length;
+    const eventCheckboxes = document.querySelectorAll('.event-checkbox');
+    const checkedCount = document.querySelectorAll('.event-checkbox:checked').length;
     
     if (selectAllCheckbox) {
-        selectAllCheckbox.checked = checkedCount === reservationCheckboxes.length;
-        selectAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < reservationCheckboxes.length;
+        selectAllCheckbox.checked = checkedCount === eventCheckboxes.length;
+        selectAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < eventCheckboxes.length;
     }
 }
 
 // 일괄 작업 버튼 상태 업데이트
 function updateBulkActions() {
-    const checkedCount = document.querySelectorAll('.reservation-checkbox:checked').length;
+    const checkedCount = document.querySelectorAll('.event-checkbox:checked').length;
     const bulkButtons = document.querySelectorAll('.table-actions .btn:not(.btn-secondary)');
     
     bulkButtons.forEach(button => {
@@ -69,65 +113,99 @@ function updateBulkActions() {
     });
 }
 
-// 검색 수행
-function performSearch() {
-    const searchInput = document.getElementById('searchInput');
-    const searchTerm = searchInput ? searchInput.value.trim() : '';
-    
-    // URL 파라미터 업데이트
-    const url = new URL(window.location);
-    if (searchTerm) {
-        url.searchParams.set('search', searchTerm);
-    } else {
-        url.searchParams.delete('search');
+// 전체 선택 토글
+function toggleSelectAll() {
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    if (selectAllCheckbox) {
+        selectAllCheckbox.checked = !selectAllCheckbox.checked;
+        selectAllCheckbox.dispatchEvent(new Event('change'));
     }
-    url.searchParams.set('page', '1'); // 검색 시 첫 페이지로 이동
-    
-    window.location.href = url.toString();
 }
 
-// 필터 적용
-function applyFilters() {
-    const statusFilter = document.getElementById('statusFilter');
-    const dateFrom = document.getElementById('dateFrom');
-    const dateTo = document.getElementById('dateTo');
-    const searchInput = document.getElementById('searchInput');
+// 이벤트 검색
+function searchEvents() {
+    const searchInput = document.getElementById('searchInput').value.toLowerCase();
+    const eventRows = document.querySelectorAll('.event-row');
     
-    const url = new URL(window.location);
-    
-    // 검색어
-    const searchTerm = searchInput ? searchInput.value.trim() : '';
-    if (searchTerm) {
-        url.searchParams.set('search', searchTerm);
+    eventRows.forEach(row => {
+        const companyName = row.querySelector('.company-name').textContent.toLowerCase();
+        const eventName = row.querySelector('.event-name').textContent.toLowerCase();
+        
+        if (companyName.includes(searchInput) || eventName.includes(searchInput)) {
+            row.style.display = '';
     } else {
-        url.searchParams.delete('search');
+            row.style.display = 'none';
+        }
+    });
+}
+
+// 이벤트 필터링
+function filterEvents() {
+    const statusFilter = document.getElementById('statusFilter').value;
+    const typeFilter = document.getElementById('typeFilter').value;
+    const dateFrom = document.getElementById('dateFrom').value;
+    const dateTo = document.getElementById('dateTo').value;
+    const eventRows = document.querySelectorAll('.event-row');
+    
+    eventRows.forEach(row => {
+        const status = row.getAttribute('data-status');
+        const type = row.getAttribute('data-type');
+        
+        let showStatus = !statusFilter || status === statusFilter;
+        let showType = !typeFilter || type === typeFilter;
+        
+        // 날짜 필터링은 실제 데이터와 연동 필요
+        
+        if (showStatus && showType) {
+            row.style.display = '';
+    } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+// 일괄 승인
+function bulkApprove() {
+    const checkedBoxes = document.querySelectorAll('.event-checkbox:checked');
+    const eventIds = Array.from(checkedBoxes).map(checkbox => checkbox.value);
+    
+    if (eventIds.length === 0) {
+        alert('선택된 항목이 없습니다.');
+        return;
     }
     
-    // 상태 필터
-    const status = statusFilter ? statusFilter.value : '';
-    if (status) {
-        url.searchParams.set('status', status);
-    } else {
-        url.searchParams.delete('status');
+    if (confirm(`선택된 ${eventIds.length}건의 이벤트를 승인하시겠습니까?`)) {
+        console.log('승인할 이벤트:', eventIds);
+        alert(`${eventIds.length}건의 이벤트가 승인되었습니다.`);
+        
+        // 체크박스 초기화
+        checkedBoxes.forEach(checkbox => checkbox.checked = false);
+        updateSelectAllCheckbox();
+        updateBulkActions();
+    }
+}
+
+// 일괄 반려
+function bulkReject() {
+    const checkedBoxes = document.querySelectorAll('.event-checkbox:checked');
+    const eventIds = Array.from(checkedBoxes).map(checkbox => checkbox.value);
+    
+    if (eventIds.length === 0) {
+        alert('선택된 항목이 없습니다.');
+        return;
     }
     
-    // 날짜 필터
-    const fromDate = dateFrom ? dateFrom.value : '';
-    const toDate = dateTo ? dateTo.value : '';
-    if (fromDate) {
-        url.searchParams.set('dateFrom', fromDate);
-    } else {
-        url.searchParams.delete('dateFrom');
-    }
-    if (toDate) {
-        url.searchParams.set('dateTo', toDate);
-    } else {
-        url.searchParams.delete('dateTo');
-    }
+    const reason = prompt(`선택된 ${eventIds.length}건의 이벤트를 반려합니다.\n반려 사유를 입력하세요:`);
     
-    url.searchParams.set('page', '1'); // 필터 적용 시 첫 페이지로 이동
-    
-    window.location.href = url.toString();
+    if (reason) {
+        console.log('반려할 이벤트:', eventIds, '사유:', reason);
+        alert(`${eventIds.length}건의 이벤트가 반려되었습니다.`);
+        
+        // 체크박스 초기화
+        checkedBoxes.forEach(checkbox => checkbox.checked = false);
+        updateSelectAllCheckbox();
+        updateBulkActions();
+    }
 }
 
 // 페이지 이동
@@ -137,49 +215,324 @@ function goToPage(page) {
     window.location.href = url.toString();
 }
 
-// 전체 선택
-function selectAll() {
-    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
-    if (selectAllCheckbox) {
-        selectAllCheckbox.checked = true;
-        selectAllCheckbox.dispatchEvent(new Event('change'));
+// 이벤트 상세 보기
+function viewEventDetail(eventId) {
+    console.log('이벤트 상세 보기:', eventId);
+    
+    // 이벤트 데이터 가져오기 (임시 데이터)
+    const eventData = getEventData(eventId);
+    
+    // 상세 정보 HTML 생성
+    const detailContent = document.getElementById('eventDetailContent');
+    detailContent.innerHTML = `
+        <div class="detail-section">
+            <h3><i class="fas fa-info-circle"></i> 기본 정보</h3>
+            <div class="detail-row">
+                <label>신청 ID:</label>
+                <span>${eventData.id}</span>
+            </div>
+            <div class="detail-row">
+                <label>업체명:</label>
+                <span><strong>${eventData.companyName}</strong></span>
+            </div>
+            <div class="detail-row">
+                <label>이벤트명:</label>
+                <span><strong>${eventData.eventName}</strong></span>
+            </div>
+            <div class="detail-row">
+                <label>유형:</label>
+                <span><span class="type-badge type-${eventData.type}">${getTypeText(eventData.type)}</span></span>
+            </div>
+            <div class="detail-row">
+                <label>상태:</label>
+                <span><span class="status-badge status-${eventData.status}">${getStatusText(eventData.status)}</span></span>
+            </div>
+        </div>
+        
+        <div class="detail-section">
+            <h3><i class="fas fa-calendar-alt"></i> 기간 정보</h3>
+            <div class="detail-row">
+                <label>시작일:</label>
+                <span>${eventData.startDate}</span>
+            </div>
+            <div class="detail-row">
+                <label>종료일:</label>
+                <span>${eventData.endDate}</span>
+            </div>
+            <div class="detail-row">
+                <label>진행 기간:</label>
+                <span>${calculateDuration(eventData.startDate, eventData.endDate)}일</span>
+            </div>
+            <div class="detail-row">
+                <label>신청일:</label>
+                <span>${eventData.applyDate}</span>
+            </div>
+        </div>
+        
+        <div class="detail-section">
+            <h3><i class="fas fa-file-alt"></i> 상세 내용</h3>
+            <div class="detail-row">
+                <label>할인율/혜택:</label>
+                <span>${eventData.discount || '20% 할인'}</span>
+            </div>
+            <div class="detail-row">
+                <label>설명:</label>
+                <span>${eventData.description || '상세 설명 없음'}</span>
+            </div>
+            ${eventData.rejectReason ? `
+                <div class="detail-highlight">
+                    <strong>반려 사유:</strong><br>
+                    ${eventData.rejectReason}
+                </div>
+            ` : ''}
+        </div>
+        
+        <div class="detail-section">
+            <h3><i class="fas fa-chart-line"></i> 통계 정보</h3>
+            <div class="detail-row">
+                <label>조회수:</label>
+                <span>${eventData.views || 0}회</span>
+            </div>
+            <div class="detail-row">
+                <label>참여자 수:</label>
+                <span>${eventData.participants || 0}명</span>
+            </div>
+        </div>
+    `;
+    
+    // 모달 열기
+    document.getElementById('eventDetailModal').style.display = 'block';
+}
+
+// 상세 모달 닫기
+function closeEventDetailModal() {
+    document.getElementById('eventDetailModal').style.display = 'none';
+}
+
+// 이벤트 데이터 가져오기 (임시)
+function getEventData(eventId) {
+    const eventDataMap = {
+        '1': {
+            id: 'E001',
+            companyName: '힝거피부과',
+            eventName: '가을맞이 레이저 토닝 할인',
+            type: 'event',
+            status: 'pending',
+            startDate: '2024-10-15',
+            endDate: '2024-10-31',
+            applyDate: '2024-10-09',
+            discount: '30% 할인',
+            description: '가을 맞이 특별 이벤트로 레이저 토닝 시술을 30% 할인된 가격에 제공합니다.',
+            views: 245,
+            participants: 0
+        },
+        '2': {
+            id: 'E002',
+            companyName: '뷰티클리닉',
+            eventName: '신규 고객 50% 할인',
+            type: 'promotion',
+            status: 'approved',
+            startDate: '2024-10-01',
+            endDate: '2024-10-30',
+            applyDate: '2024-09-28',
+            discount: '50% 할인',
+            description: '첫 방문 고객에게 모든 시술 50% 할인 혜택을 제공합니다.',
+            views: 892,
+            participants: 67
+        }
+    };
+    
+    return eventDataMap[eventId] || eventDataMap['1'];
+}
+
+// 유형 텍스트 변환
+function getTypeText(type) {
+    const typeMap = {
+        'event': '이벤트',
+        'promotion': '프로모션',
+        'discount': '할인'
+    };
+    return typeMap[type] || type;
+}
+
+// 상태 텍스트 변환
+function getStatusText(status) {
+    const statusMap = {
+        'pending': '대기중',
+        'approved': '승인',
+        'rejected': '반려',
+        'active': '진행중',
+        'completed': '완료'
+    };
+    return statusMap[status] || status;
+}
+
+// 기간 계산
+function calculateDuration(startDate, endDate) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const diff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+    return diff + 1;
+}
+
+// 이벤트 승인
+function approveEvent(eventId) {
+    if (confirm('이 이벤트를 승인하시겠습니까?')) {
+        console.log('이벤트 승인:', eventId);
+        
+        // 상태 업데이트
+        const row = document.querySelector(`.event-checkbox[value="${eventId}"]`).closest('.event-row');
+        const statusBadge = row.querySelector('.status-badge');
+        statusBadge.textContent = '승인';
+        statusBadge.className = 'status-badge status-approved';
+        row.setAttribute('data-status', 'approved');
+        
+        // 버튼 업데이트
+        const actionButtons = row.querySelector('.action-buttons');
+        const approveBtn = actionButtons.querySelector('.btn-success');
+        const rejectBtn = actionButtons.querySelector('.btn-danger');
+        if (approveBtn) approveBtn.remove();
+        if (rejectBtn) rejectBtn.remove();
+        
+        alert('이벤트가 승인되었습니다.');
     }
 }
 
-// 일괄 작업
-function bulkAction(action) {
-    const checkedBoxes = document.querySelectorAll('.reservation-checkbox:checked');
-    const reservationIds = Array.from(checkedBoxes).map(checkbox => checkbox.value);
+// 이벤트 반려 - 모달 열기
+function rejectEvent(eventId) {
+    const modal = document.getElementById('rejectModal');
+    const eventIdInput = document.getElementById('rejectEventId');
+    const form = document.getElementById('rejectForm');
     
-    if (reservationIds.length === 0) {
-        showNotification('선택된 예약이 없습니다.', 'warning');
+    // 폼 초기화
+    form.reset();
+    
+    // 이벤트 ID 설정
+    eventIdInput.value = eventId;
+    
+    // 모달 열기
+    modal.style.display = 'block';
+}
+
+// 반려 모달 닫기
+function closeRejectModal() {
+    const modal = document.getElementById('rejectModal');
+    modal.style.display = 'none';
+}
+
+// 반려 처리
+function processReject() {
+    const eventId = document.getElementById('rejectEventId').value;
+    const reason = document.getElementById('rejectReason').value;
+    const notifyCompany = document.getElementById('notifyCompany').checked;
+    
+    if (!reason.trim()) {
+        alert('반려 사유를 입력하세요.');
         return;
     }
     
-    let message = '';
-    switch(action) {
-        case 'confirm':
-            message = `선택된 ${reservationIds.length}건의 예약을 확정하시겠습니까?`;
-            break;
-        case 'cancel':
-            message = `선택된 ${reservationIds.length}건의 예약을 취소하시겠습니까?`;
-            break;
-        case 'complete':
-            message = `선택된 ${reservationIds.length}건의 예약을 완료 처리하시겠습니까?`;
-            break;
-    }
+    console.log('이벤트 반려:', eventId, '사유:', reason, '알림 전송:', notifyCompany);
     
-    if (confirm(message)) {
-        // 실제로는 서버에 요청을 보내야 함
-        console.log(`${action} action for reservations:`, reservationIds);
-        showNotification(`${reservationIds.length}건의 예약에 대한 작업이 완료되었습니다.`, 'success');
+    // 상태 업데이트
+    const row = document.querySelector(`.event-checkbox[value="${eventId}"]`).closest('.event-row');
+    const statusBadge = row.querySelector('.status-badge');
+    statusBadge.textContent = '반려';
+    statusBadge.className = 'status-badge status-rejected';
+    row.setAttribute('data-status', 'rejected');
+    
+    // 버튼 업데이트
+    const actionButtons = row.querySelector('.action-buttons');
+    const approveBtn = actionButtons.querySelector('.btn-success');
+    const rejectBtn = actionButtons.querySelector('.btn-danger');
+    if (approveBtn) approveBtn.remove();
+    if (rejectBtn) rejectBtn.remove();
+    
+    // 모달 닫기
+    closeRejectModal();
+    
+    alert(notifyCompany ? '이벤트가 반려되었으며 업체에 알림이 전송되었습니다.' : '이벤트가 반려되었습니다.');
+}
+
+// 이벤트 수정
+function editEvent(eventId) {
+    console.log('이벤트 수정:', eventId);
+    
+    // 이벤트 데이터 가져오기
+    const eventData = getEventData(eventId);
+    
+    // 폼에 데이터 채우기
+    document.getElementById('editEventId').value = eventId;
+    document.getElementById('editEventName').value = eventData.eventName;
+    document.getElementById('editEventType').value = eventData.type;
+    document.getElementById('editStartDate').value = eventData.startDate;
+    document.getElementById('editEndDate').value = eventData.endDate;
+    document.getElementById('editEventDescription').value = eventData.description || '';
+    
+    // 모달 열기
+    document.getElementById('editEventModal').style.display = 'block';
+}
+
+// 수정 모달 닫기
+function closeEditEventModal() {
+    document.getElementById('editEventModal').style.display = 'none';
+}
+
+// 이벤트 수정 처리
+function processEditEvent() {
+    const eventId = document.getElementById('editEventId').value;
+    const eventName = document.getElementById('editEventName').value;
+    const eventType = document.getElementById('editEventType').value;
+    const startDate = document.getElementById('editStartDate').value;
+    const endDate = document.getElementById('editEndDate').value;
+    const description = document.getElementById('editEventDescription').value;
+    
+    console.log('이벤트 수정:', { eventId, eventName, eventType, startDate, endDate, description });
+    
+    // 실제로는 서버에 수정 요청 전송
+    
+    // 테이블 업데이트
+    const row = document.querySelector(`.event-checkbox[value="${eventId}"]`).closest('.event-row');
+    row.querySelector('.event-name').textContent = eventName;
+    row.querySelector('.event-period .date').textContent = `${startDate} ~ ${endDate}`;
+    
+    const typeBadge = row.querySelector('.type-badge');
+    typeBadge.textContent = getTypeText(eventType);
+    typeBadge.className = `type-badge type-${eventType}`;
+    
+    closeEditEventModal();
+    alert('이벤트가 수정되었습니다.');
+}
+
+// 이벤트 종료
+function endEvent(eventId) {
+    if (confirm('이 이벤트를 종료하시겠습니까?')) {
+        console.log('이벤트 종료:', eventId);
         
-        // 체크박스 초기화
-        checkedBoxes.forEach(checkbox => {
-            checkbox.checked = false;
-        });
-        updateSelectAllCheckbox();
-        updateBulkActions();
+        // 상태 업데이트
+        const row = document.querySelector(`.event-checkbox[value="${eventId}"]`).closest('.event-row');
+        const statusBadge = row.querySelector('.status-badge');
+        statusBadge.textContent = '완료';
+        statusBadge.className = 'status-badge status-completed';
+        row.setAttribute('data-status', 'completed');
+        
+        alert('이벤트가 종료되었습니다.');
+    }
+}
+
+// 이벤트 삭제
+function deleteEvent(eventId) {
+    if (confirm('이 이벤트를 삭제하시겠습니까?')) {
+        console.log('이벤트 삭제:', eventId);
+        
+        const row = document.querySelector(`.event-checkbox[value="${eventId}"]`).closest('.event-row');
+        row.style.opacity = '0';
+        row.style.transform = 'scale(0.8)';
+        row.style.transition = 'all 0.3s ease';
+        
+        setTimeout(() => {
+            row.remove();
+            alert('이벤트가 삭제되었습니다.');
+        }, 300);
     }
 }
 

@@ -356,4 +356,72 @@ public class AdminController {
                 .findFirst()
                 .orElse(new HashMap<>());
     }
+
+    /**
+     * 공지사항 & 알림 관리 페이지
+     */
+    @GetMapping("/notice-notify")
+    public String noticeNotify(Model model) {
+        // 공지사항 목록 (실제로는 서비스에서 가져와야 함)
+        List<Map<String, Object>> notices = getNotices();
+        model.addAttribute("notices", notices);
+        
+        // 알림 목록 (실제로는 서비스에서 가져와야 함)
+        List<Map<String, Object>> notifications = getNotifications();
+        model.addAttribute("notifications", notifications);
+        
+        // 알림 통계
+        Map<String, Object> notifyStats = new HashMap<>();
+        notifyStats.put("totalSent", 1234);
+        notifyStats.put("delivered", 1180);
+        notifyStats.put("pending", 54);
+        notifyStats.put("failed", 12);
+        model.addAttribute("notifyStats", notifyStats);
+        
+        return "admin/admin_notice_notify";
+    }
+
+    private List<Map<String, Object>> getNotices() {
+        List<Map<String, Object>> notices = new ArrayList<>();
+        
+        Map<String, Object> notice1 = new HashMap<>();
+        notice1.put("id", 1);
+        notice1.put("title", "시스템 점검 안내");
+        notice1.put("content", "2024년 10월 15일 새벽 2시~4시 시스템 점검이 예정되어 있습니다.");
+        notice1.put("type", "important");
+        notice1.put("status", "active");
+        notice1.put("author", "관리자");
+        notice1.put("date", "2024-10-09 14:30");
+        notice1.put("views", 1234);
+        notices.add(notice1);
+        
+        Map<String, Object> notice2 = new HashMap<>();
+        notice2.put("id", 2);
+        notice2.put("title", "신규 서비스 출시 안내");
+        notice2.put("content", "새로운 예약 시스템이 출시되었습니다. 더욱 편리한 예약 관리를 경험해보세요.");
+        notice2.put("type", "general");
+        notice2.put("status", "active");
+        notice2.put("author", "관리자");
+        notice2.put("date", "2024-10-08 10:00");
+        notice2.put("views", 856);
+        notices.add(notice2);
+        
+        return notices;
+    }
+
+    private List<Map<String, Object>> getNotifications() {
+        List<Map<String, Object>> notifications = new ArrayList<>();
+        
+        Map<String, Object> notify1 = new HashMap<>();
+        notify1.put("id", 1);
+        notify1.put("title", "시스템 점검 안내");
+        notify1.put("message", "금일 새벽 2시~4시 시스템 점검이 예정되어 있습니다.");
+        notify1.put("type", "all");
+        notify1.put("status", "sent");
+        notify1.put("date", "2024-10-09 14:30");
+        notify1.put("recipients", 5234);
+        notifications.add(notify1);
+        
+        return notifications;
+    }
 }

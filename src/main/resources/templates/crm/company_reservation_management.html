@@ -26,9 +26,49 @@
                 <h2 class="section-title">예약 관리</h2>
             </div>
 
-            <div class="page-content-container">            
-                <!-- 메인 달력 영역 -->
-                <div class="calendar-container">
+            <!-- 통계 카드 -->
+            <div class="reservation-stats">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-number">320</h3>
+                        <p class="stat-label">이번 달 예약</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-number">280</h3>
+                        <p class="stat-label">완료된 예약</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-number">25</h3>
+                        <p class="stat-label">취소된 예약</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-won-sign"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-number">15,000,000</h3>
+                        <p class="stat-label">이번 달 매출</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-content-container">
+                <!-- 왼쪽 컬럼: 달력 + 최근 업데이트 + 금일 일정 -->
+                <div class="left-column">
                     <!-- 달력 -->
                     <div class="calendar">
                         <div class="calendar-header">
@@ -58,43 +98,176 @@
                         </div>
                     </div>
 
-                    <!-- 최근 업데이트 -->
-                    <div class="recent-updates">
-                        <h3>최근 업데이트</h3>
-                        <div class="update-list">
-                            <div class="update-item">
-                                <span class="update-text">둥그리둥둥님께서 10월 20일 오전 11시 예약 하셨습니다.</span>
+                    <!-- 최근 업데이트와 금일 일정을 나란히 배치 -->
+                    <div class="bottom-sections">
+                        <!-- 최근 업데이트 -->
+                        <div class="recent-updates">
+                            <h3>최근 업데이트</h3>
+                            <div class="update-list">
+                                <div class="update-item">
+                                    <span class="update-text">둥그리둥둥님께서 10월 20일 오전 11시 예약 하셨습니다.</span>
+                                </div>
+                                <div class="update-item">
+                                    <span class="update-text">둥그리둥둥님께서 10월 20일 오전 11시 예약 하셨습니다.</span>
+                                </div>
+                                <div class="update-item">
+                                    <span class="update-text">둥그리둥둥님께서 10월 20일 오전 11시 예약 하셨습니다.</span>
+                                </div>
                             </div>
-                            <div class="update-item">
-                                <span class="update-text">둥그리둥둥님께서 10월 20일 오전 11시 예약 하셨습니다.</span>
-                            </div>
-                            <div class="update-item">
-                                <span class="update-text">둥그리둥둥님께서 10월 20일 오전 11시 예약 하셨습니다.</span>
+                        </div>
+
+                        <!-- 금일 일정 -->
+                        <div class="today-schedule">
+                            <h3>금일 일정</h3>
+                            <div class="schedule-date">10월 3일</div>
+                            <div class="schedule-list">
+                                <div class="schedule-item">
+                                    <span class="schedule-text">신규 이벤트 공지</span>
+                                </div>
+                                <div class="schedule-item">
+                                    <span class="schedule-text">계절상품 선정</span>
+                                </div>
+                                <div class="schedule-item">
+                                    <span class="schedule-text">베스트 리뷰러 선정</span>
+                                </div>
+                                <div class="schedule-item reservation">
+                                    <span class="schedule-text">서울깍쟁이 님 오전 12시 울쎄라핌 예약</span>
+                                </div>
+                                <div class="schedule-item reservation">
+                                    <span class="schedule-text">둥그리둥둥님께서 10월 20일 오전 11시 예약 하셨습니다.</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 오른쪽 사이드바 -->
-                <div class="sidebar-right">
-                    <div class="today-schedule">
-                        <h3>금일 일정</h3>
-                        <div class="schedule-date">10월 3일</div>
-                        <div class="schedule-list">
-                            <div class="schedule-item">
-                                <span class="schedule-text">신규 이벤트 공지</span>
+                <!-- 오른쪽 컬럼: 예약 목록 -->
+                <div class="right-column">
+                    <div class="reservations-list-section">
+                        <div class="reservations-header">
+                            <h3>예약 목록</h3>
+                            <button class="btn-add-reservation" onclick="openModal()">
+                                <i class="fas fa-plus"></i>
+                                일정 추가
+                            </button>
+                        </div>
+                        
+                        <!-- 선택된 날짜 표시 -->
+                        <div class="selected-date-info">
+                            <span id="selectedDateText">전체 예약</span>
+                            <button class="btn-clear-filter" id="clearFilterBtn" onclick="clearDateFilter()" style="display: none;">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- 검색 바 -->
+                        <div class="search-bar-compact">
+                            <input type="text" placeholder="고객명 검색..." class="search-input-compact" id="searchInput" onkeyup="searchReservations()">
+                        </div>
+                        
+                        <!-- 예약 아이템 리스트 -->
+                        <div class="reservation-items" id="reservationList">
+                            <div class="reservation-item" data-date="2024-10-15">
+                                <div class="item-header">
+                                    <div class="customer-info">
+                                        <span class="customer-name">홍길동</span>
+                                        <span class="customer-phone">010-1234-5678</span>
+                                    </div>
+                                    <span class="status-badge status-reserved">예약</span>
+                                </div>
+                                <div class="item-datetime">
+                                    <i class="fas fa-calendar"></i>
+                                    2024-10-15 14:00
+                                </div>
+                                <div class="item-service">
+                                    레이저 토닝
+                                </div>
+                                <div class="item-actions">
+                                    <button class="btn-action btn-confirm" onclick="confirmReservation(this)" title="확정">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <button class="btn-action btn-edit" onclick="editReservation(this)" title="수정">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn-action btn-delete" onclick="deleteReservation(this)" title="삭제">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
                             </div>
-                            <div class="schedule-item">
-                                <span class="schedule-text">계절상품 선정</span>
+                            
+                            <div class="reservation-item" data-date="2024-10-15">
+                                <div class="item-header">
+                                    <div class="customer-info">
+                                        <span class="customer-name">김영희</span>
+                                        <span class="customer-phone">010-2345-6789</span>
+                                    </div>
+                                    <span class="status-badge status-confirmed">확정</span>
+                                </div>
+                                <div class="item-datetime">
+                                    <i class="fas fa-calendar"></i>
+                                    2024-10-15 15:30
+                                </div>
+                                <div class="item-service">
+                                    보톡스 시술
+                                </div>
+                                <div class="item-actions">
+                                    <button class="btn-action btn-edit" onclick="editReservation(this)" title="수정">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn-action btn-delete" onclick="deleteReservation(this)" title="삭제">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
                             </div>
-                            <div class="schedule-item">
-                                <span class="schedule-text">베스트 리뷰러 선정</span>
+                            
+                            <div class="reservation-item" data-date="2024-10-16">
+                                <div class="item-header">
+                                    <div class="customer-info">
+                                        <span class="customer-name">이철수</span>
+                                        <span class="customer-phone">010-3456-7890</span>
+                                    </div>
+                                    <span class="status-badge status-reserved">예약</span>
+                                </div>
+                                <div class="item-datetime">
+                                    <i class="fas fa-calendar"></i>
+                                    2024-10-16 10:00
+                                </div>
+                                <div class="item-service">
+                                    필러 시술
+                                </div>
+                                <div class="item-actions">
+                                    <button class="btn-action btn-confirm" onclick="confirmReservation(this)" title="확정">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <button class="btn-action btn-edit" onclick="editReservation(this)" title="수정">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn-action btn-delete" onclick="deleteReservation(this)" title="삭제">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
                             </div>
-                            <div class="schedule-item reservation">
-                                <span class="schedule-text">서울깍쟁이 님 오전 12시 울쎄라핌 예약</span>
-                            </div>
-                            <div class="schedule-item reservation">
-                                <span class="schedule-text">둥그리둥둥님께서 10월 20일 오전 11시 예약 하셨습니다.</span>
+                            
+                            <div class="reservation-item" data-date="2024-10-16">
+                                <div class="item-header">
+                                    <div class="customer-info">
+                                        <span class="customer-name">박민수</span>
+                                        <span class="customer-phone">010-4567-8901</span>
+                                    </div>
+                                    <span class="status-badge status-cancelled">취소</span>
+                                </div>
+                                <div class="item-datetime">
+                                    <i class="fas fa-calendar"></i>
+                                    2024-10-16 14:00
+                                </div>
+                                <div class="item-service">
+                                    레이저 제모
+                                </div>
+                                <div class="item-actions">
+                                    <button class="btn-action btn-delete" onclick="deleteReservation(this)" title="삭제">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>

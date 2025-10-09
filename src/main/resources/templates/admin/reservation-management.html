@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>예약 캘린더 - HealnGo Admin</title>
+    <link rel="stylesheet" href="/crm/css/admin_sidebar.css">
+    <link rel="stylesheet" href="/crm/css/admin_header.css">
+    <link rel="stylesheet" href="/crm/css/admin_reservation_management.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* 기본 레이아웃 */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa !important;
+        }
+        
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+            background-color: #f8f9fa;
+        }
+        
+        .main-content {
+            flex: 1;
+            margin-left: 290px; /* 사이드바 너비(250px) + margin(40px) */
+        }
+        
+        .admin-page-content {
+            padding: 20px;
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- 사이드바 -->
+        <div th:replace="~{common/admin_sidebar :: admin_sidebar}"></div>
+        
+        <!-- 메인 콘텐츠 -->
+        <div class="main-content">
+            <!-- 헤더 -->
+            <div th:replace="~{common/admin_header :: admin_header}"></div>
+
+            <!-- 페이지 컨텐츠 -->
+            <div class="admin-page-content">
+                <!-- 페이지 헤더 -->
+                <div class="page-header">
+                    <h1 class="page-title">예약 캘린더</h1>
+                    <div class="page-actions">
+                        <button class="btn btn-secondary" onclick="syncGoogleCalendar()">
+                            <i class="fab fa-google"></i>
+                            Google 캘린더 동기화
+                        </button>
+                        <button class="btn btn-primary" onclick="openAddEventModal()">
+                            <i class="fas fa-plus"></i>
+                            일정 추가
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 통계 카드 -->
+                <div class="calendar-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 class="stat-number">28</h3>
+                            <p class="stat-label">진행중인 이벤트</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-gift"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 class="stat-number">15</h3>
+                            <p class="stat-label">진행중인 프로모션</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-tags"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 class="stat-number">12</h3>
+                            <p class="stat-label">진행중인 할인</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 class="stat-number">8</h3>
+                            <p class="stat-label">예정된 이벤트</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 필터 섹션 -->
+                <div class="filter-section">
+                    <div class="filter-group">
+                        <label>이벤트 유형</label>
+                        <div class="filter-checkboxes">
+                            <label class="filter-checkbox">
+                                <input type="checkbox" value="event" checked onchange="filterCalendarEvents()">
+                                <span class="type-badge type-event">이벤트</span>
+                            </label>
+                            <label class="filter-checkbox">
+                                <input type="checkbox" value="promotion" checked onchange="filterCalendarEvents()">
+                                <span class="type-badge type-promotion">프로모션</span>
+                            </label>
+                            <label class="filter-checkbox">
+                                <input type="checkbox" value="discount" checked onchange="filterCalendarEvents()">
+                                <span class="type-badge type-discount">할인</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 캘린더와 일정 목록 -->
+                <div class="calendar-layout">
+                    <!-- 캘린더 영역 -->
+                    <div class="calendar-section">
+                        <div class="calendar-container">
+                            <div class="calendar-header">
+                                <button class="nav-btn" id="prevMonth">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <h3 class="month-year" id="currentMonth">2024년 10월</h3>
+                                <button class="nav-btn" id="nextMonth">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                                <button class="today-btn" onclick="goToToday()">오늘</button>
+                            </div>
+                            
+                            <div class="calendar-grid">
+                                <div class="weekdays">
+                                    <div class="weekday">일</div>
+                                    <div class="weekday">월</div>
+                                    <div class="weekday">화</div>
+                                    <div class="weekday">수</div>
+                                    <div class="weekday">목</div>
+                                    <div class="weekday">금</div>
+                                    <div class="weekday">토</div>
+                                </div>
+                                
+                                <div class="days" id="calendarDays">
+                                    <!-- 캘린더 날짜들이 JavaScript로 동적으로 생성됩니다 -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 범례 -->
+                        <div class="calendar-legend">
+                            <h4>범례</h4>
+                            <div class="legend-items">
+                                <div class="legend-item">
+                                    <span class="legend-dot event-dot"></span>
+                                    <span>이벤트</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-dot promotion-dot"></span>
+                                    <span>프로모션</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-dot discount-dot"></span>
+                                    <span>할인</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 일정 목록 영역 -->
+                    <div class="events-list-section">
+                        <div class="events-list-header">
+                            <h3 id="selectedDateTitle">전체 일정</h3>
+                            <button class="btn-clear-filter" id="clearDateFilter" onclick="clearDateFilter()" style="display: none;">
+                                <i class="fas fa-times"></i>
+                                필터 해제
+                            </button>
+                        </div>
+                        
+                        <div class="events-list" id="eventsList">
+                            <!-- 이벤트 아이템들 -->
+                            <div class="event-item" data-type="event" data-date="2024-10-15" data-end-date="2024-10-31">
+                                <div class="event-color event-color-event"></div>
+                                <div class="event-content">
+                                    <h4 class="event-title">가을맞이 레이저 토닝 할인</h4>
+                                    <p class="event-company"><i class="fas fa-building"></i> 힝거피부과</p>
+                                    <p class="event-period"><i class="fas fa-calendar"></i> 2024-10-15 ~ 2024-10-31</p>
+                                    <p class="event-discount"><i class="fas fa-tag"></i> 30% 할인</p>
+                                </div>
+                                <div class="event-badge">
+                                    <span class="type-badge type-event">이벤트</span>
+                                </div>
+                            </div>
+
+                            <div class="event-item" data-type="promotion" data-date="2024-10-01" data-end-date="2024-10-30">
+                                <div class="event-color event-color-promotion"></div>
+                                <div class="event-content">
+                                    <h4 class="event-title">신규 고객 50% 할인</h4>
+                                    <p class="event-company"><i class="fas fa-building"></i> 뷰티클리닉</p>
+                                    <p class="event-period"><i class="fas fa-calendar"></i> 2024-10-01 ~ 2024-10-30</p>
+                                    <p class="event-discount"><i class="fas fa-tag"></i> 50% 할인</p>
+                                </div>
+                                <div class="event-badge">
+                                    <span class="type-badge type-promotion">프로모션</span>
+                                </div>
+                            </div>
+
+                            <div class="event-item" data-type="discount" data-date="2024-10-05" data-end-date="2024-10-25">
+                                <div class="event-color event-color-discount"></div>
+                                <div class="event-content">
+                                    <h4 class="event-title">주말 특가 할인</h4>
+                                    <p class="event-company"><i class="fas fa-building"></i> 메디컬센터</p>
+                                    <p class="event-period"><i class="fas fa-calendar"></i> 2024-10-05 ~ 2024-10-25</p>
+                                    <p class="event-discount"><i class="fas fa-tag"></i> 주말 한정 20% 할인</p>
+                                </div>
+                                <div class="event-badge">
+                                    <span class="type-badge type-discount">할인</span>
+                                </div>
+                            </div>
+
+                            <div class="event-item" data-type="event" data-date="2024-10-20" data-end-date="2024-11-10">
+                                <div class="event-color event-color-event"></div>
+                                <div class="event-content">
+                                    <h4 class="event-title">가을 건강검진 이벤트</h4>
+                                    <p class="event-company"><i class="fas fa-building"></i> 서울메디컬</p>
+                                    <p class="event-period"><i class="fas fa-calendar"></i> 2024-10-20 ~ 2024-11-10</p>
+                                    <p class="event-discount"><i class="fas fa-tag"></i> 종합검진 25% 할인</p>
+                                </div>
+                                <div class="event-badge">
+                                    <span class="type-badge type-event">이벤트</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 일정 추가 모달 -->
+    <div id="addEventModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>일정 추가</h2>
+                <span class="close" onclick="closeAddEventModal()">&times;</span>
+            </div>
+            <form id="addEventForm">
+                <div class="form-group">
+                    <label for="eventTitle">이벤트명</label>
+                    <input type="text" id="eventTitle" name="title" placeholder="이벤트명을 입력하세요" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="eventCompany">업체</label>
+                    <select id="eventCompany" name="company" required>
+                        <option value="">업체 선택</option>
+                        <option value="1">힝거피부과</option>
+                        <option value="2">뷰티클리닉</option>
+                        <option value="3">메디컬센터</option>
+                        <option value="4">서울메디컬</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="eventType">유형</label>
+                    <select id="eventType" name="type" required>
+                        <option value="event">이벤트</option>
+                        <option value="promotion">프로모션</option>
+                        <option value="discount">할인</option>
+                    </select>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="startDate">시작일</label>
+                        <input type="date" id="startDate" name="startDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="endDate">종료일</label>
+                        <input type="date" id="endDate" name="endDate" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="eventDiscount">할인율/혜택</label>
+                    <input type="text" id="eventDiscount" name="discount" placeholder="예: 30% 할인" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="eventDescription">설명</label>
+                    <textarea id="eventDescription" name="description" placeholder="이벤트 설명을 입력하세요" rows="4"></textarea>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeAddEventModal()">취소</button>
+                    <button type="submit" class="btn-save">저장</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/crm/js/admin_reservation_management.js"></script>
+</body>
+</html>
+
