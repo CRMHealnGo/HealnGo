@@ -31,10 +31,10 @@ public class CalendarController {
 
     private final ReservationManagementService reservationManagementService;
     
-    @Value("${google.client-id}")
+    @Value("${google.client-id:}")
     private String googleClientId;
 
-    @Value("${google.calendar.application.name}")
+    @Value("${google.calendar.application.name:HealnGo Calendar}")
     private String applicationName;
     
     public CalendarController(ReservationManagementService reservationManagementService) {
