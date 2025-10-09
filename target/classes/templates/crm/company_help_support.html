@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>도움말 / 고객센터 - HealnGo</title>
+    <link rel="stylesheet" href="/crm/css/company_sidebar.css">
+    <link rel="stylesheet" href="/crm/css/company_header.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        /* company_sidebar.css와 company_header.css가 메인 레이아웃 처리 */
+        
+        /* 상단 헤더 */
+        .help-top-header {
+            background: white;
+            padding: 20px 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 0;
+        }
+        
+        .help-header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .help-page-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .help-page-title i {
+            color: #3498db;
+        }
+        
+        .help-header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .notification-btn {
+            background: #f8f9fa;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            color: #7f8c8d;
+            transition: all 0.3s;
+        }
+        
+        .notification-btn:hover {
+            background: #e9ecef;
+            color: #3498db;
+        }
+        
+        .profile-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 16px;
+            background: #f8f9fa;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        
+        .profile-img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #3498db;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        
+        /* 탭 네비게이션 */
+        .help-tabs {
+            background: white;
+            padding: 0 30px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .tab-list {
+            list-style: none;
+            display: flex;
+            gap: 40px;
+        }
+        
+        .tab-item {
+            padding: 16px 0;
+            position: relative;
+            cursor: pointer;
+            color: #7f8c8d;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .tab-item:hover {
+            color: #3498db;
+        }
+        
+        .tab-item.active {
+            color: #3498db;
+        }
+        
+        .tab-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #3498db;
+        }
+        
+        /* 메인 콘텐츠 영역 */
+        .help-content-area {
+            padding: 30px;
+        }
+        
+        /* 탭 콘텐츠 전환 */
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: flex;
+            gap: 30px;
+        }
+        
+        /* 왼쪽: 요청 리스트 */
+        .requests-list-section {
+            flex: 1;
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .new-request-btn {
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.3s;
+        }
+        
+        .new-request-btn:hover {
+            background: #2980b9;
+        }
+        
+        /* 필터 섹션 */
+        .filter-section {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 8px 16px;
+            border: 1px solid #e1e8ed;
+            background: white;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #7f8c8d;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .filter-btn:hover {
+            border-color: #3498db;
+            color: #3498db;
+        }
+        
+        .filter-btn.active {
+            background: #3498db;
+            border-color: #3498db;
+            color: white;
+        }
+        
+        /* 요청 테이블 */
+        .requests-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .requests-table thead th {
+            text-align: left;
+            padding: 12px;
+            background: #f8f9fa;
+            color: #5a6c7d;
+            font-weight: 600;
+            font-size: 13px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .requests-table tbody tr {
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .requests-table tbody tr:hover {
+            background: #f8fbff;
+        }
+        
+        .requests-table tbody tr.selected {
+            background: #e3f2fd;
+        }
+        
+        .requests-table tbody td {
+            padding: 16px 12px;
+            color: #5a6c7d;
+            font-size: 14px;
+        }
+        
+        .request-title {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .type-badge {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .type-badge.promotion {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .type-badge.report {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .type-badge.tech {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+        
+        .type-badge.payment {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .type-badge.account {
+            background: #fff3e0;
+            color: #e65100;
+        }
+        
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-badge.processing {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-badge.completed {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-badge.rejected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .priority-badge {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .priority-badge.urgent {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .priority-badge.normal {
+            background: #f5f5f5;
+            color: #757575;
+        }
+        
+        /* 오른쪽: 요청 상세 */
+        .request-detail-section {
+            width: 450px;
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            position: sticky;
+            top: 20px;
+            height: fit-content;
+            max-height: calc(100vh - 140px);
+            overflow-y: auto;
+        }
+        
+        .detail-header {
+            margin-bottom: 24px;
+        }
+        
+        .detail-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 12px;
+        }
+        
+        .detail-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .detail-info-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .info-label {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        
+        .info-value {
+            color: #2c3e50;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .content-section {
+            margin-bottom: 24px;
+        }
+        
+        .content-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 12px;
+        }
+        
+        .content-text {
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 8px;
+            line-height: 1.6;
+            color: #5a6c7d;
+            font-size: 14px;
+        }
+        
+        .attachment-section {
+            margin-bottom: 24px;
+        }
+        
+        .attachment-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .attachment-item:hover {
+            background: #e9ecef;
+        }
+        
+        .attachment-icon {
+            width: 40px;
+            height: 40px;
+            background: #3498db;
+            color: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .attachment-info {
+            flex: 1;
+        }
+        
+        .attachment-name {
+            font-weight: 500;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+        
+        .attachment-size {
+            color: #7f8c8d;
+            font-size: 12px;
+        }
+        
+        .admin-answer-section {
+            background: #e8f5e9;
+            border-left: 4px solid #27ae60;
+            padding: 16px;
+            border-radius: 8px;
+        }
+        
+        .answer-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #27ae60;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .answer-text {
+            color: #2c3e50;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .no-answer {
+            background: #fff3cd;
+            border-left-color: #f39c12;
+            color: #856404;
+        }
+        
+        /* 새 요청 등록 폼 (탭2) */
+        #new-request-tab,
+        #faq-tab,
+        #policy-tab {
+            flex: 1;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        #new-request-tab {
+            max-width: 800px;
+        }
+        
+        #requests-tab {
+            flex: 1;
+        }
+        
+        .new-request-form {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .form-input,
+        .form-textarea,
+        .form-select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        
+        .form-textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+        
+        .form-input:focus,
+        .form-textarea:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        .file-upload-area {
+            border: 2px dashed #e1e8ed;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .file-upload-area:hover {
+            border-color: #3498db;
+            background: #f8fbff;
+        }
+        
+        .file-upload-icon {
+            font-size: 40px;
+            color: #bdc3c7;
+            margin-bottom: 12px;
+        }
+        
+        .file-upload-text {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .submit-btn:hover {
+            background: #2980b9;
+        }
+        
+        /* FAQ 섹션 (탭3) */
+        .faq-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .faq-item {
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        }
+        
+        .faq-question {
+            padding: 16px 20px;
+            font-weight: 600;
+            color: #2c3e50;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+        
+        .faq-question:hover {
+            background: #f8f9fa;
+        }
+        
+        .faq-answer {
+            padding: 0 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s, padding 0.3s;
+            color: #5a6c7d;
+            line-height: 1.6;
+        }
+        
+        .faq-item.open .faq-answer {
+            padding: 0 20px 16px;
+            max-height: 500px;
+        }
+        
+        .faq-icon {
+            transition: transform 0.3s;
+        }
+        
+        .faq-item.open .faq-icon {
+            transform: rotate(180deg);
+        }
+        
+        /* 정책안내 섹션 (탭4) */
+        .policy-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .policy-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        
+        .policy-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .policy-content {
+            color: #5a6c7d;
+            line-height: 1.8;
+            font-size: 14px;
+        }
+        
+        .policy-content ul {
+            margin: 12px 0;
+            padding-left: 20px;
+        }
+        
+        .policy-content li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 사이드바 -->
+    <div th:replace="common/company_sidebar :: company_sidebar"></div>
+    
+    <!-- 메인 콘텐츠 -->
+    <div class="main-content">
+        <!-- 상단 헤더 -->
+        <div class="help-top-header">
+            <div class="help-header-content">
+                <h1 class="help-page-title">
+                    <i class="fas fa-headset"></i>
+                    도움말 / 고객센터
+                </h1>
+                <div class="help-header-right">
+                    <button class="notification-btn">
+                        <i class="fas fa-bell"></i>
+                    </button>
+                    <div class="profile-section">
+                        <div class="profile-img">힝</div>
+                        <span>힝거 피부과</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 탭 네비게이션 -->
+        <div class="help-tabs">
+            <ul class="tab-list">
+                <li class="tab-item active" data-tab="requests">요청 내역</li>
+                <li class="tab-item" data-tab="new-request">새 요청하기</li>
+                <li class="tab-item" data-tab="faq">FAQ</li>
+                <li class="tab-item" data-tab="policy">정책안내</li>
+            </ul>
+        </div>
+        
+        <!-- 메인 콘텐츠 영역 -->
+        <div class="help-content-area">
+            <!-- 탭1: 요청 내역 -->
+            <div id="requests-tab" class="tab-content active">
+                <!-- 왼쪽: 요청 리스트 -->
+                <div class="requests-list-section">
+                    <div class="section-header">
+                        <h2 class="section-title">📁 요청 내역</h2>
+                        <button class="new-request-btn" onclick="switchTab('new-request')">
+                            <i class="fas fa-plus"></i>
+                            새 요청하기
+                        </button>
+                    </div>
+                    
+                    <!-- 필터 -->
+                    <div class="filter-section">
+                        <button class="filter-btn active" data-filter="all">전체</button>
+                        <button class="filter-btn" data-filter="processing">처리중</button>
+                        <button class="filter-btn" data-filter="completed">완료</button>
+                        <button class="filter-btn" data-filter="rejected">반려</button>
+                    </div>
+                    
+                    <!-- 요청 테이블 -->
+                    <table class="requests-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 35%">제목</th>
+                                <th style="width: 15%">유형</th>
+                                <th style="width: 12%">상태</th>
+                                <th style="width: 12%">우선순위</th>
+                                <th style="width: 13%">등록일</th>
+                                <th style="width: 13%">답변일</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="request : ${requests}" 
+                                th:onclick="|viewRequest(${request.id})|"
+                                th:data-status="${request.status}">
+                                <td class="request-title" th:text="${request.title}">11월 프로모션 요청</td>
+                                <td>
+                                    <span class="type-badge" 
+                                          th:classappend="${request.type == '프로모션'} ? 'promotion' : 
+                                                          (${request.type == '고객신고'} ? 'report' : 
+                                                          (${request.type == '기술지원'} ? 'tech' : 
+                                                          (${request.type == '정산'} ? 'payment' : 'account')))"
+                                          th:text="${request.type}">프로모션</span>
+                                </td>
+                                <td>
+                                    <span class="status-badge" 
+                                          th:classappend="${request.status == '처리중'} ? 'processing' : 
+                                                          (${request.status == '완료'} ? 'completed' : 'rejected')"
+                                          th:text="${request.status}">처리중</span>
+                                </td>
+                                <td>
+                                    <span class="priority-badge" 
+                                          th:classappend="${request.priority == '긴급'} ? 'urgent' : 'normal'"
+                                          th:text="${request.priority}">일반</span>
+                                </td>
+                                <td th:text="${request.createdDate}">2025-10-03</td>
+                                <td th:text="${request.answeredDate != null ? request.answeredDate : '-'}">-</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- 오른쪽: 요청 상세 -->
+                <div class="request-detail-section" id="requestDetail">
+                    <div style="text-align: center; padding: 60px 20px; color: #bdc3c7;">
+                        <i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 16px;"></i>
+                        <p>요청을 선택해주세요</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 탭2: 새 요청하기 -->
+            <div id="new-request-tab" class="tab-content">
+                <div class="requests-list-section">
+                    <h2 class="section-title" style="margin-bottom: 24px;">📝 새 요청하기</h2>
+                    
+                    <form class="new-request-form active" onsubmit="submitRequest(event)">
+                        <div class="form-group">
+                            <label class="form-label">요청 제목 *</label>
+                            <input type="text" class="form-input" placeholder="요청 제목을 입력하세요" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">요청 유형 *</label>
+                            <select class="form-select" required>
+                                <option value="">선택해주세요</option>
+                                <option value="프로모션">프로모션</option>
+                                <option value="고객신고">고객 신고</option>
+                                <option value="기술지원">기술 지원</option>
+                                <option value="정산">정산 문의</option>
+                                <option value="계정관리">계정 관리</option>
+                                <option value="기타">기타</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">우선순위 *</label>
+                            <select class="form-select" required>
+                                <option value="일반">일반</option>
+                                <option value="긴급">긴급</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">요청 내용 *</label>
+                            <textarea class="form-textarea" placeholder="요청 내용을 상세히 입력해주세요" required></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">첨부 파일</label>
+                            <div class="file-upload-area" onclick="document.getElementById('fileInput').click()">
+                                <div class="file-upload-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <p class="file-upload-text">클릭하거나 파일을 드래그하여 업로드</p>
+                                <p class="file-upload-text" style="font-size: 12px; color: #bdc3c7;">이미지, PDF (최대 10MB)</p>
+                            </div>
+                            <input type="file" id="fileInput" style="display: none" accept="image/*,.pdf">
+                        </div>
+                        
+                        <button type="submit" class="submit-btn">
+                            <i class="fas fa-paper-plane"></i>
+                            요청 제출
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- 탭3: FAQ -->
+            <div id="faq-tab" class="tab-content">
+                <div style="width: 100%;">
+                    <h2 class="section-title" style="margin-bottom: 24px;">❓ 자주 묻는 질문 (FAQ)</h2>
+                    
+                    <div class="faq-list">
+                        <div class="faq-item">
+                    <div class="faq-question">
+                        <span>프로모션 등록은 어떻게 하나요?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </div>
+                    <div class="faq-answer">
+                        "의료 서비스 관리" 메뉴에서 이벤트 등록하기 버튼을 클릭하여 프로모션을 등록할 수 있습니다. 
+                        등록된 프로모션은 관리자 승인 후 메인 페이지에 노출됩니다.
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>예약 캘린더는 어떻게 관리하나요?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </div>
+                    <div class="faq-answer">
+                        "예약 관리" 메뉴에서 Google Calendar와 연동하여 예약을 관리할 수 있습니다. 
+                        예약 추가, 수정, 삭제가 실시간으로 동기화됩니다.
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>정산은 언제 이루어지나요?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </div>
+                    <div class="faq-answer">
+                        매월 1일에 전월 매출이 정산됩니다. 정산 내역은 등록된 이메일로 발송되며, 
+                        영업일 기준 3일 이내에 지정 계좌로 입금됩니다.
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>악성 리뷰는 어떻게 신고하나요?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </div>
+                    <div class="faq-answer">
+                        "후기 관리" 메뉴에서 해당 리뷰의 신고 버튼을 클릭하거나, 
+                        도움말/고객센터에서 "고객신고" 유형으로 요청을 등록해주세요. 
+                        운영팀에서 커뮤니티 가이드라인 위반 여부를 검토합니다.
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>업체 정보 수정은 어떻게 하나요?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </div>
+                    <div class="faq-answer">
+                        "업체 정보 수정" 메뉴에서 업체명, 연락처, 주소, 운영시간 등을 수정할 수 있습니다. 
+                        사업자등록번호 등 중요 정보 변경은 관리자 승인이 필요합니다.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 탭4: 정책안내 -->
+            <div id="policy-tab" class="tab-content">
+                <div style="width: 100%;">
+                    <h2 class="section-title" style="margin-bottom: 24px;">📋 정책 안내</h2>
+                    
+                    <div class="policy-list">
+                        <div class="policy-card">
+                    <h3 class="policy-title">
+                        <i class="fas fa-file-contract"></i>
+                        서비스 이용 정책
+                    </h3>
+                    <div class="policy-content">
+                        <ul>
+                            <li>업체는 정확하고 최신의 정보를 유지할 책임이 있습니다.</li>
+                            <li>허위 또는 과장 광고는 즉시 삭제되며, 계정 정지 사유가 될 수 있습니다.</li>
+                            <li>고객과의 분쟁은 우선적으로 당사자 간 해결을 권장하며, 필요시 운영팀이 중재합니다.</li>
+                            <li>예약 취소는 24시간 전까지 가능하며, 그 이후는 수수료가 발생할 수 있습니다.</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="policy-card">
+                    <h3 class="policy-title">
+                        <i class="fas fa-coins"></i>
+                        정산 및 수수료 정책
+                    </h3>
+                    <div class="policy-content">
+                        <ul>
+                            <li>플랫폼 수수료: 거래액의 10% (VAT 별도)</li>
+                            <li>정산 주기: 매월 1일 (전월 1일 ~ 말일 매출)</li>
+                            <li>정산 방법: 등록된 사업자 계좌로 자동 입금</li>
+                            <li>최소 정산 금액: 10,000원 이상</li>
+                            <li>정산 보류: 환불 요청 처리 중인 금액은 익월로 이월</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="policy-card">
+                    <h3 class="policy-title">
+                        <i class="fas fa-shield-alt"></i>
+                        환불 및 분쟁 정책
+                    </h3>
+                    <div class="policy-content">
+                        <ul>
+                            <li>예약 취소 시 24시간 전: 전액 환불</li>
+                            <li>예약 취소 시 24시간 이내: 50% 환불</li>
+                            <li>시술 당일 취소: 환불 불가</li>
+                            <li>고객 요청 환불은 업체 정책에 따르며, 분쟁 시 운영팀이 중재합니다.</li>
+                            <li>부당한 환불 요구는 거부할 수 있으며, 증빙 자료를 제출해주세요.</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="policy-card">
+                    <h3 class="policy-title">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        제재 및 패널티 정책
+                    </h3>
+                    <div class="policy-content">
+                        <ul>
+                            <li>1차 위반: 경고 및 해당 콘텐츠 삭제</li>
+                            <li>2차 위반: 7일 계정 정지</li>
+                            <li>3차 위반: 30일 계정 정지</li>
+                            <li>중대한 위반: 즉시 계정 영구 정지</li>
+                            <li>계정 정지 기간 중 발생한 예약은 자동 취소되며, 고객에게 전액 환불됩니다.</li>
+                        </ul>
+                    </div>
+                </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="/crm/js/company_sidebar.js"></script>
+    <script src="/crm/js/company_header.js"></script>
+    <script>
+        // 탭 전환
+        function switchTab(tabName) {
+            // 모든 탭 비활성화
+            document.querySelectorAll('.tab-item').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // 선택된 탭 활성화
+            document.querySelector(`.tab-item[data-tab="${tabName}"]`).classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+        
+        // 탭 클릭 이벤트
+        document.querySelectorAll('.tab-item').forEach(tab => {
+            tab.addEventListener('click', function() {
+                switchTab(this.dataset.tab);
+            });
+        });
+        
+        // 요청 상세 보기
+        function viewRequest(id) {
+            // 선택된 행 표시
+            document.querySelectorAll('.requests-table tbody tr').forEach(tr => tr.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+            
+            // AJAX로 상세 정보 가져오기 (임시로 하드코딩)
+            const requests = /*[[${requests}]]*/ [];
+            const request = requests.find(r => r.id === id);
+            
+            if (!request) return;
+            
+            const detailHtml = `
+                <div class="detail-header">
+                    <h3 class="detail-title">${request.title}</h3>
+                    <div class="detail-badges">
+                        <span class="type-badge ${getTypeBadgeClass(request.type)}">${request.type}</span>
+                        <span class="status-badge ${getStatusBadgeClass(request.status)}">${request.status}</span>
+                        <span class="priority-badge ${request.priority === '긴급' ? 'urgent' : 'normal'}">${request.priority}</span>
+                    </div>
+                </div>
+                
+                <div class="detail-info-grid">
+                    <div class="info-item">
+                        <span class="info-label">등록일</span>
+                        <span class="info-value">${request.createdDate}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">답변일</span>
+                        <span class="info-value">${request.answeredDate || '-'}</span>
+                    </div>
+                </div>
+                
+                <div class="content-section">
+                    <div class="content-label">요청 내용</div>
+                    <div class="content-text">${request.content}</div>
+                </div>
+                
+                ${request.attachment ? `
+                <div class="attachment-section">
+                    <div class="content-label">첨부 파일</div>
+                    <div class="attachment-item">
+                        <div class="attachment-icon">
+                            <i class="fas fa-file-image"></i>
+                        </div>
+                        <div class="attachment-info">
+                            <div class="attachment-name">${request.attachment}</div>
+                            <div class="attachment-size">2.3 MB</div>
+                        </div>
+                        <i class="fas fa-download" style="color: #3498db;"></i>
+                    </div>
+                </div>
+                ` : ''}
+                
+                <div class="admin-answer-section ${!request.adminAnswer ? 'no-answer' : ''}">
+                    <div class="answer-label">
+                        <i class="fas ${request.adminAnswer ? 'fa-check-circle' : 'fa-clock'}"></i>
+                        운영자 답변
+                    </div>
+                    <div class="answer-text">${request.adminAnswer || '답변 대기 중입니다.'}</div>
+                </div>
+            `;
+            
+            document.getElementById('requestDetail').innerHTML = detailHtml;
+        }
+        
+        function getTypeBadgeClass(type) {
+            const classes = {
+                '프로모션': 'promotion',
+                '고객신고': 'report',
+                '기술지원': 'tech',
+                '정산': 'payment',
+                '계정관리': 'account'
+            };
+            return classes[type] || 'account';
+        }
+        
+        function getStatusBadgeClass(status) {
+            const classes = {
+                '처리중': 'processing',
+                '완료': 'completed',
+                '반려': 'rejected'
+            };
+            return classes[status] || 'processing';
+        }
+        
+        // 필터 기능
+        document.querySelectorAll('.filter-section .filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // 필터 버튼 활성화
+                document.querySelectorAll('.filter-section .filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                const filter = this.dataset.filter;
+                const rows = document.querySelectorAll('.requests-table tbody tr');
+                
+                rows.forEach(row => {
+                    if (filter === 'all') {
+                        row.style.display = '';
+                    } else {
+                        const status = row.dataset.status;
+                        if (filter === 'processing' && status === '처리중') {
+                            row.style.display = '';
+                        } else if (filter === 'completed' && status === '완료') {
+                            row.style.display = '';
+                        } else if (filter === 'rejected' && status === '반려') {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    }
+                });
+            });
+        });
+        
+        // FAQ 아코디언
+        document.querySelectorAll('.faq-question').forEach(question => {
+            question.addEventListener('click', function() {
+                const faqItem = this.closest('.faq-item');
+                const isOpen = faqItem.classList.contains('open');
+                
+                // 모든 FAQ 닫기
+                document.querySelectorAll('.faq-item').forEach(item => item.classList.remove('open'));
+                
+                // 클릭한 FAQ만 열기
+                if (!isOpen) {
+                    faqItem.classList.add('open');
+                }
+            });
+        });
+        
+        // 새 요청 제출
+        function submitRequest(event) {
+            event.preventDefault();
+            alert('요청이 제출되었습니다. 운영팀이 확인 후 답변드리겠습니다.');
+            // 실제로는 AJAX로 서버에 전송
+            switchTab('requests');
+        }
+        
+        // 파일 업로드 처리
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                const fileName = e.target.files[0].name;
+                document.querySelector('.file-upload-text').textContent = `선택된 파일: ${fileName}`;
+            }
+        });
+    </script>
+</body>
+</html>
+
