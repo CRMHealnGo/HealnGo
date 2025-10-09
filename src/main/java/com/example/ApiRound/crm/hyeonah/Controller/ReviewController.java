@@ -12,9 +12,4 @@ public class ReviewController {
         return "crm/review";
     }
 
-    @GetMapping("/company/review")
-    public String companyReview(Model model) {
-        model.addAttribute("sidebarType", "company");
-        return "crm/review";
-    }
 }
