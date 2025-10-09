@@ -2,13 +2,15 @@
 
 /* 페이지 헤더 */
 .marketing-header {
-    padding: 30px;
+    padding: 30px 30px 20px 30px;
     background: white;
+    border-bottom: 1px solid #e9ecef;
+    margin-bottom: 0;
 }
 
 .marketing-title {
-    font-size: 28px;
-    font-weight: 600;
+    font-size: 32px;
+    font-weight: 700;
     color: #2c3e50;
     display: flex;
     align-items: center;
@@ -18,12 +20,14 @@
 
 .marketing-title i {
     color: #3498db;
+    font-size: 28px;
 }
 
 .marketing-subtitle {
     color: #7f8c8d;
-    font-size: 14px;
+    font-size: 15px;
     margin: 0;
+    padding-left: 40px;
 }
 
 /* 탭 네비게이션 */
@@ -31,6 +35,9 @@
     background: white;
     border-bottom: 2px solid #e9ecef;
     padding: 0 30px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
 .tab-list {
