@@ -108,6 +108,30 @@ public class CompanyController {
     }
 
     /**
+     * 마케팅 페이지 (업체용)
+     */
+    @GetMapping("/marketing")
+    public String marketing(Model model) {
+        // 마케팅 KPI 데이터
+        model.addAttribute("totalImpressions", 125000);
+        model.addAttribute("totalClicks", 8500);
+        model.addAttribute("totalInquiries", 450);
+        model.addAttribute("totalReservations", 180);
+        model.addAttribute("conversionRate", 2.12);
+        
+        // 노출 요청 목록
+        List<Map<String, Object>> placements = getPlacementRequests();
+        model.addAttribute("placements", placements);
+        
+        // 쿠폰 목록
+        List<Map<String, Object>> coupons = getCoupons();
+        model.addAttribute("coupons", coupons);
+        
+        model.addAttribute("sidebarType", "company");
+        return "crm/company_marketing";
+    }
+
+    /**
      * 도움말/고객센터 페이지 (업체용)
      */
     @GetMapping("/help-support")
@@ -483,5 +507,65 @@ public class CompanyController {
                 .filter(request -> request.get("id").equals(id.intValue()))
                 .findFirst()
                 .orElse(new HashMap<>());
+    }
+
+    private List<Map<String, Object>> getPlacementRequests() {
+        List<Map<String, Object>> placements = new ArrayList<>();
+        
+        Map<String, Object> p1 = new HashMap<>();
+        p1.put("id", 1);
+        p1.put("title", "브이라인 리프팅 홈 배너");
+        p1.put("slot", "홈 히어로");
+        p1.put("target", "브이라인 리프팅");
+        p1.put("startDate", "2025-10-01");
+        p1.put("endDate", "2025-10-31");
+        p1.put("status", "승인완료");
+        p1.put("priority", "높음");
+        p1.put("clicks", 2450);
+        placements.add(p1);
+        
+        Map<String, Object> p2 = new HashMap<>();
+        p2.put("id", 2);
+        p2.put("title", "울쎄라피 카테고리 노출");
+        p2.put("slot", "카테고리");
+        p2.put("target", "울쎄라피 프라임");
+        p2.put("startDate", "2025-10-10");
+        p2.put("endDate", "2025-11-10");
+        p2.put("status", "대기중");
+        p2.put("priority", "보통");
+        p2.put("clicks", 0);
+        placements.add(p2);
+        
+        return placements;
+    }
+
+    private List<Map<String, Object>> getCoupons() {
+        List<Map<String, Object>> coupons = new ArrayList<>();
+        
+        Map<String, Object> c1 = new HashMap<>();
+        c1.put("id", 1);
+        c1.put("name", "가을맞이 10% 할인");
+        c1.put("type", "정율");
+        c1.put("discount", "10%");
+        c1.put("target", "전체 서비스");
+        c1.put("validUntil", "2025-10-31");
+        c1.put("issued", 500);
+        c1.put("used", 87);
+        c1.put("status", "진행중");
+        coupons.add(c1);
+        
+        Map<String, Object> c2 = new HashMap<>();
+        c2.put("id", 2);
+        c2.put("name", "첫 방문 20,000원 할인");
+        c2.put("type", "정액");
+        c2.put("discount", "20,000원");
+        c2.put("target", "첫 구매 고객");
+        c2.put("validUntil", "2025-12-31");
+        c2.put("issued", 1000);
+        c2.put("used", 234);
+        c2.put("status", "진행중");
+        coupons.add(c2);
+        
+        return coupons;
     }
 }
