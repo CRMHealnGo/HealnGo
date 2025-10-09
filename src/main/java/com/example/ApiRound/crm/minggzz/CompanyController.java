@@ -18,7 +18,7 @@ public class CompanyController {
     /**
      * 업체 메인페이지 (힝거 피부과)
      */
-    @GetMapping("")
+    @GetMapping("/dashboard")
     public String company(Model model) {
         // 업체 대시보드 데이터 (실제로는 서비스에서 가져와야 함)
         Map<String, Object> companyStats = new HashMap<>();
@@ -105,6 +105,32 @@ public class CompanyController {
         model.addAttribute("sidebarType", "company");
         
         return "crm/inquiry_detail";
+    }
+
+    /**
+     * 도움말/고객센터 페이지 (업체용)
+     */
+    @GetMapping("/help-support")
+    public String helpSupport(Model model) {
+        // 요청 목록 데이터 (실제로는 서비스에서 가져와야 함)
+        List<Map<String, Object>> requests = getHelpRequests();
+        model.addAttribute("requests", requests);
+        model.addAttribute("sidebarType", "company");
+        
+        return "crm/company_help_support";
+    }
+
+    /**
+     * 도움말/고객센터 상세 페이지 (업체용)
+     */
+    @GetMapping("/help-support/detail/{id}")
+    public String helpSupportDetail(@PathVariable("id") Long id, Model model) {
+        // 요청 상세 데이터 (실제로는 서비스에서 가져와야 함)
+        Map<String, Object> request = getHelpRequestById(id);
+        model.addAttribute("request", request);
+        model.addAttribute("sidebarType", "company");
+        
+        return "crm/company_help_support_detail";
     }
 
     // 업체 페이지용 데이터 생성 메서드들
@@ -369,6 +395,92 @@ public class CompanyController {
         
         return reports.stream()
                 .filter(report -> report.get("id").equals(id.intValue()))
+                .findFirst()
+                .orElse(new HashMap<>());
+    }
+
+    private List<Map<String, Object>> getHelpRequests() {
+        List<Map<String, Object>> requests = new ArrayList<>();
+        
+        // 11월 프로모션 요청
+        Map<String, Object> request1 = new HashMap<>();
+        request1.put("id", 1);
+        request1.put("title", "11월 프로모션 요청");
+        request1.put("type", "프로모션");
+        request1.put("status", "처리중");
+        request1.put("priority", "일반");
+        request1.put("createdDate", "2025-10-03");
+        request1.put("answeredDate", null);
+        request1.put("content", "수험생 타깃으로 11/19~27 이벤트 진행 예정입니다. 메인 페이지 노출 및 배너 등록을 요청드립니다.");
+        request1.put("attachment", "event_banner.png");
+        request1.put("adminAnswer", "검토 중입니다. 이벤트 상세 내용을 추가로 전달해주시면 신속히 처리하겠습니다.");
+        requests.add(request1);
+        
+        // 악성 리뷰 신고
+        Map<String, Object> request2 = new HashMap<>();
+        request2.put("id", 2);
+        request2.put("title", "악성 리뷰 신고");
+        request2.put("type", "고객신고");
+        request2.put("status", "완료");
+        request2.put("priority", "긴급");
+        request2.put("createdDate", "2025-09-30");
+        request2.put("answeredDate", "2025-10-02");
+        request2.put("content", "허위 사실로 작성된 리뷰로 업체 명예를 훼손하고 있습니다. 리뷰 삭제 요청드립니다.");
+        request2.put("attachment", "review_screenshot.png");
+        request2.put("adminAnswer", "해당 리뷰를 확인했으며, 커뮤니티 가이드라인 위반으로 삭제 조치하였습니다.");
+        requests.add(request2);
+        
+        // 시스템 오류 문의
+        Map<String, Object> request3 = new HashMap<>();
+        request3.put("id", 3);
+        request3.put("title", "예약 시스템 오류 문의");
+        request3.put("type", "기술지원");
+        request3.put("status", "완료");
+        request3.put("priority", "긴급");
+        request3.put("createdDate", "2025-09-28");
+        request3.put("answeredDate", "2025-09-28");
+        request3.put("content", "고객 예약이 정상적으로 등록되지 않는 오류가 발생하고 있습니다.");
+        request3.put("attachment", null);
+        request3.put("adminAnswer", "시스템 오류를 확인하여 긴급 수정하였습니다. 현재 정상 작동 중입니다.");
+        requests.add(request3);
+        
+        // 정산 문의
+        Map<String, Object> request4 = new HashMap<>();
+        request4.put("id", 4);
+        request4.put("title", "9월 정산 내역 확인");
+        request4.put("type", "정산");
+        request4.put("status", "완료");
+        request4.put("priority", "일반");
+        request4.put("createdDate", "2025-10-01");
+        request4.put("answeredDate", "2025-10-01");
+        request4.put("content", "9월 정산 내역이 예상과 다릅니다. 확인 부탁드립니다.");
+        request4.put("attachment", null);
+        request4.put("adminAnswer", "정산 내역을 확인하여 이메일로 상세 내역을 발송하였습니다.");
+        requests.add(request4);
+        
+        // 계정 관리 문의
+        Map<String, Object> request5 = new HashMap<>();
+        request5.put("id", 5);
+        request5.put("title", "관리자 계정 추가 요청");
+        request5.put("type", "계정관리");
+        request5.put("status", "반려");
+        request5.put("priority", "일반");
+        request5.put("createdDate", "2025-09-25");
+        request5.put("answeredDate", "2025-09-26");
+        request5.put("content", "직원 추가로 관리자 계정 1개 더 필요합니다.");
+        request5.put("attachment", null);
+        request5.put("adminAnswer", "현재 요금제에서는 관리자 계정 1개만 제공됩니다. 프리미엄 요금제로 업그레이드 시 추가 가능합니다.");
+        requests.add(request5);
+        
+        return requests;
+    }
+
+    private Map<String, Object> getHelpRequestById(Long id) {
+        // 실제로는 DB에서 조회해야 함
+        List<Map<String, Object>> requests = getHelpRequests();
+        
+        return requests.stream()
+                .filter(request -> request.get("id").equals(id.intValue()))
                 .findFirst()
                 .orElse(new HashMap<>());
     }
