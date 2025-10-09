@@ -44,13 +44,13 @@ public class CalendarController {
     @GetMapping("/admin/reservation-management")
     public String reservationManagement(Model model) {
         model.addAttribute("sidebarType", "admin");
-        return "crm/reservation_management";
+        return "admin/reservations";
     }
 
-    @GetMapping("/company/reservation-management")
+    @GetMapping("/company/company_reservation_management")
     public String companyReservationManagement(Model model) {
         model.addAttribute("sidebarType", "company");
-        return "crm/reservation_management";
+        return "crm/company_reservation_management";
     }
 
     @GetMapping("/api/google/events")

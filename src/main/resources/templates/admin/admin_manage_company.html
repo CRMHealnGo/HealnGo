@@ -5,34 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>업체 관리 - HealnGo</title>
     <link rel="stylesheet" href="/crm/css/admin_manage_company.css">
+    <link rel="stylesheet" href="/crm/css/admin_sidebar.css">
+    <link rel="stylesheet" href="/crm/css/admin_header.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <div class="admin-layout">
+    <div class="dashboard-container">
         <!-- 사이드바 -->
         <div th:replace="common/admin_sidebar :: admin_sidebar"></div>
         
-        <!-- 메인 컨텐츠 -->
-        <div class="main-content">
+        <!-- 메인 콘텐츠 -->
+        <div class="admin-content">
             <!-- 헤더 -->
-            <header class="admin-header">
-                <div class="header-left">
-                    <div class="search-bar">
-                        <i class="fas fa-search"></i>
-                        <input type="text" placeholder="Search">
-                    </div>
-                </div>
-                <div class="header-right">
-                    <div class="notification-icon">
-                        <i class="fas fa-bell"></i>
-                    </div>
-                    <div class="user-info">
-                        <i class="fas fa-user-circle"></i>
-                        <span>관리자 Yoyo</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                </div>
-            </header>
+            <div th:replace="common/admin_header :: admin_header"></div>
             
             <!-- 페이지 컨텐츠 -->
             <div class="page-content">

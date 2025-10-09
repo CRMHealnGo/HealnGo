@@ -1,5 +1,8 @@
 // 예약 관리 페이지 JavaScript
+console.log('예약 관리 JavaScript 로드됨');
+
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM 로드 완료, 캘린더 초기화 시작');
     let currentDate = new Date();
     let currentMonth = currentDate.getMonth();
     let currentYear = currentDate.getFullYear();
@@ -110,7 +113,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function generateCalendarDays() {
+        console.log('캘린더 날짜 생성 시작');
         const daysContainer = document.getElementById('calendarDays');
+        if (!daysContainer) {
+            console.error('calendarDays 요소를 찾을 수 없습니다!');
+            return;
+        }
         daysContainer.innerHTML = '';
 
         // 현재 달의 첫 번째 날과 마지막 날
