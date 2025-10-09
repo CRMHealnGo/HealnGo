@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>예약 관리 - HealnGo Admin</title>
-    <link rel="stylesheet" href="/resources/css/styles.css">
-    <link rel="stylesheet" href="/crm/css/reservation_management.css">
-    <link rel="stylesheet" href="/crm/css/company_sidebar.css">
-    <link rel="stylesheet" href="/crm/css/company_header.css">
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/crm/css/reservation_management.css">
+    <link rel="stylesheet" href="/static/crm/css/manager_sidebar.css">
+    <link rel="stylesheet" href="/static/crm/css/manager_header.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -18,7 +18,8 @@
     <!-- 메인 컨텐츠 -->
     <div class="main-content">
         <!-- 헤더 -->
-        <div th:replace="common/company_header :: company_header"></div>
+        <div th:if="${sidebarType == 'admin'}" th:replace="common/manager_header :: manager_header"></div>
+        <div th:if="${sidebarType == 'company' or sidebarType == null}" th:replace="common/company_header :: company_header"></div>
 
         <!-- 페이지 컨텐츠 -->
         <div class="page-content">
