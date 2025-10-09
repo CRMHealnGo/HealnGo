@@ -66,9 +66,10 @@ public class AdminController {
 
         return "admin/users";
     }
-    /**
-     * 업체 관리 페이지
 
+    /*
+     * 업체 관리 페이지 - yoyo의 AdminManageCompanyController로 이동됨
+     * 
     @GetMapping("/companies")
     public String companies(
             @RequestParam(value = "page", defaultValue = "1") int page,
@@ -90,7 +91,8 @@ public class AdminController {
         model.addAttribute("search", search);
 
         return "admin/companies";
-    }*/
+    }
+    */
 
     /**
      * 예약 관리 페이지

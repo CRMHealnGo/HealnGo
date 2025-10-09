@@ -165,27 +165,26 @@
                                 </td>
                                 <td class="reservation-status">
                                     <span class="status-badge" 
-                                          th:classappend="${reservation.status == '완료'} ? 'status-completed' : 
-                                                          (reservation.status == '예약') ? 'status-reserved' : 'status-cancelled'"
+                                          th:classappend="${reservation.status == '완료'} ? 'status-completed' : (${reservation.status == '예약'} ? 'status-reserved' : 'status-cancelled')"
                                           th:text="${reservation.status}">예약</span>
                                 </td>
                                 <td class="amount" th:text="${#numbers.formatDecimal(reservation.amount, 0, 'COMMA', 0, 'POINT')} + '원'">50,000원</td>
                                 <td class="actions">
                                     <div class="action-buttons">
-                                        <button class="btn btn-sm btn-info" onclick="viewReservation(th:attr="data-id=${reservation.id})">
+                                        <button class="btn btn-sm btn-info" th:onclick="|viewReservation(${reservation.id})|">
                                             <i class="fas fa-eye"></i>
                                         </button>
-                                        <button class="btn btn-sm btn-warning" onclick="editReservation(th:attr="data-id=${reservation.id})">
+                                        <button class="btn btn-sm btn-warning" th:onclick="|editReservation(${reservation.id})|">
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         <button th:if="${reservation.status == '예약'}" 
                                                 class="btn btn-sm btn-success" 
-                                                onclick="confirmReservation(th:attr="data-id=${reservation.id})">
+                                                th:onclick="|confirmReservation(${reservation.id})|">
                                             <i class="fas fa-check"></i>
                                         </button>
                                         <button th:if="${reservation.status != '완료' and reservation.status != '취소'}" 
                                                 class="btn btn-sm btn-danger" 
-                                                onclick="cancelReservation(th:attr="data-id=${reservation.id})">
+                                                th:onclick="|cancelReservation(${reservation.id})|">
                                             <i class="fas fa-times"></i>
                                         </button>
                                     </div>

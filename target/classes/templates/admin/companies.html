@@ -130,28 +130,26 @@
                                 </td>
                                 <td class="company-status">
                                     <span class="status-badge" 
-                                          th:classappend="${company.status == '승인완료'} ? 'status-approved' : 
-                                                          (company.status == '승인대기') ? 'status-pending' : 
-                                                          (company.status == '승인거부') ? 'status-rejected' : 'status-suspended'"
+                                          th:classappend="${company.status == '승인완료'} ? 'status-approved' : (${company.status == '승인대기'} ? 'status-pending' : (${company.status == '승인거부'} ? 'status-rejected' : 'status-suspended'))"
                                           th:text="${company.status}">승인완료</span>
                                 </td>
                                 <td class="join-date" th:text="${company.joinDate}">2024-01-15</td>
                                 <td class="actions">
                                     <div class="action-buttons">
-                                        <button class="btn btn-sm btn-info" onclick="viewCompany(th:attr="data-id=${company.id})">
+                                        <button class="btn btn-sm btn-info" th:onclick="|viewCompany(${company.id})|">
                                             <i class="fas fa-eye"></i>
                                         </button>
-                                        <button class="btn btn-sm btn-warning" onclick="editCompany(th:attr="data-id=${company.id})">
+                                        <button class="btn btn-sm btn-warning" th:onclick="|editCompany(${company.id})|">
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         <button th:if="${company.status == '승인대기'}" 
                                                 class="btn btn-sm btn-success" 
-                                                onclick="approveCompany(th:attr="data-id=${company.id})">
+                                                th:onclick="|approveCompany(${company.id})|">
                                             <i class="fas fa-check"></i>
                                         </button>
                                         <button th:if="${company.status == '승인대기'}" 
                                                 class="btn btn-sm btn-danger" 
-                                                onclick="rejectCompany(th:attr="data-id=${company.id})">
+                                                th:onclick="|rejectCompany(${company.id})|">
                                             <i class="fas fa-times"></i>
                                         </button>
                                     </div>
