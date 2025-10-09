@@ -12,6 +12,7 @@ import com.google.api.services.calendar.model.Events;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -41,12 +42,14 @@ public class CalendarController {
     }
 
     @GetMapping("/admin/reservation-management")
-    public String reservationManagement() {
+    public String reservationManagement(Model model) {
+        model.addAttribute("sidebarType", "admin");
         return "crm/reservation_management";
     }
 
     @GetMapping("/company/reservation-management")
-    public String companyReservationManagement() {
+    public String companyReservationManagement(Model model) {
+        model.addAttribute("sidebarType", "company");
         return "crm/reservation_management";
     }
 

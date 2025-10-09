@@ -12,7 +12,8 @@
 </head>
 <body>
     <!-- 사이드바 -->
-    <div th:replace="common/company_sidebar"></div>
+    <div th:if="${sidebarType == 'admin'}" th:replace="common/admin_sidebar :: admin_sidebar"></div>
+    <div th:if="${sidebarType == 'company' or sidebarType == null}" th:replace="common/company_sidebar :: company_sidebar"></div>
     
     <!-- 메인 컨텐츠 -->
     <div class="main-content">
