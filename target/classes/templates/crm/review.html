@@ -3,23 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>후기 관리 - HealnGo</title>
-    <link rel="stylesheet" href="/static/css/styles.css">
-    <link rel="stylesheet" href="/static/crm/css/review.css">
-    <link rel="stylesheet" href="/static/crm/css/manager_sidebar.css">
-    <link rel="stylesheet" href="/static/crm/css/manager_header.css">
+    <title>후기 - HealnGo</title>
+    <link rel="stylesheet" href="/resources/css/styles.css">
+    <link rel="stylesheet" href="/crm/css/review.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <!-- 사이드바 (company용) -->
-    <div th:if="${sidebarType == 'company'}" th:replace="common/company_sidebar :: company_sidebar"></div>
-    
     <!-- 헤더 -->
-    <div th:if="${sidebarType == 'company'}" th:replace="common/company_header :: company_header"></div>
-    <div th:unless="${sidebarType == 'company'}" th:replace="~{common/header :: header}"></div>
+    <div th:replace="~{common/header :: header}"></div>
 
     <!-- 후기 컨테이너 -->
-    <div class="review-container" th:style="${sidebarType == 'company'} ? 'margin-left: 250px;' : ''">
+    <div class="review-container">
         <!-- 왼쪽 섹션 - 후기 목록 -->
         <div class="review-list-section">
             <div class="review-list-header">
@@ -69,10 +63,9 @@
         </div>
     </div>
 
-    <!-- 푸터 (일반 사용자용만) -->
-    <div th:unless="${sidebarType == 'company'}" th:replace="~{common/footer :: footer}"></div>
+    <!-- 푸터 -->
+    <div th:replace="~{common/footer :: footer}"></div>
 
-    <script th:if="${sidebarType == 'company'}" src="/static/crm/js/manager_sidebar.js"></script>
-    <script src="/static/crm/js/review.js"></script>
+    <script src="/crm/js/review.js"></script>
 </body>
 </html>
