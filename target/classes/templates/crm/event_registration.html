@@ -6,7 +6,8 @@
     <title>이벤트 등록 - 힝거 피부과</title>
     
     <!-- CSS 파일들 -->
-    <link rel="stylesheet" href="/static/crm/css/manager_sidebar.css">
+    <link rel="stylesheet" href="/crm/css/company_sidebar.css">
+    <link rel="stylesheet" href="/crm/css/company_header.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <style>
@@ -704,20 +705,11 @@
     </div>
 
     <!-- JavaScript -->
-    <script src="/static/crm/js/manager_sidebar.js"></script>
+    <script src="/crm/js/company_sidebar.js"></script>
+    <script src="/crm/js/company_header.js"></script>
     <script>
-        // 이벤트 등록 페이지에서 사이드바 활성 상태 설정
+        // 이벤트 등록 페이지 JavaScript
         document.addEventListener('DOMContentLoaded', function() {
-            // 모든 nav-link에서 active 클래스 제거
-            const allNavLinks = document.querySelectorAll('.nav-link');
-            allNavLinks.forEach(link => link.classList.remove('active'));
-            
-            // 의료 서비스 관리 링크에 active 클래스 추가
-            const medicalServiceLink = document.querySelector('a[href="/company/medical-services"]');
-            if (medicalServiceLink) {
-                medicalServiceLink.classList.add('active');
-            }
-            
             // 이벤트 제목 글자 수 카운터
             const titleInput = document.querySelector('input[placeholder*="사각턱보톡스"]');
             const charCounter = document.querySelector('.event-char-counter');

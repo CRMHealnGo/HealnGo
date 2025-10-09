@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="/crm/css/company_sidebar.css">
     <link rel="stylesheet" href="/crm/css/company_header.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <style>
         /* 기본 리셋 */
@@ -158,6 +157,33 @@
         
         .medical-event-btn:hover {
             background: #2980b9 !important;
+        }
+        
+        /* 새 프로모션 추가 버튼 */
+        .add-promotion-btn {
+            padding: 12px 24px !important;
+            background: #27ae60 !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 8px !important;
+            cursor: pointer !important;
+            font-size: 14px !important;
+            font-weight: 600 !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            transition: all 0.3s !important;
+            box-shadow: 0 2px 6px rgba(39, 174, 96, 0.3) !important;
+        }
+        
+        .add-promotion-btn:hover {
+            background: #229954 !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4) !important;
+        }
+        
+        .add-promotion-btn i {
+            font-size: 14px !important;
         }
         
         /* 메인 콘텐츠 */
@@ -337,7 +363,13 @@
         
             <!-- 메인 콘텐츠 -->
             <div class="medical-main-content">
-                <h2 class="medical-page-title">피부과병원_힝거피부과</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 class="medical-page-title" style="margin-bottom: 0;">피부과병원_힝거피부과</h2>
+                    <button class="add-promotion-btn" onclick="window.location.href='/company/event-registration'">
+                        <i class="fas fa-plus"></i>
+                        새 프로모션 추가
+                    </button>
+                </div>
                 
                 <!-- 필터 버튼들 -->
                 <div class="medical-filter-section">
@@ -367,7 +399,8 @@
     </div>
 
     <!-- JavaScript -->
-    <script src="/static/crm/js/manager_sidebar.js"></script>
+    <script src="/crm/js/company_sidebar.js"></script>
+    <script src="/crm/js/company_header.js"></script>
     <script>
         // 필터 버튼 기능
         document.addEventListener('DOMContentLoaded', function() {

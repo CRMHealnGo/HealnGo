@@ -16,6 +16,7 @@ public class CompanyManageReviewController {
         model.addAttribute("pendingReplies", 3);
         model.addAttribute("completedReplies", 16);
         model.addAttribute("averageRating", 4.7);
+        model.addAttribute("sidebarType", "company");
         
         return "crm/company_review";
     }

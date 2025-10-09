@@ -1,9 +1,10 @@
 /* 리뷰 관리 페이지 스타일 */
 
+/* 기본 레이아웃 - manager_sidebar.css에서 처리됨 */
 .review-management {
     padding: 20px;
     background-color: #f8f9fa;
-    min-height: 100vh;
+    min-height: calc(100vh - 80px);
 }
 
 /* 페이지 헤더 */

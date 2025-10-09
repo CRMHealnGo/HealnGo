@@ -1,26 +1,18 @@
 // 사이드바 JavaScript
 document.addEventListener('DOMContentLoaded', function() {
-    // 네비게이션 링크 클릭 이벤트
+    // 현재 URL에 따라 active 링크 설정
+    const currentPath = window.location.pathname;
     const navLinks = document.querySelectorAll('.nav-link');
+    
     navLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            // 모든 활성 클래스 제거
-            navLinks.forEach(l => l.classList.remove('active'));
-            navLinks.forEach(l => l.parentElement.classList.remove('active'));
-            
-            // 현재 클릭된 링크에 활성 클래스 추가
-            this.classList.add('active');
-            this.parentElement.classList.add('active');
-            
-            // 실제 페이지 이동 로직 (필요시 구현)
-            const href = this.getAttribute('href');
-            if (href && href !== '#') {
-                // 페이지 이동 로직
-                console.log('Navigate to:', href);
+        const href = link.getAttribute('href');
+        if (href && href !== '#') {
+            // 정확히 일치하거나 시작 경로가 일치하면 active
+            if (currentPath === href || (href !== '/company' && currentPath.startsWith(href))) {
+                link.classList.add('active');
+                link.parentElement.classList.add('active');
             }
-        });
+        }
     });
     
     // 로그아웃 버튼 클릭 이벤트
