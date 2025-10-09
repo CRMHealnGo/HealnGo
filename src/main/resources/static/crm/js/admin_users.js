@@ -3,6 +3,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     initializeEventListeners();
     initializeTable();
+    setupModalEvents();
 });
 
 // 이벤트 리스너 초기화
@@ -197,28 +198,18 @@ function loadUserDetail(userId) {
     if (!content) return;
     
     // 임시 사용자 정보 (실제로는 서버에서 가져와야 함)
-    const userInfo = {
-        id: userId,
-        name: '김철수',
-        email: 'kim@example.com',
-        phone: '010-1234-5678',
-        joinDate: '2024-01-15',
-        lastLogin: '2024-01-20 14:30',
-        status: '활성',
-        reportCount: 2,
-        totalReservations: 15,
-        totalSpent: 750000
-    };
+    const userInfo = getUserData(userId);
     
     content.innerHTML = `
-        <div class="user-detail">
+        <div class="detail-section">
+            <h3><i class="fas fa-user"></i> 기본 정보</h3>
             <div class="detail-row">
                 <label>사용자 ID:</label>
                 <span>${userInfo.id}</span>
             </div>
             <div class="detail-row">
                 <label>이름:</label>
-                <span>${userInfo.name}</span>
+                <span><strong>${userInfo.name}</strong></span>
             </div>
             <div class="detail-row">
                 <label>이메일:</label>
@@ -226,41 +217,267 @@ function loadUserDetail(userId) {
             </div>
             <div class="detail-row">
                 <label>전화번호:</label>
-                <span>${userInfo.phone}</span>
+                <span>${userInfo.phone || '미등록'}</span>
             </div>
+            <div class="detail-row">
+                <label>상태:</label>
+                <span><span class="status-badge ${userInfo.status === '활성' ? 'status-active' : 'status-inactive'}">${userInfo.status}</span></span>
+            </div>
+        </div>
+        
+        <div class="detail-section">
+            <h3><i class="fas fa-clock"></i> 활동 정보</h3>
             <div class="detail-row">
                 <label>가입일:</label>
                 <span>${userInfo.joinDate}</span>
             </div>
             <div class="detail-row">
                 <label>최근 로그인:</label>
-                <span>${userInfo.lastLogin}</span>
-            </div>
-            <div class="detail-row">
-                <label>상태:</label>
-                <span class="status-badge ${userInfo.status === '활성' ? 'status-active' : 'status-inactive'}">${userInfo.status}</span>
-            </div>
-            <div class="detail-row">
-                <label>신고 횟수:</label>
-                <span class="report-badge ${userInfo.reportCount >= 3 ? 'report-high' : userInfo.reportCount >= 1 ? 'report-medium' : 'report-low'}">${userInfo.reportCount}</span>
+                <span>${userInfo.lastLogin || '정보 없음'}</span>
             </div>
             <div class="detail-row">
                 <label>총 예약 수:</label>
-                <span>${userInfo.totalReservations}건</span>
+                <span>${userInfo.totalReservations || 0}건</span>
             </div>
             <div class="detail-row">
                 <label>총 결제 금액:</label>
-                <span>${userInfo.totalSpent.toLocaleString()}원</span>
+                <span>${(userInfo.totalSpent || 0).toLocaleString()}원</span>
             </div>
         </div>
+        
+        <div class="detail-section">
+            <h3><i class="fas fa-exclamation-triangle"></i> 신고 정보</h3>
+            <div class="detail-row">
+                <label>신고 횟수:</label>
+                <span>
+                    <span class="report-badge ${userInfo.reportCount >= 3 ? 'report-high' : userInfo.reportCount >= 1 ? 'report-medium' : 'report-low'}" id="reportCountBadge-${userInfo.id}">${userInfo.reportCount || 0}회</span>
+                    <button class="btn-add-report" onclick="addReport(${userInfo.id})" title="신고 추가">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </span>
+            </div>
+            ${userInfo.reportCount > 0 ? `
+                <div class="detail-row">
+                    <label>최근 신고일:</label>
+                    <span id="lastReportDate-${userInfo.id}">${userInfo.lastReportDate || '정보 없음'}</span>
+                </div>
+            ` : `
+                <div class="detail-row" id="lastReportRow-${userInfo.id}" style="display: none;">
+                    <label>최근 신고일:</label>
+                    <span id="lastReportDate-${userInfo.id}">정보 없음</span>
+                </div>
+            `}
+            <div class="detail-row">
+                <button class="btn-view-reports" onclick="viewReportHistory(${userInfo.id})">
+                    <i class="fas fa-list"></i>
+                    신고 내역 보기
+                </button>
+            </div>
+        </div>
+        
+        ${userInfo.notes ? `
+            <div class="detail-section">
+                <h3><i class="fas fa-sticky-note"></i> 관리자 메모</h3>
+                <div class="detail-row">
+                    <span style="grid-column: 1 / -1;">${userInfo.notes}</span>
+                </div>
+            </div>
+        ` : ''}
     `;
+}
+
+// 사용자 데이터 가져오기 (임시)
+function getUserData(userId) {
+    // 실제로는 서버 API 호출
+    const userDataMap = {
+        '1': {
+            id: 1,
+            name: '김철수',
+            email: 'kim@example.com',
+            phone: '010-1234-5678',
+            joinDate: '2024-01-15',
+            lastLogin: '2024-10-09 14:30',
+            status: '활성',
+            reportCount: 0,
+            totalReservations: 15,
+            totalSpent: 750000,
+            notes: ''
+        }
+    };
+    
+    return userDataMap[userId] || userDataMap['1'];
+}
+
+// 상세 모달 닫기
+function closeUserDetailModal() {
+    document.getElementById('userDetailModal').style.display = 'none';
 }
 
 // 사용자 수정
 function editUser(userId) {
     console.log('Edit user:', userId);
-    // 실제로는 사용자 수정 페이지로 이동하거나 모달을 표시해야 함
-    showNotification('사용자 수정 기능은 준비 중입니다.', 'info');
+    
+    // 사용자 데이터 가져오기
+    const userData = getUserData(userId);
+    
+    // 폼에 데이터 채우기
+    document.getElementById('editUserId').value = userId;
+    document.getElementById('editUserName').value = userData.name;
+    document.getElementById('editUserEmail').value = userData.email;
+    document.getElementById('editUserPhone').value = userData.phone || '';
+    document.getElementById('editUserStatus').value = userData.status === '활성' ? 'active' : 'inactive';
+    document.getElementById('editUserNotes').value = userData.notes || '';
+    
+    // 모달 열기
+    document.getElementById('editUserModal').style.display = 'block';
+}
+
+// 수정 모달 닫기
+function closeEditUserModal() {
+    document.getElementById('editUserModal').style.display = 'none';
+}
+
+// 사용자 수정 처리
+function processEditUser() {
+    const userId = document.getElementById('editUserId').value;
+    const name = document.getElementById('editUserName').value;
+    const email = document.getElementById('editUserEmail').value;
+    const phone = document.getElementById('editUserPhone').value;
+    const status = document.getElementById('editUserStatus').value;
+    const notes = document.getElementById('editUserNotes').value;
+    
+    console.log('사용자 수정:', { userId, name, email, phone, status, notes });
+    
+    // 실제로는 서버에 수정 요청
+    
+    // 테이블 업데이트
+    const row = document.querySelector(`tr .user-checkbox[value="${userId}"]`)?.closest('tr');
+    if (row) {
+        row.querySelector('.user-name').textContent = name;
+        row.querySelector('.user-email').textContent = email;
+        
+        const statusBadge = row.querySelector('.status-badge');
+        const statusText = status === 'active' ? '활성' : status === 'suspended' ? '정지' : '비활성';
+        statusBadge.textContent = statusText;
+        statusBadge.className = `status-badge status-${status}`;
+    }
+    
+    closeEditUserModal();
+    alert('사용자 정보가 수정되었습니다.');
+}
+
+// 모달 이벤트 설정
+function setupModalEvents() {
+    const editForm = document.getElementById('editUserForm');
+    
+    // 수정 폼 제출 이벤트
+    if (editForm) {
+        editForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            processEditUser();
+        });
+    }
+}
+
+// 신고 추가
+function addReport(userId) {
+    const reason = prompt('신고 사유를 입력하세요:');
+    
+    if (reason && reason.trim()) {
+        console.log('신고 추가:', userId, '사유:', reason);
+        
+        // 실제로는 서버에 신고 추가 요청
+        
+        // 신고 횟수 업데이트
+        const reportBadge = document.getElementById(`reportCountBadge-${userId}`);
+        const lastReportDate = document.getElementById(`lastReportDate-${userId}`);
+        const lastReportRow = document.getElementById(`lastReportRow-${userId}`);
+        
+        if (reportBadge) {
+            const currentCount = parseInt(reportBadge.textContent);
+            const newCount = currentCount + 1;
+            reportBadge.textContent = `${newCount}회`;
+            
+            // 배지 색상 업데이트
+            reportBadge.className = `report-badge ${newCount >= 3 ? 'report-high' : newCount >= 1 ? 'report-medium' : 'report-low'}`;
+        }
+        
+        // 최근 신고일 업데이트
+        if (lastReportDate) {
+            const now = new Date();
+            const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            lastReportDate.textContent = dateStr;
+        }
+        
+        // 최근 신고일 행 표시
+        if (lastReportRow) {
+            lastReportRow.style.display = '';
+        }
+        
+        // 테이블의 신고 횟수도 업데이트
+        const row = document.querySelector(`tr .user-checkbox[value="${userId}"]`)?.closest('tr');
+        if (row) {
+            const tableReportBadge = row.querySelector('.report-badge');
+            if (tableReportBadge) {
+                const currentCount = parseInt(tableReportBadge.textContent);
+                const newCount = currentCount + 1;
+                tableReportBadge.textContent = newCount;
+                tableReportBadge.className = `report-badge ${newCount >= 3 ? 'report-high' : newCount >= 1 ? 'report-medium' : 'report-low'}`;
+            }
+        }
+        
+        alert('신고가 추가되었습니다.');
+    }
+}
+
+// 신고 내역 보기
+function viewReportHistory(userId) {
+    console.log('신고 내역 보기:', userId);
+    
+    // 임시 신고 내역 데이터
+    const reportHistory = [
+        {
+            date: '2024-10-05',
+            reason: '부적절한 리뷰 작성',
+            reporter: '업체: 힝거피부과',
+            status: '처리완료'
+        },
+        {
+            date: '2024-09-20',
+            reason: '예약 노쇼',
+            reporter: '업체: 뷰티클리닉',
+            status: '처리완료'
+        }
+    ];
+    
+    let historyHtml = '<div class="report-history">';
+    historyHtml += '<h4 style="margin-bottom: 15px; font-size: 16px; font-weight: 600;">신고 내역</h4>';
+    
+    if (reportHistory.length > 0) {
+        reportHistory.forEach((report, index) => {
+            historyHtml += `
+                <div class="report-history-item" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 3px solid #e74c3c;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <strong>${index + 1}. ${report.date}</strong>
+                        <span class="status-badge status-active" style="font-size: 11px;">${report.status}</span>
+                    </div>
+                    <div style="font-size: 14px; color: #2c3e50; margin-bottom: 5px;">
+                        <strong>사유:</strong> ${report.reason}
+                    </div>
+                    <div style="font-size: 13px; color: #7f8c8d;">
+                        <strong>신고자:</strong> ${report.reporter}
+                    </div>
+                </div>
+            `;
+        });
+    } else {
+        historyHtml += '<p style="text-align: center; color: #7f8c8d; padding: 20px;">신고 내역이 없습니다.</p>';
+    }
+    
+    historyHtml += '</div>';
+    
+    alert('신고 내역:\n\n' + reportHistory.map((r, i) => `${i+1}. ${r.date} - ${r.reason}`).join('\n'));
+    // 실제로는 모달로 표시하는 것이 더 좋습니다
 }
 
 // 사용자 정지

@@ -198,11 +198,12 @@ document.addEventListener('DOMContentLoaded', function() {
         event.target.classList.add('selected');
 
         if (!isOtherMonth) {
-            const selectedDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            console.log('선택된 날짜:', selectedDate);
+            const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            console.log('선택된 날짜:', dateStr);
             
-            // 일정 추가 모달 열기
-            openEventModal(selectedDate);
+            // 예약 목록 필터링 (모달 열기 대신)
+            const clickedDate = new Date(currentYear, currentMonth, day);
+            filterReservationsByDate(clickedDate);
         }
     }
 
@@ -237,6 +238,14 @@ document.addEventListener('DOMContentLoaded', function() {
         // 모달 표시
         modal.style.display = 'block';
     }
+
+    // 모달 열기 (전역 함수로 선언)
+    window.openModal = function() {
+        const modal = document.getElementById('eventModal');
+        if (modal) {
+            modal.style.display = 'block';
+        }
+    };
 
     // 모달 닫기 (전역 함수로 선언)
     window.closeModal = function() {
@@ -358,3 +367,132 @@ document.addEventListener('DOMContentLoaded', function() {
     todayBtn.addEventListener('click', goToToday);
     document.querySelector('.calendar-header').appendChild(todayBtn);
 });
+
+// ========== 예약 관리 함수들 ==========
+
+// 선택된 날짜를 저장하는 변수
+let selectedFilterDate = null;
+
+// 날짜별 예약 필터링 함수
+function filterReservationsByDate(date) {
+    selectedFilterDate = date;
+    const reservationItems = document.querySelectorAll('.reservation-item');
+    const selectedDateText = document.getElementById('selectedDateText');
+    const clearFilterBtn = document.getElementById('clearFilterBtn');
+    
+    if (date) {
+        // 날짜 형식 변환 (YYYY-MM-DD)
+        const dateStr = date.toISOString().split('T')[0];
+        selectedDateText.textContent = `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일 예약`;
+        clearFilterBtn.style.display = 'inline-block';
+        
+        reservationItems.forEach(item => {
+            const itemDate = item.getAttribute('data-date');
+            if (itemDate === dateStr) {
+                item.style.display = '';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    } else {
+        clearDateFilter();
+    }
+}
+
+// 날짜 필터 초기화
+function clearDateFilter() {
+    selectedFilterDate = null;
+    const reservationItems = document.querySelectorAll('.reservation-item');
+    const selectedDateText = document.getElementById('selectedDateText');
+    const clearFilterBtn = document.getElementById('clearFilterBtn');
+    
+    selectedDateText.textContent = '전체 예약';
+    clearFilterBtn.style.display = 'none';
+    
+    reservationItems.forEach(item => {
+        item.style.display = '';
+    });
+}
+
+// 예약 검색 함수
+function searchReservations() {
+    const searchInput = document.getElementById('searchInput').value.toLowerCase();
+    const reservationItems = document.querySelectorAll('.reservation-item');
+    
+    reservationItems.forEach(item => {
+        const customerName = item.querySelector('.customer-name').textContent.toLowerCase();
+        const customerPhone = item.querySelector('.customer-phone').textContent.toLowerCase();
+        
+        if (customerName.includes(searchInput) || customerPhone.includes(searchInput)) {
+            // 날짜 필터가 있는 경우 날짜도 확인
+            if (selectedFilterDate) {
+                const dateStr = selectedFilterDate.toISOString().split('T')[0];
+                const itemDate = item.getAttribute('data-date');
+                item.style.display = (itemDate === dateStr) ? '' : 'none';
+            } else {
+                item.style.display = '';
+            }
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+
+// 예약 확정 함수
+function confirmReservation(button) {
+    const item = button.closest('.reservation-item');
+    const statusBadge = item.querySelector('.status-badge');
+    const confirmBtn = item.querySelector('.btn-confirm');
+    
+    if (confirm('이 예약을 확정하시겠습니까?')) {
+        statusBadge.textContent = '확정';
+        statusBadge.className = 'status-badge status-confirmed';
+        confirmBtn.remove(); // 확정 버튼 제거
+        
+        alert('예약이 확정되었습니다.');
+    }
+}
+
+// 예약 수정 함수
+function editReservation(button) {
+    const item = button.closest('.reservation-item');
+    const customerName = item.querySelector('.customer-name').textContent;
+    const customerPhone = item.querySelector('.customer-phone').textContent;
+    const datetime = item.querySelector('.item-datetime').textContent.trim();
+    const service = item.querySelector('.item-service').textContent.trim();
+    
+    // 모달에 현재 정보 채우기
+    const modal = document.getElementById('eventModal');
+    document.getElementById('eventTitle').value = service;
+    
+    // 날짜와 시간 분리
+    const datetimeParts = datetime.replace(/\s+/g, ' ').split(' ');
+    if (datetimeParts.length >= 2) {
+        document.getElementById('eventDate').value = datetimeParts[0];
+        const times = datetimeParts[1].split(':');
+        if (times.length >= 2) {
+            document.getElementById('eventStartTime').value = datetimeParts[1];
+        }
+    }
+    
+    document.getElementById('eventDescription').value = `고객: ${customerName}\n연락처: ${customerPhone}`;
+    
+    openModal();
+}
+
+// 예약 삭제 함수
+function deleteReservation(button) {
+    const item = button.closest('.reservation-item');
+    const customerName = item.querySelector('.customer-name').textContent;
+    
+    if (confirm(`${customerName}님의 예약을 삭제하시겠습니까?`)) {
+        item.style.opacity = '0';
+        item.style.transform = 'scale(0.8)';
+        item.style.transition = 'all 0.3s ease';
+        
+        setTimeout(() => {
+            item.remove();
+            alert('예약이 삭제되었습니다.');
+        }, 300);
+    }
+}

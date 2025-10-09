@@ -44,7 +44,7 @@ public class CalendarController {
     @GetMapping("/admin/reservation-management")
     public String reservationManagement(Model model) {
         model.addAttribute("sidebarType", "admin");
-        return "admin/reservations";
+        return "admin/reservation-management";
     }
 
     @GetMapping("/company/company_reservation_management")
