@@ -16,7 +16,6 @@ body {
     width: 250px;
     background-color: white;
     color: white;
-    display: flex;
     flex-direction: column;
     height: 100vh;
     position: fixed;

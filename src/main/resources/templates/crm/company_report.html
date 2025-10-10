@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>리포트 & 통계 - HealnGo</title>
+    <link rel="stylesheet" href="/crm/css/company_report.css">
+    <link rel="stylesheet" href="/crm/css/company_header.css">
+    <link rel="stylesheet" href="/crm/css/company_sidebar.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="layout">
+        <!-- 사이드바 -->
+        <div th:replace="common/company_sidebar :: company_sidebar"></div>
+        
+        <!-- 메인 콘텐츠 -->
+        <div class="main-content">
+            <!-- 헤더 -->
+            <div th:replace="common/company_header :: company_header"></div>
+            
+            <!-- 콘텐츠 영역 -->
+            <div class="content-wrapper">
+                <div class="page-header">
+                    <h1>리포트 & 통계</h1>
+                </div>
+                
+                <!-- 대시보드 콘텐츠 -->
+                <div class="dashboard-content">
+                    <!-- 상단 섹션 -->
+                    <div class="top-section">
+                        <!-- 일일 매출 리포트 -->
+                        <div class="sales-report-card">
+                            <div class="card-header">
+                                <h2>일일 매출 리포트</h2>
+                                <a href="#" class="view-all-link">View all ></a>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="salesChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <!-- 우측 패널 -->
+                        <div class="right-panel">
+                            <!-- 핵심 지표 -->
+                            <div class="key-indicators-card">
+                                <h3>핵심 지표</h3>
+                                <div class="indicator-item">
+                                    <span class="indicator-label">총 예약 건수</span>
+                                    <div class="indicator-value">
+                                        <span class="value" th:text="${keyIndicators.totalReservations}">1,230</span>
+                                        <span class="trend trend-low">
+                                            <i class="fas fa-arrow-down"></i>
+                                            <span>Low</span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="indicator-item">
+                                    <span class="indicator-label">재방문 건수</span>
+                                    <div class="indicator-value">
+                                        <span class="value" th:text="${keyIndicators.repeatVisits}">450</span>
+                                    </div>
+                                </div>
+                                <div class="indicator-item">
+                                    <span class="indicator-label">평균 만족도</span>
+                                    <div class="indicator-value">
+                                        <span class="value" th:text="${keyIndicators.averageSatisfaction}">4.8</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 최근 활동 -->
+                            <div class="recent-activity-card">
+                                <h3>최근 활동</h3>
+                                <div class="activity-list">
+                                    <div class="activity-item" th:each="activity : ${recentActivities}">
+                                        <div class="activity-icon" th:classappend="${'icon-' + activity.color}">
+                                            <i th:class="${activity.icon}"></i>
+                                        </div>
+                                        <div class="activity-content">
+                                            <div class="activity-title" th:text="${activity.title}">신규 상담 완료</div>
+                                            <div class="activity-time" th:text="${activity.time}">2시간 전</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 하단 리포트 카드들 -->
+                    <div class="report-cards-section">
+                        <div class="report-card" th:each="card : ${reportCards}" th:classappend="${'card-' + card.color}">
+                            <div class="card-icon">
+                                <i th:class="${card.icon}"></i>
+                            </div>
+                            <div class="card-content">
+                                <h4 th:text="${card.title}">서비스별 예약률</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 스크립트 -->
+    <script src="/static/crm/js/company_header.js"></script>
+    <script src="/static/crm/js/company_sidebar.js"></script>
+    <script src="/static/crm/js/company_report.js"></script>
+    
+    <script th:inline="javascript">
+        // Thymeleaf에서 데이터 전달
+        const dailySalesData = /*[[${dailySalesData}]]*/ [];
+        
+        // 차트 생성
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            
+            // 한국인/외국인 사용자 데이터 분리
+            const months = dailySalesData.map(item => item.month);
+            const koreanUsers = dailySalesData.map(item => item.koreanUsers);
+            const foreignUsers = dailySalesData.map(item => item.foreignUsers);
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [
+                        {
+                            label: '한국인 사용객',
+                            data: koreanUsers,
+                            borderColor: '#3B82F6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4,
+                            fill: false
+                        },
+                        {
+                            label: '외국인 사용객',
+                            data: foreignUsers,
+                            borderColor: '#EF4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            tension: 0.4,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                stepSize: 20
+                            },
+                            grid: {
+                                color: '#E5E7EB'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
