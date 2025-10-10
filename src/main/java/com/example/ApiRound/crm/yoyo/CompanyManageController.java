@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.*;
+import java.util.Arrays;
 
 @Controller
 @RequestMapping("/company")
@@ -135,5 +136,67 @@ public class CompanyManageController {
         cards.add(card4);
         
         return cards;
+    }
+
+    @GetMapping("/edit")
+    public String companyEdit(Model model) {
+        // 업체 정보 수정 페이지 데이터 (실제로는 서비스에서 가져와야 함)
+        
+        // 기본 정보 데이터
+        Map<String, Object> basicInfo = getBasicInfo();
+        model.addAttribute("basicInfo", basicInfo);
+        
+        // 연락처 정보 데이터
+        Map<String, Object> contactInfo = getContactInfo();
+        model.addAttribute("contactInfo", contactInfo);
+        
+        // 상세 정보 데이터
+        Map<String, Object> detailInfo = getDetailInfo();
+        model.addAttribute("detailInfo", detailInfo);
+        
+        // 업데이트 현황 데이터
+        Map<String, Object> updateStatus = getUpdateStatus();
+        model.addAttribute("updateStatus", updateStatus);
+        
+        model.addAttribute("sidebarType", "company");
+        
+        return "crm/company_edit";
+    }
+
+    // 임시 데이터 생성 메서드들 (실제로는 서비스에서 구현)
+    private Map<String, Object> getBasicInfo() {
+        Map<String, Object> info = new HashMap<>();
+        info.put("companyName", "YoyoMedi");
+        info.put("businessNumber", "123-45-67890");
+        info.put("representative", "YoyoKang");
+        info.put("establishmentDate", "2020-03-15");
+        return info;
+    }
+
+    private Map<String, Object> getContactInfo() {
+        Map<String, Object> info = new HashMap<>();
+        info.put("email", "yoyo@gmail.com");
+        info.put("mainPhone", "02-1234-5678");
+        info.put("mobilePhone", "010-1234-5678");
+        info.put("fax", "02-1234-5679");
+        info.put("address", "서울특별시 강남구 테헤란로 123");
+        info.put("detailAddress", "메디컬타워 5층");
+        info.put("website", "www.yoyokang.com");
+        return info;
+    }
+
+    private Map<String, Object> getDetailInfo() {
+        Map<String, Object> info = new HashMap<>();
+        info.put("employeeCount", "25");
+        info.put("specializations", Arrays.asList("성형외과", "피부과", "치과", "건강검진"));
+        info.put("companyIntroduction", "글로벌 의료관광 전문 기업으로, 최상의 의료 서비스를 제공합니다.");
+        return info;
+    }
+
+    private Map<String, Object> getUpdateStatus() {
+        Map<String, Object> status = new HashMap<>();
+        status.put("lastModified", "2시간 전");
+        status.put("completionRate", 85);
+        return status;
     }
 }
