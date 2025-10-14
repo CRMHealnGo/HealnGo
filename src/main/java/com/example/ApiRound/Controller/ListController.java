@@ -1,16 +1,18 @@
 package com.example.ApiRound.Controller;
 
-import com.example.ApiRound.entity.ItemList;
-import com.example.ApiRound.Service.ItemListService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.List;
+import com.example.ApiRound.Service.ItemListService;
+import com.example.ApiRound.entity.ItemList;
 
 @Controller
 @RequestMapping("/list")
@@ -51,6 +53,15 @@ public class ListController {
         int totalPages = items.getTotalPages();
         int startPage = Math.max(1, pageNo - 2);
         int endPage = Math.min(totalPages, pageNo + 2);
+        
+        // 디버깅 로그 추가
+        System.out.println("=== ListController Debug ===");
+        System.out.println("region: " + region);
+        System.out.println("subRegion: " + subRegion);
+        System.out.println("category: " + category);
+        System.out.println("items.getContent() size: " + items.getContent().size());
+        System.out.println("totalCount: " + totalCount);
+        System.out.println("============================");
         
         model.addAttribute("lists", items.getContent());
         model.addAttribute("totalCount", totalCount);
