@@ -15,5 +15,6 @@ public interface CompanyUserRepository extends JpaRepository<CompanyUser, Intege
     boolean existsByEmail(String email);
     
     Optional<CompanyUser> findByEmailAndIsActive(String email, Boolean isActive);
+
 }
 

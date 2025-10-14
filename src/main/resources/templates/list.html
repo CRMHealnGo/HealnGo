@@ -416,24 +416,89 @@
         event.stopPropagation(); // 이벤트 전파 방지
 
         const heartIcon = element.querySelector('i');
+        const hospitalItem = element.closest('.hospital-item');
+        const itemId = hospitalItem.dataset.itemId;
+
+        if (!itemId) {
+            console.error('Item ID not found');
+            return;
+        }
 
         if (heartIcon.classList.contains('far')) {
-            heartIcon.classList.remove('far');
-            heartIcon.classList.add('fas');
-            element.classList.add('favorited');
-            console.log('찜 목록에 추가했습니다.');
-  } else {
-            heartIcon.classList.remove('fas');
-            heartIcon.classList.add('far');
-            element.classList.remove('favorited');
-            console.log('찜 목록에서 제거했습니다.');
+            // 찜하기 추가
+            addToFavorite(itemId, element, heartIcon);
+        } else {
+            // 찜하기 제거
+            removeFromFavorite(itemId, element, heartIcon);
+        }
+    }
+
+    // 찜하기 추가
+    async function addToFavorite(itemId, element, heartIcon) {
+        try {
+            const response = await fetch(`/favorite/add/${itemId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                heartIcon.classList.remove('far');
+                heartIcon.classList.add('fas');
+                element.classList.add('favorited');
+                console.log('찜 목록에 추가했습니다.');
+            } else if (response.status === 401) {
+                alert('로그인이 필요한 서비스입니다.');
+                window.location.href = '/login';
+            } else {
+                alert('찜하기 추가에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('네트워크 오류가 발생했습니다.');
+        }
+    }
+
+    // 찜하기 제거
+    async function removeFromFavorite(itemId, element, heartIcon) {
+        try {
+            const response = await fetch(`/favorite/remove/${itemId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                heartIcon.classList.remove('fas');
+                heartIcon.classList.add('far');
+                element.classList.remove('favorited');
+                console.log('찜 목록에서 제거했습니다.');
+            } else if (response.status === 401) {
+                alert('로그인이 필요한 서비스입니다.');
+                window.location.href = '/login';
+            } else {
+                alert('찜하기 제거에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('네트워크 오류가 발생했습니다.');
         }
     }
 
     // 병원 아이템 클릭 이벤트
     document.addEventListener('DOMContentLoaded', function() {
+        // 찜 상태 체크
+        checkFavoriteStatus();
+        
         document.querySelectorAll('.hospital-item').forEach(item => {
-            item.addEventListener('click', function() {
+            item.addEventListener('click', function(e) {
+                // 하트 버튼 클릭 시 상세 페이지 이동 방지
+                if (e.target.closest('.hospital-heart')) {
+                    return;
+                }
+                
                 const hospitalId = this.dataset.hospitalId || this.dataset.itemId;
                 const hospitalName = this.querySelector('.hospital-name').textContent;
 
@@ -449,6 +514,34 @@
             });
         });
     });
+
+    // 페이지 로드 시 찜 상태 체크
+    async function checkFavoriteStatus() {
+        const hospitalItems = document.querySelectorAll('.hospital-item');
+        
+        for (const item of hospitalItems) {
+            const itemId = item.dataset.itemId;
+            if (!itemId) continue;
+            
+            try {
+                const response = await fetch(`/favorite/check/${itemId}`);
+                if (response.ok) {
+                    const isFavorite = await response.json();
+                    if (isFavorite) {
+                        const heartIcon = item.querySelector('.hospital-heart i');
+                        const heartContainer = item.querySelector('.hospital-heart');
+                        if (heartIcon && heartContainer) {
+                            heartIcon.classList.remove('far');
+                            heartIcon.classList.add('fas');
+                            heartContainer.classList.add('favorited');
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking favorite status:', error);
+            }
+        }
+    }
 
     // 병원 이름으로 상세 정보 표시
     function showHospitalDetailByName(hospitalName) {

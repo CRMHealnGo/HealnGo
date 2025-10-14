@@ -34,6 +34,7 @@ C:\Users\woain\git\HealnGo\src\main\java\com\example\ApiRound\crm\hyeonah\entity
 C:\Users\woain\git\HealnGo\src\main\java\com\example\ApiRound\crm\hyeonah\entity\ReservationManagement.java
 C:\Users\woain\git\HealnGo\src\main\java\com\example\ApiRound\crm\hyeonah\entity\SocialUsers.java
 C:\Users\woain\git\HealnGo\src\main\java\com\example\ApiRound\crm\hyeonah\Repository\CompanyUserRepository.java
+C:\Users\woain\git\HealnGo\src\main\java\com\example\ApiRound\crm\hyeonah\Repository\ManagerUserRepository.java
 C:\Users\woain\git\HealnGo\src\main\java\com\example\ApiRound\crm\hyeonah\Repository\ReservationManagementRepository.java
 C:\Users\woain\git\HealnGo\src\main\java\com\example\ApiRound\crm\hyeonah\Repository\SignupRepository.java
 C:\Users\woain\git\HealnGo\src\main\java\com\example\ApiRound\crm\hyeonah\Repository\SignupRepositoryImpl.java

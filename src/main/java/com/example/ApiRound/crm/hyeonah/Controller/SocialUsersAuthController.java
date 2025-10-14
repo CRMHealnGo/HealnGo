@@ -10,6 +10,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.example.ApiRound.crm.hyeonah.Service.EmailVerificationService;
@@ -40,6 +41,27 @@ public class SocialUsersAuthController {
     @GetMapping("/signup")
     public String signupPage() {
         return "crm/signup"; // templates/user-signup.html
+    }
+    
+    /**
+     * 이메일 중복 확인
+     */
+    @GetMapping("/api/user/check-email")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> checkEmail(@RequestParam String email) {
+        Map<String, Object> response = new HashMap<>();
+        
+        boolean exists = userService.existsByEmail(email);
+        
+        if (exists) {
+            response.put("available", false);
+            response.put("message", "이미 사용 중인 이메일입니다.");
+        } else {
+            response.put("available", true);
+            response.put("message", "사용 가능한 이메일입니다.");
+        }
+        
+        return ResponseEntity.ok(response);
     }
     
     /**
@@ -161,15 +183,6 @@ public class SocialUsersAuthController {
             response.put("message", "이메일 또는 비밀번호가 올바르지 않습니다.");
             return ResponseEntity.badRequest().body(response);
         }
-    }
-    
-    /**
-     * 로그아웃
-     */
-    @PostMapping("/api/user/logout")
-    public String logout(HttpSession session) {
-        session.invalidate();
-        return "redirect:/login";
     }
 }
 

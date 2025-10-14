@@ -4,11 +4,27 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import com.example.ApiRound.crm.hyeonah.Repository.ManagerUserRepository;
+import com.example.ApiRound.crm.hyeonah.entity.ManagerUser;
 
 @Service
 public class ManagerUserServiceImpl implements ManagerUserService {
+    
+    @Autowired
+    private ManagerUserRepository managerUserRepository;
+    
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    
+    @Value("${admin.invite.code}")
+    private String adminInviteCode;
 
     @Override
     public List<Map<String, Object>> getUserList(int pageNo, int amount, String search) {
@@ -78,5 +94,52 @@ public class ManagerUserServiceImpl implements ManagerUserService {
         }
         
         return count;
+    }
+    
+    @Override
+    public Optional<ManagerUser> login(String email, String password) {
+        ManagerUser manager = managerUserRepository.findByEmail(email);
+        
+        if (manager != null && manager.getIsActive() == 1) {
+            if (passwordEncoder.matches(password, manager.getPasswordHash())) {
+                return Optional.of(manager);
+            }
+        }
+        
+        return Optional.empty();
+    }
+    
+    @Override
+    public Optional<ManagerUser> findByEmail(String email) {
+        ManagerUser manager = managerUserRepository.findByEmail(email);
+        return Optional.ofNullable(manager);
+    }
+    
+    @Override
+    public ManagerUser register(String email, String password, String name, String phone, String inviteCode) {
+        // 초대 코드 검증
+        if (inviteCode == null || !inviteCode.equals(adminInviteCode)) {
+            throw new IllegalArgumentException("유효하지 않은 초대 코드입니다.");
+        }
+        
+        // 이메일 중복 확인
+        if (managerUserRepository.existsByEmail(email)) {
+            throw new IllegalArgumentException("이미 가입된 이메일입니다.");
+        }
+        
+        // 매니저 생성
+        ManagerUser manager = ManagerUser.builder()
+            .email(email)
+            .passwordHash(passwordEncoder.encode(password))
+            .name(name)
+            .isActive(1)
+            .build();
+        
+        return managerUserRepository.save(manager);
+    }
+    
+    @Override
+    public boolean existsByEmail(String email) {
+        return managerUserRepository.existsByEmail(email);
     }
 }

@@ -4,10 +4,14 @@ let signupData = {
     emailVerified: false,
     phone: '',
     password: '',
+    userType: 'company', // 기본값: 업체
+    // 업체용
     companyName: '',
     companyNumber: '',
-    hospitalType: '',
-    position: ''
+    address: '',
+    // 관리자용
+    managerName: '',
+    adminInviteCode: ''
 };
 
 let currentStep = 1;
@@ -23,9 +27,8 @@ function initializeSignup() {
     const emailCodeInput = document.getElementById('emailCode');
     if (emailCodeInput) {
         emailCodeInput.addEventListener('input', function() {
-            if (this.value.length === 6) {
-                // 자동으로 인증 확인하지 않고 버튼 클릭하도록 변경
-            }
+            // 영문자와 숫자만 허용 (대소문자 구분 없이)
+            this.value = this.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
         });
     }
 
@@ -49,9 +52,26 @@ async function sendEmailCode() {
     
     // 버튼 비활성화
     sendButton.disabled = true;
-    sendButton.textContent = '전송중...';
+    sendButton.textContent = '확인중...';
     
     try {
+        // 1단계: 이메일 중복 확인
+        const checkResponse = await fetch(`/crm/check-email?email=${encodeURIComponent(email)}`);
+        const checkResult = await checkResponse.json();
+        
+        if (!checkResult.available) {
+            alert('이미 사용 중인 이메일입니다. 다른 이메일을 사용해주세요.');
+            sendButton.disabled = false;
+            sendButton.textContent = '인증하기';
+            // 이메일 입력 필드 포커스
+            document.getElementById('email').focus();
+            document.getElementById('email').select();
+            return;
+        }
+        
+        // 2단계: 인증 코드 발송
+        sendButton.textContent = '전송중...';
+        
         const response = await fetch('/crm/send-code', {
             method: 'POST',
             headers: {
@@ -268,10 +288,44 @@ function updateProgressSteps() {
 // 현재 단계 데이터 저장
 function saveCurrentStepData() {
     if (currentStep === 2) {
-        signupData.companyName = document.getElementById('companyName').value;
-        signupData.companyNumber = document.getElementById('companyNumber').value;
-        signupData.hospitalType = document.getElementById('hospitalType').value;
-        signupData.position = document.getElementById('position').value;
+        const userTypeInput = document.querySelector('input[name="userType"]:checked');
+        signupData.userType = userTypeInput ? userTypeInput.value : 'company';
+        
+        if (signupData.userType === 'company') {
+            signupData.companyName = document.getElementById('companyName').value;
+            signupData.companyNumber = document.getElementById('companyNumber').value;
+            signupData.address = document.getElementById('address').value;
+        } else {
+            signupData.managerName = document.getElementById('managerName').value;
+            signupData.adminInviteCode = document.getElementById('adminInviteCode').value;
+        }
+    }
+}
+
+// 사용자 유형에 따라 필드 토글
+function toggleUserTypeFields() {
+    const userType = document.querySelector('input[name="userType"]:checked').value;
+    const companyFields = document.querySelectorAll('.company-only');
+    const managerFields = document.querySelectorAll('.manager-only');
+    
+    if (userType === 'company') {
+        companyFields.forEach(field => field.style.display = 'block');
+        managerFields.forEach(field => field.style.display = 'none');
+        // 관리자 필드 required 제거
+        document.getElementById('managerName').removeAttribute('required');
+        document.getElementById('adminInviteCode').removeAttribute('required');
+        // 업체 필드 required 추가
+        document.getElementById('companyName').setAttribute('required', 'required');
+        document.getElementById('companyNumber').setAttribute('required', 'required');
+    } else {
+        companyFields.forEach(field => field.style.display = 'none');
+        managerFields.forEach(field => field.style.display = 'block');
+        // 업체 필드 required 제거
+        document.getElementById('companyName').removeAttribute('required');
+        document.getElementById('companyNumber').removeAttribute('required');
+        // 관리자 필드 required 추가
+        document.getElementById('managerName').setAttribute('required', 'required');
+        document.getElementById('adminInviteCode').setAttribute('required', 'required');
     }
 }
 
@@ -286,43 +340,55 @@ async function submitSignup() {
     // 현재 단계 데이터 저장
     saveCurrentStepData();
     
-    // Step 2 검증
-    if (!signupData.companyName) {
-        alert('회사명을 입력해주세요.');
-        return;
-    }
-    
-    if (!signupData.companyNumber) {
-        alert('사업자번호를 입력해주세요.');
-        return;
-    }
-    
-    if (!signupData.hospitalType) {
-        alert('병원 종류를 선택해주세요.');
-        return;
-    }
-    
-    if (!signupData.position) {
-        alert('직급을 선택해주세요.');
-        return;
+    // Step 2 검증 - userType에 따라 다르게 검증
+    if (signupData.userType === 'company') {
+        if (!signupData.companyName) {
+            alert('회사명을 입력해주세요.');
+            return;
+        }
+        
+        if (!signupData.companyNumber) {
+            alert('사업자번호를 입력해주세요.');
+            return;
+        }
+    } else if (signupData.userType === 'manager') {
+        if (!signupData.managerName) {
+            alert('이름을 입력해주세요.');
+            return;
+        }
+        
+        if (!signupData.adminInviteCode) {
+            alert('관리자 초대 코드를 입력해주세요.');
+            return;
+        }
     }
     
     console.log('회원가입 데이터:', signupData);
     
+    // userType에 따라 다른 데이터 전송
+    let requestData = {
+        email: signupData.email,
+        password: signupData.password,
+        phone: signupData.phone || null
+    };
+    
+    if (signupData.userType === 'company') {
+        requestData.companyName = signupData.companyName;
+        requestData.bizNo = signupData.companyNumber;
+        requestData.address = signupData.address || null;
+    } else {
+        requestData.name = signupData.managerName;
+        requestData.inviteCode = signupData.adminInviteCode;
+    }
+    
     try {
-        const response = await fetch('/crm/register', {
+        const endpoint = signupData.userType === 'company' ? '/crm/register' : '/crm/register-manager';
+        const response = await fetch(endpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                email: signupData.email,
-                password: signupData.password,
-                companyName: signupData.companyName,
-                bizNo: signupData.companyNumber,
-                phone: signupData.phone,
-                address: '' // 주소는 나중에 추가 가능
-            })
+            body: JSON.stringify(requestData)
         });
         
         const result = await response.json();

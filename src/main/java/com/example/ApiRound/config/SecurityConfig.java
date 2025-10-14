@@ -22,13 +22,13 @@ public class SecurityConfig {
     }
     
     /**
-     * 1) 업체용 체인: /crm/**, /company/**, /api/crm/** 전용
+     * 1) 업체용 체인: /crm/**, /company/**, /admin/**, /api/crm/** 전용
      */
     @Bean
     @Order(1)
     public SecurityFilterChain companyChain(HttpSecurity http) throws Exception {
         http
-            .securityMatcher("/crm/**", "/company/**", "/api/crm/**")
+            .securityMatcher("/crm/**", "/company/**", "/admin/**", "/api/crm/**")
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
@@ -39,9 +39,11 @@ public class SecurityConfig {
                     "/crm/forgot-crm-password",
                     "/crm/forgot-crm-email",
                     // API (공개)
+                    "/crm/check-email",
                     "/crm/send-code",
                     "/crm/verify-code",
                     "/crm/register",
+                    "/crm/register-manager",
                     "/crm/login",
                     "/crm/reset-password",
                     "/api/crm/**",
@@ -50,6 +52,8 @@ public class SecurityConfig {
                     "/crm/js/**", 
                     "/crm/images/**"
                 ).permitAll()
+                // 세션 기반 인증 페이지 (컨트롤러에서 체크)
+                .requestMatchers("/company/**", "/admin/**").permitAll()
                 // 나머지 CRM 경로는 인증 필요
                 .anyRequest().authenticated()
             )
@@ -93,13 +97,10 @@ public class SecurityConfig {
                     "/api/**",
                     // 정적 리소스(공통)
                     "/css/**", "/js/**", "/images/**",
-                    "/resources/**", "/static/**"
+                    "/resources/**", "/static/**",
+                    // 세션 기반 인증 페이지 (컨트롤러에서 체크)
+                    "/mypage/**", "/favorite/**", "/reservation/**"
                 ).permitAll()
-                // 인증이 필요한 페이지
-                .requestMatchers("/admin/**").authenticated()
-                .requestMatchers("/mypage/**").authenticated()  // 마이페이지는 인증 필요
-                .requestMatchers("/favorite/**").authenticated()
-                .requestMatchers("/reservation/**").authenticated()
                 .anyRequest().permitAll()  // 나머지는 공개
             )
             .formLogin(form -> form

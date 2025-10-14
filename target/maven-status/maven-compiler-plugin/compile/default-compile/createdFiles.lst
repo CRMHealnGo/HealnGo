@@ -40,6 +40,7 @@ com\example\ApiRound\crm\hyeonah\Service\CompanyUserService.class
 com\example\ApiRound\crm\hyeonah\Controller\CalendarController.class
 com\example\ApiRound\crm\hyeonah\Service\ReservationManagementServiceImpl.class
 com\example\ApiRound\crm\hyeonah\Controller\ChatController.class
+com\example\ApiRound\crm\hyeonah\Repository\ManagerUserRepository.class
 com\example\ApiRound\crm\hyeonah\entity\ReservationManagement.class
 com\example\ApiRound\Controller\FavoriteItemController.class
 com\example\ApiRound\Service\SocialUserServiceImpl.class
@@ -52,6 +53,7 @@ com\example\ApiRound\Service\ListService.class
 com\example\ApiRound\crm\yoyo\ReservationController.class
 com\example\ApiRound\entity\SocialUser.class
 com\example\ApiRound\repository\ClickLogRepository.class
+com\example\ApiRound\entity\FavoriteItem$FavoriteItemId.class
 com\example\ApiRound\crm\hyeonah\Service\SignupServiceImpl.class
 com\example\ApiRound\crm\hyeonah\Service\SocialUsersServiceImpl.class
 com\example\ApiRound\crm\hyeonah\Service\EmailVerificationServiceImpl.class
@@ -65,6 +67,7 @@ com\example\ApiRound\entity\FavoriteItem.class
 com\example\ApiRound\crm\minggzz\CompanyController.class
 com\example\ApiRound\crm\hyeonah\Controller\BookingController.class
 com\example\ApiRound\entity\ClickLog.class
+com\example\ApiRound\crm\hyeonah\entity\ManagerUser$ManagerUserBuilder.class
 com\example\ApiRound\Controller\ListController.class
 com\example\ApiRound\Service\GoogleSocialUserServiceImpl.class
 com\example\ApiRound\repository\FavoriteItemRepository.class

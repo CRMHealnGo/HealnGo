@@ -57,7 +57,7 @@
                     
                     <div class="form-group">
                         <label>인증번호</label>
-                        <input type="text" class="verification-code" id="emailCode" placeholder="6자리 인증번호 입력" maxlength="6" required>
+                        <input type="text" class="verification-code" id="emailCode" placeholder="인증번호 입력" required>
                     </div>
                     
                     <div class="sms-info" id="emailInfo" style="display: none;">
@@ -92,52 +92,52 @@
                 </div>
                 
                 <form class="signup-form" id="step2-form">
+                    <!-- 회원 유형 선택 -->
                     <div class="form-group">
+                        <label>회원 유형 (User Type)</label>
+                        <div class="user-type-selection">
+                            <label class="radio-option">
+                                <input type="radio" name="userType" value="company" checked onchange="toggleUserTypeFields()">
+                                <span class="radio-label">업체</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="userType" value="manager" onchange="toggleUserTypeFields()">
+                                <span class="radio-label">관리자</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- 관리자 전용 필드 -->
+                    <div class="form-group manager-only" style="display: none;">
+                        <label>이름 (Name)</label>
+                        <input type="text" class="manager-name" id="managerName" placeholder="홍길동">
+                    </div>
+                    
+                    <div class="form-group manager-only" style="display: none;">
+                        <label>관리자 초대 코드 (Admin Invite Code)</label>
+                        <input type="text" class="admin-code" id="adminInviteCode" placeholder="초대 코드를 입력하세요"><br>
+                        <small style="color: #6b7280; font-size: 12px;">※ 관리자 회원가입은 초대 코드가 필요합니다.</small>
+                    </div>
+                    
+                    <!-- 업체 전용 필드 -->
+                    <div class="form-group company-only">
                         <label>병원명 (Company's Name)</label>
-                        <input type="text" class="company-name" id="companyName" placeholder="Company's Name" required>
+                        <input type="text" class="company-name" id="companyName" placeholder="Company's Name">
                     </div>
                     
-                    <div class="form-group">
+                    <div class="form-group company-only">
                         <label>사업자번호 (Company's number)</label>
-                        <input type="text" class="company-number" id="companyNumber" placeholder="Company's number" required>
+                        <input type="text" class="company-number" id="companyNumber" placeholder="Company's number">
                     </div>
                     
-                    <div class="form-group">
-                        <label>병원 종류 (Hospital Type)</label>
-                        <div class="dropdown-container">
-                            <select class="hospital-type" id="hospitalType" required>
-                                <option value="">선택하세요</option>
-                                <option value="성형외과">성형외과</option>
-                                <option value="피부과">피부과</option>
-                                <option value="치과">치과</option>
-                                <option value="약국">약국</option>
-                                <option value="한의학">한의학</option>
-                                <option value="마사지">마사지</option>
-                                <option value="왁싱">왁싱</option>
-                            </select>
-                            <i class="fas fa-chevron-down dropdown-icon"></i>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>직급 (Position/Title)</label>
-                        <div class="dropdown-container">
-                            <select class="position" id="position" required>
-                                <option value="">선택하세요</option>
-                                <option value="대표">대표</option>
-                                <option value="이사">이사</option>
-                                <option value="부장">부장</option>
-                                <option value="과장">과장</option>
-                                <option value="대리">대리</option>
-                                <option value="사원">사원</option>
-                            </select>
-                            <i class="fas fa-chevron-down dropdown-icon"></i>
-                        </div>
+                    <div class="form-group company-only">
+                        <label>주소 (Address)</label>
+                        <input type="text" class="address" id="address" placeholder="서울시 강남구...">
                     </div>
                     
                     <div class="form-actions">
                         <button type="button" class="btn-previous" onclick="previousStep()"><i class="fas fa-arrow-left"></i> Previous</button>
-                        <button type="button" class="btn-next" onclick="nextStep()">Next Step <i class="fas fa-arrow-right"></i></button>
+                        <button type="button" class="btn-next" onclick="submitSignup()">회원가입 완료 <i class="fas fa-check"></i></button>
                     </div>
                 </form>
             </div>

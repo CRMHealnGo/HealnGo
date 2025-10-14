@@ -133,6 +133,21 @@ main, .main-content {
     gap: 10px;
 }
 
+.user-actions > div {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-name {
+    font-weight: 600;
+    color: #2a7a5b;
+    padding: 8px 12px;
+    background: #f0f8f5;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
 .button-icon {
     display: flex;
     align-items: center;
@@ -169,7 +184,7 @@ main, .main-content {
     color: #005a66;
 }
 
-.login-btn, .register-btn, .lang_btn {
+.register-btn, .lang_btn {
     text-decoration: none;
     padding: 8px 15px;
     margin-left: 10px;
@@ -178,15 +193,6 @@ main, .main-content {
     transition: all 0.3s ease;
 }
 
-.login-btn {
-    color: #005a66;
-    border: 1px solid #005a66;
-    background-color: transparent;
-}
-
-.login-btn:hover {
-    background-color: rgba(0, 90, 102, 0.1);
-}
 
 .register-btn {
     color: white;
@@ -201,7 +207,6 @@ main, .main-content {
 /* 텍스트 버튼 스타일 */
 .text-button {
     padding: 8px 16px;
-    border: 1px solid #ddd;
     border-radius: 20px;
     background: white;
     color: #333;
@@ -213,24 +218,10 @@ main, .main-content {
     display: inline-block;
 }
 
-.text-button:hover {
-    background: #f8f9fa;
-    border-color: #005a66;
-    color: #005a66;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
 .mypage-btn:hover {
     background: #e8f5e8;
     border-color: #4CAF50;
     color: #4CAF50;
-}
-
-.login-btn:hover {
-    background: #e3f2fd;
-    border-color: #2196F3;
-    color: #2196F3;
 }
 
 /* 드롭다운 스타일 */
@@ -655,11 +646,8 @@ address p {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 12px 15px;
-    border-radius: 5px;
     text-decoration: none;
     font-weight: 500;
-    transition: all 0.3s ease;
 }
 
 .kakao-btn {
