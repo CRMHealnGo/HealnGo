@@ -15,23 +15,23 @@
 <div th:replace="~{common/header :: header}"></div>
 
 <div class="main-container">
-        <!-- 왼쪽: 병원 목록 -->
+    <!-- 왼쪽: 병원 목록 -->
     <div class="left-panel">
         <!-- 지역 정보 -->
         <div class="region-info">
-                <h2>선택된 지역: <span th:text="${region != null ? region : '전국'}">전국</span></h2>
+            <h2>선택된 지역: <span th:text="${region != null ? region : '전국'}">전국</span></h2>
         </div>
 
         <!-- 결과 정보 -->
         <div class="result-info">
-                <div class="total-count">
-                    총 <span th:text="${totalCount != null ? totalCount : '1,221'}">1,221</span>건
+            <div class="total-count">
+                총 <span th:text="${totalCount != null ? totalCount : '1,221'}">1,221</span>건
             </div>
         </div>
 
-            <!-- 병원 목록 (DB 데이터 + 더미 데이터) -->
+        <!-- 병원 목록 (DB 데이터 + 더미 데이터) -->
         <div class="hospital-list">
-                <!-- DB 데이터 -->
+            <!-- DB 데이터 -->
             <div th:each="h : ${lists}" class="hospital-item"
                  th:data-item-id="${h.id}"
                  th:data-hospital="${h.name}"
@@ -39,434 +39,434 @@
                  th:data-phone="${h.phone}"
                  th:data-homepage="${h.homepage}"
                  th:data-region="${h.region}"
-                     th:data-subregion="${h.subregion}"
-                     th:data-category="${h.category}">
-                    <div class="hospital-heart" onclick="toggleFavorite(this)">
-                        <i class="far fa-heart"></i>
-                    </div>
-                    <div class="hospital-name" th:text="${h.name}">병원명</div>
-                </div>
-
-                <!-- 더미 데이터 - 성형외과 -->
-                <div class="hospital-item" data-hospital-id="dummy1" data-category="성형외과">
-                    <div class="hospital-heart" onclick="toggleFavorite(this)">
-                        <i class="far fa-heart"></i>
-                    </div>
-                    <div class="hospital-name">4월31일성형외과의원</div>
-                </div>
-                
-                <div class="hospital-item" data-hospital-id="dummy2" data-category="성형외과">
-                    <div class="hospital-heart" onclick="toggleFavorite(this)">
-                        <i class="far fa-heart"></i>
-                    </div>
-                    <div class="hospital-name">2010성형외과의원</div>
-                </div>
-                
-                <div class="hospital-item" data-hospital-id="dummy3" data-category="성형외과">
-                    <div class="hospital-heart" onclick="toggleFavorite(this)">
-                        <i class="far fa-heart"></i>
-                    </div>
-                    <div class="hospital-name">2060오스킨성형외과의원</div>
-                </div>
-
-                <!-- 더미 데이터 - 약국 -->
-                <div class="hospital-item" data-hospital-id="dummy4" data-category="약국">
-                    <div class="hospital-heart" onclick="toggleFavorite(this)">
-                        <i class="far fa-heart"></i>
-                    </div>
-                    <div class="hospital-name">21약국</div>
-                </div>
-                
-                <div class="hospital-item" data-hospital-id="dummy5" data-category="약국">
-                    <div class="hospital-heart" onclick="toggleFavorite(this)">
-                        <i class="far fa-heart"></i>
-                    </div>
-                    <div class="hospital-name">ABC약국</div>
-                </div>
-                
-                <div class="hospital-item" data-hospital-id="dummy6" data-category="약국">
-                    <div class="hospital-heart" onclick="toggleFavorite(this)">
-                        <i class="far fa-heart"></i>
-                    </div>
-                    <div class="hospital-name">BB약국</div>
-                </div>
-
-                <!-- 더미 데이터 - 기타 -->
-                <div class="hospital-item" data-hospital-id="dummy7" data-category="치과">
-                    <div class="hospital-heart" onclick="toggleFavorite(this)">
-                        <i class="far fa-heart"></i>
-                    </div>
-                    <div class="hospital-name">CL치과의원</div>
-                </div>
-                
-                <div class="hospital-item" data-hospital-id="dummy8" data-category="내과">
-                    <div class="hospital-heart" onclick="toggleFavorite(this)">
+                 th:data-subregion="${h.subregion}"
+                 th:data-category="${h.category}">
+                <div class="hospital-heart" onclick="toggleFavorite(this)">
                     <i class="far fa-heart"></i>
-                    </div>
-                    <div class="hospital-name">D&A(디앤에이)내과의원</div>
                 </div>
-
-                <div class="hospital-item" data-hospital-id="dummy9" data-category="피부과">
-                    <div class="hospital-heart" onclick="toggleFavorite(this)">
-                        <i class="far fa-heart"></i>
-                    </div>
-                    <div class="hospital-name">LK피부과의원</div>
-                </div>
+                <div class="hospital-name" th:text="${h.name}">병원명</div>
             </div>
 
-            <!-- 페이지네이션 -->
-            <div class="pagination">
-                <button class="active" onclick="changePage(1)">1</button>
-                <button onclick="changePage(2)">2</button>
-                <button onclick="changePage(3)">3</button>
-                <button onclick="changePage(4)">4</button>
-                <button onclick="changePage(5)">5</button>
-                <button onclick="changePage(2)">&gt;</button>
-                <button onclick="changePage(5)">&gt;&gt;</button>
+            <!-- 더미 데이터 - 성형외과 -->
+            <div class="hospital-item" data-hospital-id="dummy1" data-category="성형외과">
+                <div class="hospital-heart" onclick="toggleFavorite(this)">
+                    <i class="far fa-heart"></i>
+                </div>
+                <div class="hospital-name">4월31일성형외과의원</div>
+            </div>
+
+            <div class="hospital-item" data-hospital-id="dummy2" data-category="성형외과">
+                <div class="hospital-heart" onclick="toggleFavorite(this)">
+                    <i class="far fa-heart"></i>
+                </div>
+                <div class="hospital-name">2010성형외과의원</div>
+            </div>
+
+            <div class="hospital-item" data-hospital-id="dummy3" data-category="성형외과">
+                <div class="hospital-heart" onclick="toggleFavorite(this)">
+                    <i class="far fa-heart"></i>
+                </div>
+                <div class="hospital-name">2060오스킨성형외과의원</div>
+            </div>
+
+            <!-- 더미 데이터 - 약국 -->
+            <div class="hospital-item" data-hospital-id="dummy4" data-category="약국">
+                <div class="hospital-heart" onclick="toggleFavorite(this)">
+                    <i class="far fa-heart"></i>
+                </div>
+                <div class="hospital-name">21약국</div>
+            </div>
+
+            <div class="hospital-item" data-hospital-id="dummy5" data-category="약국">
+                <div class="hospital-heart" onclick="toggleFavorite(this)">
+                    <i class="far fa-heart"></i>
+                </div>
+                <div class="hospital-name">ABC약국</div>
+            </div>
+
+            <div class="hospital-item" data-hospital-id="dummy6" data-category="약국">
+                <div class="hospital-heart" onclick="toggleFavorite(this)">
+                    <i class="far fa-heart"></i>
+                </div>
+                <div class="hospital-name">BB약국</div>
+            </div>
+
+            <!-- 더미 데이터 - 기타 -->
+            <div class="hospital-item" data-hospital-id="dummy7" data-category="치과">
+                <div class="hospital-heart" onclick="toggleFavorite(this)">
+                    <i class="far fa-heart"></i>
+                </div>
+                <div class="hospital-name">CL치과의원</div>
+            </div>
+
+            <div class="hospital-item" data-hospital-id="dummy8" data-category="내과">
+                <div class="hospital-heart" onclick="toggleFavorite(this)">
+                    <i class="far fa-heart"></i>
+                </div>
+                <div class="hospital-name">D&A(디앤에이)내과의원</div>
+            </div>
+
+            <div class="hospital-item" data-hospital-id="dummy9" data-category="피부과">
+                <div class="hospital-heart" onclick="toggleFavorite(this)">
+                    <i class="far fa-heart"></i>
+                </div>
+                <div class="hospital-name">LK피부과의원</div>
             </div>
         </div>
 
-        <!-- 오른쪽: 병원 상세 정보 -->
+        <!-- 페이지네이션 -->
+        <div class="pagination">
+            <button class="active" onclick="changePage(1)">1</button>
+            <button onclick="changePage(2)">2</button>
+            <button onclick="changePage(3)">3</button>
+            <button onclick="changePage(4)">4</button>
+            <button onclick="changePage(5)">5</button>
+            <button onclick="changePage(2)">&gt;</button>
+            <button onclick="changePage(5)">&gt;&gt;</button>
+        </div>
+    </div>
+
+    <!-- 오른쪽: 병원 상세 정보 -->
     <div class="right-panel">
         <div class="detail-container">
             <div class="detail-placeholder">
                 <i class="fas fa-hospital"></i>
                 <p>병원을 선택해주세요</p>
             </div>
-                
+
             <div class="detail-content" style="display: none;">
                 <!-- AJAX로 상세 정보가 표시됩니다 -->
-                </div>
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        // 더미 데이터
-        const dummyData = {
-            'dummy1': {
-                name: '4월 31일 성형외과의원',
-                category: '성형외과',
-                rating: '4.8 (1k+)',
-                consultation: '상담 2k+',
-                description: '4월31일 성형외과의원은 피부클리닉&성형외과 통합 병원입니다.',
-                hashtags: ['#코성형', '#코성형전문', '#쌍커풀'],
-                services: [
-                    {
-                        title: '자연스러운 기능 코 성형',
-                        price: '700,000원',
-                        rating: '4.8 (83)',
-                        hashtags: ['#코', '#코수술', '#코성형', '#콧대', '#콧볼', '#복코수술', '#매부리코', '#자려한코', '#예쁜콧대', '#자연스러움'],
-                        gradient: 'linear-gradient(45deg, #ffeaa7, #74b9ff)'
-                    },
-                    {
-                        title: '또렷한 눈, 쌍커풀',
-                        price: '890,000원',
-                        rating: '4.5 (43)',
-                        hashtags: ['#눈', '#쌍커풀', '#매몰쌍커풀', '#절개쌍커풀', '#비절개', '#자연유착', '#또렷함', '#자연스러움', '#화려한눈', '#속쌍', '#겉쌍'],
-                        gradient: 'linear-gradient(45deg, #a8edea, #fed6e3)'
-                    },
-                    {
-                        title: '브이 리프팅',
-                        price: '290,000원',
-                        rating: '4.7 (67)',
-                        hashtags: ['#브이리프팅', '#실리프팅', '#브이라인', '#안면거상', '#목주름', '#얼굴주름', '#팔자주름', '#갸름한얼굴'],
-                        gradient: 'linear-gradient(45deg, #ff9a9e, #fecfef)'
-                    }
-                ]
-            },
-            'dummy2': {
-                name: '2010성형외과의원',
-                category: '성형외과',
-                rating: '4.7 (800+)',
-                consultation: '상담 1.5k+',
-                description: '2010성형외과의원은 10년 이상의 경험을 바탕으로 안전하고 자연스러운 성형 수술을 제공합니다.',
-                hashtags: ['#눈성형', '#코성형', '#안면윤곽'],
-                services: [
-                    {
-                        title: '자연스러운 쌍커풀 수술',
-                        price: '750,000원',
-                        rating: '4.7 (92)',
-                        hashtags: ['#쌍커풀', '#눈성형', '#매몰쌍커풀', '#절개쌍커풀', '#자연스러움', '#또렷한눈'],
-                        gradient: 'linear-gradient(45deg, #667eea, #764ba2)'
-                    },
-                    {
-                        title: '자연스러운 코 성형',
-                        price: '800,000원',
-                        rating: '4.6 (78)',
-                        hashtags: ['#코성형', '#코수술', '#콧대', '#콧볼', '#매부리코', '#자연스러운코'],
-                        gradient: 'linear-gradient(45deg, #f093fb, #f5576c)'
-                    },
-                    {
-                        title: '안면윤곽 수술',
-                        price: '1,500,000원',
-                        rating: '4.8 (45)',
-                        hashtags: ['#안면윤곽', '#턱선', '#갸름한얼굴', '#V라인'],
-                        gradient: 'linear-gradient(45deg, #4facfe, #00f2fe)'
-                    }
-                ]
-            },
-            'dummy3': {
-                name: '2060오스킨성형외과의원',
-                category: '성형외과',
-                rating: '4.9 (1.2k+)',
-                consultation: '상담 2.5k+',
-                description: '2060오스킨성형외과의원은 최신 기술과 노하우로 고객만족도 1위를 달성한 명문 성형외과입니다.',
-                hashtags: ['#코성형', '#눈성형', '#가슴성형'],
-                services: [
-                    {
-                        title: '프리미엄 코 성형',
-                        price: '950,000원',
-                        rating: '4.9 (156)',
-                        hashtags: ['#코성형', '#프리미엄', '#자연스러운코', '#콧대', '#콧볼', '#복코수술'],
-                        gradient: 'linear-gradient(45deg, #fa709a, #fee140)'
-                    },
-                    {
-                        title: '아름다운 쌍커풀',
-                        price: '650,000원',
-                        rating: '4.8 (134)',
-                        hashtags: ['#쌍커풀', '#눈성형', '#매몰쌍커풀', '#아름다운눈', '#자연스러움'],
-                        gradient: 'linear-gradient(45deg, #a8edea, #fed6e3)'
-                    },
-                    {
-                        title: '자연스러운 가슴성형',
-                        price: '3,500,000원',
-                        rating: '4.9 (67)',
-                        hashtags: ['#가슴성형', '#자연스러움', '#안전', '#프리미엄'],
-                        gradient: 'linear-gradient(45deg, #ff9a9e, #fecfef)'
-                    },
-                    {
-                        title: '리프팅 시술',
-                        price: '450,000원',
-                        rating: '4.7 (89)',
-                        hashtags: ['#리프팅', '#안면거상', '#주름개선', '#젊어보이는얼굴'],
-                        gradient: 'linear-gradient(45deg, #ffecd2, #fcb69f)'
-                    }
-                ]
-            }
-        };
-
-        // 병원 선택 함수
-        function selectHospital(hospitalId) {
-            // 모든 병원 아이템에서 selected 클래스 제거
-            document.querySelectorAll('.hospital-item').forEach(item => {
-                item.classList.remove('selected');
-            });
-            
-            // 클릭된 병원 아이템에 selected 클래스 추가
-            event.currentTarget.classList.add('selected');
-            
-            // 병원 상세 정보 표시
-            showHospitalDetail(hospitalId);
-        }
-
-        // 병원 상세 정보 표시 함수
-        function showHospitalDetail(hospitalId) {
-            const placeholder = document.querySelector('.detail-placeholder');
-            const detailContent = document.querySelector('.detail-content');
-            
-            if (placeholder && detailContent) {
-                placeholder.style.display = 'none';
-                detailContent.style.display = 'block';
-                
-                // 더미 데이터가 있는 경우
-                if (dummyData[hospitalId]) {
-                    const data = dummyData[hospitalId];
-                    detailContent.innerHTML = generateHospitalDetailHTML(data);
-                } else {
-                    // DB 데이터인 경우 기본 정보 표시
-                    const hospitalName = event.currentTarget.querySelector('.hospital-name').textContent;
-                    detailContent.innerHTML = generateDBHospitalDetailHTML(hospitalName);
+<script>
+    // 더미 데이터
+    const dummyData = {
+        'dummy1': {
+            name: '4월 31일 성형외과의원',
+            category: '성형외과',
+            rating: '4.8 (1k+)',
+            consultation: '상담 2k+',
+            description: '4월31일 성형외과의원은 피부클리닉&성형외과 통합 병원입니다.',
+            hashtags: ['#코성형', '#코성형전문', '#쌍커풀'],
+            services: [
+                {
+                    title: '자연스러운 기능 코 성형',
+                    price: '700,000원',
+                    rating: '4.8 (83)',
+                    hashtags: ['#코', '#코수술', '#코성형', '#콧대', '#콧볼', '#복코수술', '#매부리코', '#자려한코', '#예쁜콧대', '#자연스러움'],
+                    gradient: 'linear-gradient(45deg, #ffeaa7, #74b9ff)'
+                },
+                {
+                    title: '또렷한 눈, 쌍커풀',
+                    price: '890,000원',
+                    rating: '4.5 (43)',
+                    hashtags: ['#눈', '#쌍커풀', '#매몰쌍커풀', '#절개쌍커풀', '#비절개', '#자연유착', '#또렷함', '#자연스러움', '#화려한눈', '#속쌍', '#겉쌍'],
+                    gradient: 'linear-gradient(45deg, #a8edea, #fed6e3)'
+                },
+                {
+                    title: '브이 리프팅',
+                    price: '290,000원',
+                    rating: '4.7 (67)',
+                    hashtags: ['#브이리프팅', '#실리프팅', '#브이라인', '#안면거상', '#목주름', '#얼굴주름', '#팔자주름', '#갸름한얼굴'],
+                    gradient: 'linear-gradient(45deg, #ff9a9e, #fecfef)'
                 }
-            }
-            
-            console.log('병원 ID:', hospitalId, '의 상세 정보를 표시합니다.');
-        }
-
-        // 병원 이름으로 더미 데이터 찾기
-        function findDummyDataByName(hospitalName) {
-            for (let key in dummyData) {
-                if (dummyData[key].name === hospitalName) {
-                    return dummyData[key];
+            ]
+        },
+        'dummy2': {
+            name: '2010성형외과의원',
+            category: '성형외과',
+            rating: '4.7 (800+)',
+            consultation: '상담 1.5k+',
+            description: '2010성형외과의원은 10년 이상의 경험을 바탕으로 안전하고 자연스러운 성형 수술을 제공합니다.',
+            hashtags: ['#눈성형', '#코성형', '#안면윤곽'],
+            services: [
+                {
+                    title: '자연스러운 쌍커풀 수술',
+                    price: '750,000원',
+                    rating: '4.7 (92)',
+                    hashtags: ['#쌍커풀', '#눈성형', '#매몰쌍커풀', '#절개쌍커풀', '#자연스러움', '#또렷한눈'],
+                    gradient: 'linear-gradient(45deg, #667eea, #764ba2)'
+                },
+                {
+                    title: '자연스러운 코 성형',
+                    price: '800,000원',
+                    rating: '4.6 (78)',
+                    hashtags: ['#코성형', '#코수술', '#콧대', '#콧볼', '#매부리코', '#자연스러운코'],
+                    gradient: 'linear-gradient(45deg, #f093fb, #f5576c)'
+                },
+                {
+                    title: '안면윤곽 수술',
+                    price: '1,500,000원',
+                    rating: '4.8 (45)',
+                    hashtags: ['#안면윤곽', '#턱선', '#갸름한얼굴', '#V라인'],
+                    gradient: 'linear-gradient(45deg, #4facfe, #00f2fe)'
                 }
-            }
-            return null;
+            ]
+        },
+        'dummy3': {
+            name: '2060오스킨성형외과의원',
+            category: '성형외과',
+            rating: '4.9 (1.2k+)',
+            consultation: '상담 2.5k+',
+            description: '2060오스킨성형외과의원은 최신 기술과 노하우로 고객만족도 1위를 달성한 명문 성형외과입니다.',
+            hashtags: ['#코성형', '#눈성형', '#가슴성형'],
+            services: [
+                {
+                    title: '프리미엄 코 성형',
+                    price: '950,000원',
+                    rating: '4.9 (156)',
+                    hashtags: ['#코성형', '#프리미엄', '#자연스러운코', '#콧대', '#콧볼', '#복코수술'],
+                    gradient: 'linear-gradient(45deg, #fa709a, #fee140)'
+                },
+                {
+                    title: '아름다운 쌍커풀',
+                    price: '650,000원',
+                    rating: '4.8 (134)',
+                    hashtags: ['#쌍커풀', '#눈성형', '#매몰쌍커풀', '#아름다운눈', '#자연스러움'],
+                    gradient: 'linear-gradient(45deg, #a8edea, #fed6e3)'
+                },
+                {
+                    title: '자연스러운 가슴성형',
+                    price: '3,500,000원',
+                    rating: '4.9 (67)',
+                    hashtags: ['#가슴성형', '#자연스러움', '#안전', '#프리미엄'],
+                    gradient: 'linear-gradient(45deg, #ff9a9e, #fecfef)'
+                },
+                {
+                    title: '리프팅 시술',
+                    price: '450,000원',
+                    rating: '4.7 (89)',
+                    hashtags: ['#리프팅', '#안면거상', '#주름개선', '#젊어보이는얼굴'],
+                    gradient: 'linear-gradient(45deg, #ffecd2, #fcb69f)'
+                }
+            ]
         }
+    };
 
-        // 더미 데이터용 HTML 생성
-        function generateHospitalDetailHTML(data) {
-            return `
-                <div class="hospital-detail active">
-                    <div class="hospital-header">
-                        <!-- 병원 이미지 -->
-                        <div class="hospital-image">
-                            <div class="image-placeholder">
-                                <i class="fas fa-user-md" style="font-size: 48px; opacity: 0.3;"></i>
-                                <span>자연스러운 아름다움을 위한 의료 서비스</span>
-                            </div>
-                        </div>
-                        
-                        <!-- 액션 버튼들 -->
-                        <div class="action-buttons">
-                            <button class="action-btn">
-                                <i class="fas fa-calendar"></i>
-                                예약하기
-                            </button>
-                            <button class="action-btn">
-                                <i class="fas fa-comment"></i>
-                                상담신청
-                            </button>
-                        </div>
-                        
-                        <!-- 병원 정보 -->
-                        <h1 class="hospital-title">${data.name}</h1>
-                        
-                        <div class="hospital-rating">
-                            <div class="rating-stars">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                            </div>
-                            <span class="rating-text">${data.rating} ${data.consultation}</span>
-                        </div>
-                        
-                        <div class="hospital-description">
-                            ${data.description}
-                        </div>
-                        
-                        <div class="hashtags">
-                            ${data.hashtags.map(tag => `<span class="hashtag">${tag}</span>`).join('')}
-                        </div>
-                    </div>
-                    
-                    <!-- 서비스 목록 -->
-                    <div class="services-section">
-                        ${data.services.map(service => `
-                            <div class="service-item">
-                                <div class="service-image">
-                                    <div style="width: 100%; height: 100%; background: ${service.gradient}; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; border-radius: 8px;">
-                                        ${service.title} Before/After 이미지
-                                    </div>
-                                </div>
-                                <div class="service-content">
-                                    <h3 class="service-title">${service.title}</h3>
-                                    <div class="service-hashtags">
-                                        ${service.hashtags.map(tag => `<span class="service-hashtag">${tag}</span>`).join('')}
-                                    </div>
-                                    <div class="service-info">
-                                        <span class="service-price">${service.price}</span>
-                                        <div class="service-rating">
-                                            <span class="rating-stars">
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                            </span>
-                                            <span>${service.rating}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                    
-                    <!-- 상담 신청 버튼 -->
-                    <button class="consultation-btn">
-                        병원 상담 신청
-                    </button>
-                </div>
-            `;
-        }
-
-        // DB 데이터용 HTML 생성
-        function generateDBHospitalDetailHTML(hospitalName) {
-            return `
-                <div class="hospital-detail active">
-                    <div class="hospital-header">
-                        <h1 class="hospital-title">${hospitalName}</h1>
-                        <div class="hospital-description">
-                            이 병원에 대한 상세 정보를 불러오는 중입니다.
-                        </div>
-                    </div>
-                    <button class="consultation-btn">
-                        병원 상담 신청
-                    </button>
-                </div>
-            `;
-        }
-
-        // 페이지 변경 함수
-        function changePage(pageNumber) {
-            // 모든 페이지 버튼에서 active 클래스 제거
-            document.querySelectorAll('.pagination button').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            // 클릭된 페이지 버튼에 active 클래스 추가
-            event.target.classList.add('active');
-            
-            console.log('페이지', pageNumber, '로 이동합니다.');
-        }
-
-        // 하트 클릭 함수 (찜하기)
-        function toggleFavorite(element) {
-            event.stopPropagation(); // 이벤트 전파 방지
-            
-            const heartIcon = element.querySelector('i');
-            
-            if (heartIcon.classList.contains('far')) {
-                heartIcon.classList.remove('far');
-                heartIcon.classList.add('fas');
-                element.classList.add('favorited');
-                console.log('찜 목록에 추가했습니다.');
-      } else {
-                heartIcon.classList.remove('fas');
-                heartIcon.classList.add('far');
-                element.classList.remove('favorited');
-                console.log('찜 목록에서 제거했습니다.');
-            }
-        }
-
-        // 병원 아이템 클릭 이벤트
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.hospital-item').forEach(item => {
-                item.addEventListener('click', function() {
-                    const hospitalId = this.dataset.hospitalId || this.dataset.itemId;
-                    const hospitalName = this.querySelector('.hospital-name').textContent;
-                    
-                    // 더미 데이터인지 확인
-                    const dummyData = findDummyDataByName(hospitalName);
-                    if (dummyData) {
-                        // 더미 데이터인 경우
-                        showHospitalDetailByName(hospitalName);
-                    } else {
-                        // DB 데이터인 경우
-                        selectHospital(hospitalId);
-                    }
-                });
-            });
+    // 병원 선택 함수
+    function selectHospital(hospitalId) {
+        // 모든 병원 아이템에서 selected 클래스 제거
+        document.querySelectorAll('.hospital-item').forEach(item => {
+            item.classList.remove('selected');
         });
 
-        // 병원 이름으로 상세 정보 표시
-        function showHospitalDetailByName(hospitalName) {
-            const placeholder = document.querySelector('.detail-placeholder');
-            const detailContent = document.querySelector('.detail-content');
-            
-            if (placeholder && detailContent) {
-                placeholder.style.display = 'none';
-                detailContent.style.display = 'block';
-                
-                const data = findDummyDataByName(hospitalName);
-                if (data) {
-                    detailContent.innerHTML = generateHospitalDetailHTML(data);
-                }
+        // 클릭된 병원 아이템에 selected 클래스 추가
+        event.currentTarget.classList.add('selected');
+
+        // 병원 상세 정보 표시
+        showHospitalDetail(hospitalId);
+    }
+
+    // 병원 상세 정보 표시 함수
+    function showHospitalDetail(hospitalId) {
+        const placeholder = document.querySelector('.detail-placeholder');
+        const detailContent = document.querySelector('.detail-content');
+
+        if (placeholder && detailContent) {
+            placeholder.style.display = 'none';
+            detailContent.style.display = 'block';
+
+            // 더미 데이터가 있는 경우
+            if (dummyData[hospitalId]) {
+                const data = dummyData[hospitalId];
+                detailContent.innerHTML = generateHospitalDetailHTML(data);
+            } else {
+                // DB 데이터인 경우 기본 정보 표시
+                const hospitalName = event.currentTarget.querySelector('.hospital-name').textContent;
+                detailContent.innerHTML = generateDBHospitalDetailHTML(hospitalName);
             }
-            
-            console.log('병원 이름:', hospitalName, '의 상세 정보를 표시합니다.');
         }
+
+        console.log('병원 ID:', hospitalId, '의 상세 정보를 표시합니다.');
+    }
+
+    // 병원 이름으로 더미 데이터 찾기
+    function findDummyDataByName(hospitalName) {
+        for (let key in dummyData) {
+            if (dummyData[key].name === hospitalName) {
+                return dummyData[key];
+            }
+        }
+        return null;
+    }
+
+    // 더미 데이터용 HTML 생성
+    function generateHospitalDetailHTML(data) {
+        return `
+            <div class="hospital-detail active">
+                <div class="hospital-header">
+                    <!-- 병원 이미지 -->
+                    <div class="hospital-image">
+                        <div class="image-placeholder">
+                            <i class="fas fa-user-md" style="font-size: 48px; opacity: 0.3;"></i>
+                            <span>자연스러운 아름다움을 위한 의료 서비스</span>
+                        </div>
+                    </div>
+
+                    <!-- 액션 버튼들 -->
+                    <div class="action-buttons">
+                        <button class="action-btn">
+                            <i class="fas fa-calendar"></i>
+                            예약하기
+                        </button>
+                        <button class="action-btn">
+                            <i class="fas fa-comment"></i>
+                            상담신청
+                        </button>
+                    </div>
+
+                    <!-- 병원 정보 -->
+                    <h1 class="hospital-title">${data.name}</h1>
+
+                    <div class="hospital-rating">
+                        <div class="rating-stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <span class="rating-text">${data.rating} ${data.consultation}</span>
+                    </div>
+
+                    <div class="hospital-description">
+                        ${data.description}
+                    </div>
+
+                    <div class="hashtags">
+                        ${data.hashtags.map(tag => `<span class="hashtag">${tag}</span>`).join('')}
+                    </div>
+                </div>
+
+                <!-- 서비스 목록 -->
+                <div class="services-section">
+                    ${data.services.map(service => `
+                        <div class="service-item">
+                            <div class="service-image">
+                                <div style="width: 100%; height: 100%; background: ${service.gradient}; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; border-radius: 8px;">
+                                    ${service.title} Before/After 이미지
+                                </div>
+                            </div>
+                            <div class="service-content">
+                                <h3 class="service-title">${service.title}</h3>
+                                <div class="service-hashtags">
+                                    ${service.hashtags.map(tag => `<span class="service-hashtag">${tag}</span>`).join('')}
+                                </div>
+                                <div class="service-info">
+                                    <span class="service-price">${service.price}</span>
+                                    <div class="service-rating">
+                                        <span class="rating-stars">
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                        </span>
+                                        <span>${service.rating}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <!-- 상담 신청 버튼 -->
+                <button class="consultation-btn">
+                    병원 상담 신청
+                </button>
+            </div>
+        `;
+    }
+
+    // DB 데이터용 HTML 생성
+    function generateDBHospitalDetailHTML(hospitalName) {
+        return `
+            <div class="hospital-detail active">
+                <div class="hospital-header">
+                    <h1 class="hospital-title">${hospitalName}</h1>
+                    <div class="hospital-description">
+                        이 병원에 대한 상세 정보를 불러오는 중입니다.
+                    </div>
+                </div>
+                <button class="consultation-btn">
+                    병원 상담 신청
+                </button>
+            </div>
+        `;
+    }
+
+    // 페이지 변경 함수
+    function changePage(pageNumber) {
+        // 모든 페이지 버튼에서 active 클래스 제거
+        document.querySelectorAll('.pagination button').forEach(btn => {
+            btn.classList.remove('active');
+        });
+
+        // 클릭된 페이지 버튼에 active 클래스 추가
+        event.target.classList.add('active');
+
+        console.log('페이지', pageNumber, '로 이동합니다.');
+    }
+
+    // 하트 클릭 함수 (찜하기)
+    function toggleFavorite(element) {
+        event.stopPropagation(); // 이벤트 전파 방지
+
+        const heartIcon = element.querySelector('i');
+
+        if (heartIcon.classList.contains('far')) {
+            heartIcon.classList.remove('far');
+            heartIcon.classList.add('fas');
+            element.classList.add('favorited');
+            console.log('찜 목록에 추가했습니다.');
+  } else {
+            heartIcon.classList.remove('fas');
+            heartIcon.classList.add('far');
+            element.classList.remove('favorited');
+            console.log('찜 목록에서 제거했습니다.');
+        }
+    }
+
+    // 병원 아이템 클릭 이벤트
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.hospital-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const hospitalId = this.dataset.hospitalId || this.dataset.itemId;
+                const hospitalName = this.querySelector('.hospital-name').textContent;
+
+                // 더미 데이터인지 확인
+                const dummyData = findDummyDataByName(hospitalName);
+                if (dummyData) {
+                    // 더미 데이터인 경우
+                    showHospitalDetailByName(hospitalName);
+                } else {
+                    // DB 데이터인 경우
+                    selectHospital(hospitalId);
+                }
+            });
+        });
+    });
+
+    // 병원 이름으로 상세 정보 표시
+    function showHospitalDetailByName(hospitalName) {
+        const placeholder = document.querySelector('.detail-placeholder');
+        const detailContent = document.querySelector('.detail-content');
+
+        if (placeholder && detailContent) {
+            placeholder.style.display = 'none';
+            detailContent.style.display = 'block';
+
+            const data = findDummyDataByName(hospitalName);
+            if (data) {
+                detailContent.innerHTML = generateHospitalDetailHTML(data);
+            }
+        }
+
+        console.log('병원 이름:', hospitalName, '의 상세 정보를 표시합니다.');
+    }
 </script>
 
 <div th:replace="~{common/footer :: footer}"></div>

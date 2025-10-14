@@ -1,12 +1,12 @@
 package com.example.ApiRound.Service;
 
-import com.example.ApiRound.dto.SocialUserDTO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.ApiRound.dto.SocialUserDTO;
+
 @Transactional
-@Service
+// @Service  // 임시 비활성화 - 새로운 SocialUsers 구조 사용
 public class SocialUserServiceImpl implements SocialUserService {
 
     private final KakaoSocialUserServiceImpl kakaoService;

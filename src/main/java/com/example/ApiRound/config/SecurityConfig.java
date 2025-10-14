@@ -1,11 +1,117 @@
 package com.example.ApiRound.config;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
-@ConditionalOnProperty(name = "spring.security.disabled", havingValue = "true", matchIfMissing = false)
+@EnableWebSecurity
 public class SecurityConfig {
-    // Spring Security 비활성화를 위한 설정 클래스
-    // 실제로는 application.properties에서 spring.security.disabled=true로 설정
+    
+    /**
+     * 비밀번호 암호화
+     */
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+    
+    /**
+     * 1) 업체용 체인: /crm/**, /company/**, /api/crm/** 전용
+     */
+    @Bean
+    @Order(1)
+    public SecurityFilterChain companyChain(HttpSecurity http) throws Exception {
+        http
+            .securityMatcher("/crm/**", "/company/**", "/api/crm/**")
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(
+                    // 공개 페이지(업체)
+                    "/crm/crm_login",
+                    "/crm/company_signup",
+                    "/crm/forgot-password",
+                    "/crm/forgot-crm-password",
+                    "/crm/forgot-crm-email",
+                    // API (공개)
+                    "/crm/send-code",
+                    "/crm/verify-code",
+                    "/crm/register",
+                    "/crm/login",
+                    "/crm/reset-password",
+                    "/api/crm/**",
+                    // 정적 리소스(업체)
+                    "/crm/css/**", 
+                    "/crm/js/**", 
+                    "/crm/images/**"
+                ).permitAll()
+                // 나머지 CRM 경로는 인증 필요
+                .anyRequest().authenticated()
+            )
+            .formLogin(form -> form
+                .loginPage("/crm/crm_login")  // 인증 필요시 이 페이지로 리다이렉트
+                .permitAll()
+            )
+            .logout(logout -> logout
+                .logoutUrl("/crm/logout")
+                .logoutSuccessUrl("/crm/crm_login")
+                .permitAll()
+            );
+        
+        return http.build();
+    }
+    
+    /**
+     * 2) 고객용 체인: 나머지 전체
+     */
+    @Bean
+    @Order(2)
+    public SecurityFilterChain customerChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(
+                    // 공개 페이지(고객)
+                    "/", "/index", "/main",
+                    "/login", "/signup", "/user-signup",
+                    "/location", "/community", "/list",
+                    "/detail/**",
+                    "/category/**",
+                    "/search", "/lang",
+                    "/tourism/**",
+                    "/logout",
+                    "/forget-password", "/forgot-password",
+                    // OAuth
+                    "/oauth/**",
+                    // API (공개)
+                    "/api/user/**",
+                    "/api/**",
+                    // 정적 리소스(공통)
+                    "/css/**", "/js/**", "/images/**",
+                    "/resources/**", "/static/**"
+                ).permitAll()
+                // 인증이 필요한 페이지
+                .requestMatchers("/admin/**").authenticated()
+                .requestMatchers("/mypage/**").authenticated()  // 마이페이지는 인증 필요
+                .requestMatchers("/favorite/**").authenticated()
+                .requestMatchers("/reservation/**").authenticated()
+                .anyRequest().permitAll()  // 나머지는 공개
+            )
+            .formLogin(form -> form
+                .loginPage("/login")  // 인증 필요시 이 페이지로 리다이렉트
+                .permitAll()
+            )
+            .logout(logout -> logout
+                .logoutUrl("/logout")
+                .logoutSuccessUrl("/main")
+                .permitAll()
+            );
+        
+        return http.build();
+    }
 }

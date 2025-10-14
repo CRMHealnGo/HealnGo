@@ -1,37 +1,30 @@
 // 회원가입 데이터 저장
 let signupData = {
-    phone: '',
     email: '',
+    emailVerified: false,
+    phone: '',
     password: '',
     companyName: '',
     companyNumber: '',
     hospitalType: '',
-    position: '',
-    teamMembers: []
+    position: ''
 };
 
 let currentStep = 1;
 let timerInterval = null;
+let timeLeft = 300; // 5분
 
 document.addEventListener('DOMContentLoaded', function() {
     initializeSignup();
 });
 
 function initializeSignup() {
-    // 전화번호 입력 이벤트
-    const phoneInput = document.getElementById('phoneNumber');
-    if (phoneInput) {
-        phoneInput.addEventListener('input', function() {
-            formatPhoneNumber(this);
-        });
-    }
-
-    // SMS 코드 입력 이벤트
-    const smsCodeInput = document.getElementById('smsCode');
-    if (smsCodeInput) {
-        smsCodeInput.addEventListener('input', function() {
+    // 이메일 인증 코드 입력 이벤트
+    const emailCodeInput = document.getElementById('emailCode');
+    if (emailCodeInput) {
+        emailCodeInput.addEventListener('input', function() {
             if (this.value.length === 6) {
-                verifySMSCode(this.value);
+                // 자동으로 인증 확인하지 않고 버튼 클릭하도록 변경
             }
         });
     }
@@ -43,23 +36,14 @@ function initializeSignup() {
     setupFormValidation();
 }
 
-// 전화번호 포맷팅
-function formatPhoneNumber(input) {
-    let value = input.value.replace(/\D/g, '');
-    if (value.length >= 3) {
-        value = value.replace(/(\d{3})(\d{0,4})(\d{0,4})/, '$1 $2-$3');
-    }
-    input.value = value;
-}
-
-// SMS 전송
-function sendSMS() {
-    const phoneNumber = document.getElementById('phoneNumber').value;
+// 이메일 인증 코드 전송
+async function sendEmailCode() {
+    const email = document.getElementById('email').value;
     const sendButton = document.querySelector('.btn-send-sms');
     
-    // 전화번호 유효성 검사
-    if (!phoneNumber || phoneNumber.length < 10) {
-        alert('올바른 전화번호를 입력해주세요.');
+    // 이메일 유효성 검사
+    if (!email || !isValidEmail(email)) {
+        alert('올바른 이메일 주소를 입력해주세요.');
         return;
     }
     
@@ -67,22 +51,21 @@ function sendSMS() {
     sendButton.disabled = true;
     sendButton.textContent = '전송중...';
     
-    // 실제 구현에서는 서버 API 호출
-    fetch('/api/sms/send', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            phoneNumber: phoneNumber
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // SMS 전송 성공
-            document.getElementById('sentNumber').textContent = phoneNumber;
-            document.getElementById('smsInfo').style.display = 'block';
+    try {
+        const response = await fetch('/crm/send-code', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email: email })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // 이메일 전송 성공
+            document.getElementById('sentEmail').textContent = email;
+            document.getElementById('emailInfo').style.display = 'flex';
             
             // 타이머 시작
             startTimer();
@@ -91,38 +74,75 @@ function sendSMS() {
             sendButton.textContent = '재전송';
             sendButton.disabled = false;
             
-            alert('인증번호가 전송되었습니다.');
+            alert('인증 코드가 이메일로 전송되었습니다.');
         } else {
-            alert('SMS 전송 중 오류가 발생했습니다: ' + data.message);
+            alert('이메일 전송 중 오류가 발생했습니다: ' + result.message);
             sendButton.disabled = false;
             sendButton.textContent = '인증하기';
         }
-    })
-    .catch(error => {
+    } catch (error) {
         console.error('Error:', error);
-        alert('SMS 전송 중 오류가 발생했습니다.');
+        alert('이메일 전송 중 오류가 발생했습니다.');
         sendButton.disabled = false;
         sendButton.textContent = '인증하기';
-    });
-}
-
-// SMS 코드 검증
-function verifySMSCode(code) {
-    // 실제 구현에서는 서버에서 검증
-    if (code.length === 6) {
-        // SMS 전송 시뮬레이션 (개발용)
-        const phoneNumber = document.getElementById('phoneNumber').value;
-        document.getElementById('sentNumber').textContent = phoneNumber;
-        document.getElementById('smsInfo').style.display = 'block';
-        
-        // 타이머 시작
-        startTimer();
     }
 }
 
-// SMS 타이머
+// 이메일 인증 확인 및 다음 단계
+async function verifyAndNext() {
+    const email = document.getElementById('email').value;
+    const code = document.getElementById('emailCode').value;
+    const password = document.getElementById('password').value;
+    
+    // 기본 검증
+    if (!email || !isValidEmail(email)) {
+        alert('올바른 이메일 주소를 입력해주세요.');
+        return;
+    }
+    
+    if (!code || code.length !== 6) {
+        alert('6자리 인증번호를 입력해주세요.');
+        return;
+    }
+    
+    if (!password || password.length < 8) {
+        alert('비밀번호는 8자 이상 입력해주세요.');
+        return;
+    }
+    
+    try {
+        // 인증 코드 확인
+        const response = await fetch('/crm/verify-code', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email: email, code: code })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // 인증 성공
+            signupData.email = email;
+            signupData.password = password;
+            signupData.phone = document.getElementById('phoneNumber').value || '';
+            signupData.emailVerified = true;
+            
+            clearInterval(timerInterval);
+            nextStep();
+        } else {
+            alert(result.message || '인증 코드가 올바르지 않습니다.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('인증 확인 중 오류가 발생했습니다.');
+    }
+}
+
+// 이메일 타이머
 function startTimer() {
-    let timeLeft = 85; // 1분 25초
+    timeLeft = 300; // 5분
     
     timerInterval = setInterval(function() {
         const minutes = Math.floor(timeLeft / 60);
@@ -135,7 +155,8 @@ function startTimer() {
         
         if (timeLeft < 0) {
             clearInterval(timerInterval);
-            document.getElementById('smsInfo').style.display = 'none';
+            document.getElementById('emailInfo').style.display = 'none';
+            alert('인증 시간이 만료되었습니다. 다시 시도해주세요.');
         }
     }, 1000);
 }
@@ -171,18 +192,29 @@ function setupFormValidation() {
     });
 }
 
+// 비밀번호 토글
+function togglePassword() {
+    const passwordInput = document.getElementById('password');
+    const toggleIcon = document.querySelector('.password-toggle');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleIcon.classList.remove('fa-eye');
+        toggleIcon.classList.add('fa-eye-slash');
+    } else {
+        passwordInput.type = 'password';
+        toggleIcon.classList.remove('fa-eye-slash');
+        toggleIcon.classList.add('fa-eye');
+    }
+}
+
 // 다음 단계로 이동
 function nextStep() {
-    if (validateCurrentStep()) {
+    if (currentStep < 2) {
         saveCurrentStepData();
-        
-        if (currentStep < 3) {
-            currentStep++;
-            showStep(currentStep);
-            updateProgressSteps();
-        } else {
-            submitSignup();
-        }
+        currentStep++;
+        showStep(currentStep);
+        updateProgressSteps();
     }
 }
 
@@ -211,7 +243,7 @@ function showStep(step) {
 
 // 진행 단계 업데이트
 function updateProgressSteps() {
-    for (let i = 1; i <= 3; i++) {
+    for (let i = 1; i <= 2; i++) {
         const stepCircle = document.querySelector(`#step${i} .step-circle`);
         const stepNumber = document.querySelector(`#step${i} .step-number`);
         
@@ -219,99 +251,28 @@ function updateProgressSteps() {
             // 완료된 단계
             stepCircle.classList.remove('active');
             stepCircle.classList.add('completed');
-            stepNumber.style.display = 'none';
+            if (stepNumber) stepNumber.style.display = 'none';
         } else if (i === currentStep) {
             // 현재 단계
             stepCircle.classList.remove('completed');
             stepCircle.classList.add('active');
-            stepNumber.style.display = 'block';
+            if (stepNumber) stepNumber.style.display = 'block';
         } else {
             // 아직 안 한 단계
             stepCircle.classList.remove('active', 'completed');
-            stepNumber.style.display = 'block';
+            if (stepNumber) stepNumber.style.display = 'block';
         }
     }
 }
 
 // 현재 단계 데이터 저장
 function saveCurrentStepData() {
-    if (currentStep === 1) {
-        const countryCode = document.getElementById('countryCode').value;
-        const phoneNumber = document.getElementById('phoneNumber').value;
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        
-        signupData.phone = countryCode + ' ' + phoneNumber;
-        signupData.email = email;
-        signupData.password = password;
-    } else if (currentStep === 2) {
+    if (currentStep === 2) {
         signupData.companyName = document.getElementById('companyName').value;
         signupData.companyNumber = document.getElementById('companyNumber').value;
         signupData.hospitalType = document.getElementById('hospitalType').value;
         signupData.position = document.getElementById('position').value;
     }
-}
-
-// 현재 단계 검증
-function validateCurrentStep() {
-    if (currentStep === 1) {
-        const phoneNumber = document.getElementById('phoneNumber').value;
-        const smsCode = document.getElementById('smsCode').value;
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        
-        if (!phoneNumber || phoneNumber.length < 10) {
-            alert('전화번호를 올바르게 입력해주세요.');
-            return false;
-        }
-        
-        if (!smsCode || smsCode.length !== 6) {
-            alert('SMS 인증번호를 입력해주세요.');
-            return false;
-        }
-        
-        if (!email || !isValidEmail(email)) {
-            alert('올바른 이메일 주소를 입력해주세요.');
-            return false;
-        }
-        
-        if (!password || password.length < 6) {
-            alert('비밀번호는 6자 이상 입력해주세요.');
-            return false;
-        }
-        
-        return true;
-        
-    } else if (currentStep === 2) {
-        const companyName = document.getElementById('companyName').value;
-        const companyNumber = document.getElementById('companyNumber').value;
-        const hospitalType = document.getElementById('hospitalType').value;
-        const position = document.getElementById('position').value;
-        
-        if (!companyName) {
-            alert('회사명을 입력해주세요.');
-            return false;
-        }
-        
-        if (!companyNumber) {
-            alert('사업자번호를 입력해주세요.');
-            return false;
-        }
-        
-        if (!hospitalType) {
-            alert('병원 종류를 선택해주세요.');
-            return false;
-        }
-        
-        if (!position) {
-            alert('직급을 선택해주세요.');
-            return false;
-        }
-        
-        return true;
-    }
-    
-    return true;
 }
 
 // 이메일 유효성 검사
@@ -320,111 +281,61 @@ function isValidEmail(email) {
     return emailRegex.test(email);
 }
 
-// 팀원 추가
-function addMember() {
-    const memberEmailInput = document.querySelector('.member-email');
-    const email = memberEmailInput.value.trim();
-    
-    if (!email || !isValidEmail(email)) {
-        alert('올바른 이메일 주소를 입력해주세요.');
-        return;
-    }
-    
-    // 중복 체크
-    if (signupData.teamMembers.includes(email)) {
-        alert('이미 추가된 이메일입니다.');
-        return;
-    }
-    
-    // 팀원 목록에 추가
-    signupData.teamMembers.push(email);
-    
-    // UI에 추가
-    addMemberToList(email);
-    
-    // 입력 필드 초기화
-    memberEmailInput.value = '';
-}
-
-// 팀원 목록에 추가
-function addMemberToList(email) {
-    const membersList = document.getElementById('membersList');
-    
-    const memberItem = document.createElement('div');
-    memberItem.className = 'member-item';
-    memberItem.innerHTML = `
-        <span class="member-email-text">${email}</span>
-        <button type="button" class="btn-remove-member" onclick="removeMember('${email}')">
-            <i class="fas fa-times"></i>
-        </button>
-    `;
-    
-    membersList.appendChild(memberItem);
-}
-
-// 팀원 제거
-function removeMember(email) {
-    signupData.teamMembers = signupData.teamMembers.filter(member => member !== email);
-    
-    // UI에서 제거
-    const membersList = document.getElementById('membersList');
-    const memberItems = membersList.querySelectorAll('.member-item');
-    
-    memberItems.forEach(item => {
-        if (item.querySelector('.member-email-text').textContent === email) {
-            item.remove();
-        }
-    });
-}
-
-// 비밀번호 토글
-function togglePassword() {
-    const passwordInput = document.getElementById('password');
-    const toggleIcon = document.querySelector('.password-toggle');
-    
-    if (passwordInput.type === 'password') {
-        passwordInput.type = 'text';
-        toggleIcon.classList.remove('fa-eye');
-        toggleIcon.classList.add('fa-eye-slash');
-    } else {
-        passwordInput.type = 'password';
-        toggleIcon.classList.remove('fa-eye-slash');
-        toggleIcon.classList.add('fa-eye');
-    }
-}
-
 // 회원가입 제출
-function submitSignup() {
-    // 마지막 단계 데이터 저장
+async function submitSignup() {
+    // 현재 단계 데이터 저장
     saveCurrentStepData();
+    
+    // Step 2 검증
+    if (!signupData.companyName) {
+        alert('회사명을 입력해주세요.');
+        return;
+    }
+    
+    if (!signupData.companyNumber) {
+        alert('사업자번호를 입력해주세요.');
+        return;
+    }
+    
+    if (!signupData.hospitalType) {
+        alert('병원 종류를 선택해주세요.');
+        return;
+    }
+    
+    if (!signupData.position) {
+        alert('직급을 선택해주세요.');
+        return;
+    }
     
     console.log('회원가입 데이터:', signupData);
     
-    // 실제 구현에서는 서버로 데이터 전송
-    // fetch('/api/company-signup', {
-    //     method: 'POST',
-    //     headers: {
-    //         'Content-Type': 'application/json',
-    //     },
-    //     body: JSON.stringify(signupData)
-    // })
-    // .then(response => response.json())
-    // .then(data => {
-    //     if (data.success) {
-    //         showSuccessPage();
-    //     } else {
-    //         alert('회원가입 중 오류가 발생했습니다: ' + data.message);
-    //     }
-    // })
-    // .catch(error => {
-    //     console.error('Error:', error);
-    //     alert('회원가입 중 오류가 발생했습니다.');
-    // });
-    
-    // 시뮬레이션: 성공 페이지 표시
-    setTimeout(() => {
-        showSuccessPage();
-    }, 1000);
+    try {
+        const response = await fetch('/crm/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email: signupData.email,
+                password: signupData.password,
+                companyName: signupData.companyName,
+                bizNo: signupData.companyNumber,
+                phone: signupData.phone,
+                address: '' // 주소는 나중에 추가 가능
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showSuccessPage();
+        } else {
+            alert('회원가입 중 오류가 발생했습니다: ' + result.message);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('회원가입 중 오류가 발생했습니다.');
+    }
 }
 
 // 성공 페이지 표시
@@ -444,8 +355,7 @@ function showSuccessPage() {
 
 // 대시보드로 이동
 function goToDashboard() {
-    // 실제 구현에서는 대시보드 페이지로 리다이렉트
-    window.location.href = '/company/dashboard';
+    window.location.href = '/crm/company';
 }
 
 // 페이지 로드 시 초기화

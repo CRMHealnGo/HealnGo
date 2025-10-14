@@ -1,12 +1,12 @@
 package com.example.ApiRound.Service;
 
-import com.example.ApiRound.entity.SocialUser;
-import com.example.ApiRound.repository.SocialUserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service
+import com.example.ApiRound.entity.SocialUser;
+import com.example.ApiRound.repository.SocialUserRepository;
+
+// @Service  // 임시 비활성화 - 기존 구조 사용 안 함
 @Transactional
 public class GoogleSocialUserServiceImpl implements GoogleSocialUserService {
     
