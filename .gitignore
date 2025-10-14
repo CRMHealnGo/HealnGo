@@ -36,6 +36,12 @@
 # application.properties - 민감 정보
 #/src/main/resources/application.properties
 
+# .gitignore (루트)
+target/
+*.jar
+*.war
+*.ear
+
 # IntelliJ IDEA workspace 설정 파일 무시
 .idea/workspace.xml
 src/main/resources/application.properties
