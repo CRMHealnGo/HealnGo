@@ -44,6 +44,14 @@ public class SocialUsersAuthController {
     }
     
     /**
+     * 비밀번호 찾기 페이지
+     */
+    @GetMapping("/forgot-password")
+    public String forgotPasswordPage() {
+        return "crm/forgot-password"; // templates/crm/forgot-password.html
+    }
+    
+    /**
      * 이메일 중복 확인
      */
     @GetMapping("/api/user/check-email")
@@ -182,6 +190,47 @@ public class SocialUsersAuthController {
             response.put("success", false);
             response.put("message", "이메일 또는 비밀번호가 올바르지 않습니다.");
             return ResponseEntity.badRequest().body(response);
+        }
+    }
+    
+    /**
+     * 비밀번호 재설정
+     */
+    @PostMapping("/api/user/reset-password")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> resetPassword(@RequestBody Map<String, String> request) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            String email = request.get("email");
+            String newPassword = request.get("newPassword");
+            
+            if (email == null || newPassword == null) {
+                response.put("success", false);
+                response.put("message", "이메일과 새 비밀번호를 입력해주세요.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            // 사용자 찾기
+            Optional<SocialUsers> userOpt = userService.findByEmail(email);
+            
+            if (userOpt.isEmpty()) {
+                response.put("success", false);
+                response.put("message", "해당 이메일로 등록된 계정을 찾을 수 없습니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            // 비밀번호 업데이트
+            userService.updatePassword(email, newPassword);
+            
+            response.put("success", true);
+            response.put("message", "비밀번호가 성공적으로 재설정되었습니다.");
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "비밀번호 재설정 중 오류가 발생했습니다.");
+            return ResponseEntity.internalServerError().body(response);
         }
     }
 }

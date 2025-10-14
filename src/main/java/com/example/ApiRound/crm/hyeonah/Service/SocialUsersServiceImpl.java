@@ -87,5 +87,19 @@ public class SocialUsersServiceImpl implements SocialUsersService {
             repository.save(user);
         });
     }
+    
+    @Override
+    public void updatePassword(String email, String newPassword) {
+        Optional<SocialUsers> userOpt = repository.findByEmail(email);
+        
+        if (userOpt.isEmpty()) {
+            throw new IllegalArgumentException("해당 이메일로 등록된 사용자를 찾을 수 없습니다.");
+        }
+        
+        SocialUsers user = userOpt.get();
+        // 비밀번호 암호화 후 업데이트
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        repository.save(user);
+    }
 }
 

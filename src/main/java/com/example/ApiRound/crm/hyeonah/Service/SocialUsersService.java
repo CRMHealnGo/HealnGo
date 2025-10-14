@@ -31,5 +31,10 @@ public interface SocialUsersService {
      * 마지막 로그인 시간 업데이트
      */
     void updateLastLogin(String email);
+    
+    /**
+     * 비밀번호 업데이트
+     */
+    void updatePassword(String email, String newPassword);
 }
 

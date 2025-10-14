@@ -1,6 +1,5 @@
 com\example\ApiRound\entity\TourPackage.class
 com\example\ApiRound\crm\hyeonah\Service\ManagerUserServiceImpl.class
-com\example\ApiRound\crm\hyeonah\Controller\ForgotController.class
 com\example\ApiRound\crm\hyeonah\dto\CompanyUserDto.class
 com\example\ApiRound\crm\hyeonah\Controller\ManagerUserController.class
 com\example\ApiRound\Controller\CommunityPostController.class

@@ -271,7 +271,7 @@ public class CompanyAuthController {
     }
     
     /**
-     * 비밀번호 재설정
+     * 비밀번호 재설정 (company_user 또는 manager_user)
      */
     @PostMapping("/reset-password")
     @ResponseBody
@@ -288,21 +288,34 @@ public class CompanyAuthController {
                 return ResponseEntity.badRequest().body(response);
             }
             
-            // 업체 찾기
+            // 1. company_user에서 먼저 찾기
             Optional<CompanyUser> companyOpt = companyService.findByEmail(email);
             
-            if (companyOpt.isEmpty()) {
-                response.put("success", false);
-                response.put("message", "해당 이메일로 등록된 업체를 찾을 수 없습니다.");
-                return ResponseEntity.badRequest().body(response);
+            if (companyOpt.isPresent()) {
+                // 업체 비밀번호 업데이트
+                companyService.updatePassword(email, newPassword);
+                
+                response.put("success", true);
+                response.put("message", "비밀번호가 성공적으로 재설정되었습니다.");
+                return ResponseEntity.ok(response);
             }
             
-            // 비밀번호 업데이트
-            companyService.updatePassword(email, newPassword);
+            // 2. manager_user에서 찾기
+            Optional<ManagerUser> managerOpt = managerService.findByEmail(email);
             
-            response.put("success", true);
-            response.put("message", "비밀번호가 성공적으로 재설정되었습니다.");
-            return ResponseEntity.ok(response);
+            if (managerOpt.isPresent()) {
+                // 관리자 비밀번호 업데이트
+                managerService.updatePassword(email, newPassword);
+                
+                response.put("success", true);
+                response.put("message", "비밀번호가 성공적으로 재설정되었습니다.");
+                return ResponseEntity.ok(response);
+            }
+            
+            // 3. 둘 다 없음
+            response.put("success", false);
+            response.put("message", "해당 이메일로 등록된 계정을 찾을 수 없습니다.");
+            return ResponseEntity.badRequest().body(response);
             
         } catch (Exception e) {
             response.put("success", false);

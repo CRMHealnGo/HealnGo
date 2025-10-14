@@ -464,17 +464,6 @@
 }
 
 /* 로그인 버튼 */
-.login-btn {
-    display: inline-block;
-    padding: 8px 16px;
-    background-color: #005a66;
-    color: white;
-    text-decoration: none;
-    border-radius: 4px;
-    font-size: 14px;
-    font-weight: 500;
-    transition: background-color 0.3s ease;
-}
 
 .login-btn:hover {
     background-color: #004d5a;

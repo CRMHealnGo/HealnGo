@@ -223,5 +223,13 @@ function goToLogin() {
 // 페이지 로드 시 초기화
 document.addEventListener('DOMContentLoaded', function() {
     updateProgressBar();
+    
+    // 인증 코드 입력 필드: 영문+숫자만 허용, 대문자 변환
+    const verificationCodeInput = document.getElementById('verificationCode');
+    if (verificationCodeInput) {
+        verificationCodeInput.addEventListener('input', function() {
+            this.value = this.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+        });
+    }
 });
 

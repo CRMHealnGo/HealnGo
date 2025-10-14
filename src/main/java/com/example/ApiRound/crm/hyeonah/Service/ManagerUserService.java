@@ -37,4 +37,9 @@ public interface ManagerUserService {
      * 이메일 중복 확인
      */
     boolean existsByEmail(String email);
+    
+    /**
+     * 비밀번호 업데이트
+     */
+    void updatePassword(String email, String newPassword);
 }

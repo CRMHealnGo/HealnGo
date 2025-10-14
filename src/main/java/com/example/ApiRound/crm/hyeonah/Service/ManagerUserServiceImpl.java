@@ -142,4 +142,17 @@ public class ManagerUserServiceImpl implements ManagerUserService {
     public boolean existsByEmail(String email) {
         return managerUserRepository.existsByEmail(email);
     }
+    
+    @Override
+    public void updatePassword(String email, String newPassword) {
+        ManagerUser manager = managerUserRepository.findByEmail(email);
+        
+        if (manager == null) {
+            throw new IllegalArgumentException("해당 이메일로 등록된 관리자를 찾을 수 없습니다.");
+        }
+        
+        // 비밀번호 암호화 후 업데이트
+        manager.setPasswordHash(passwordEncoder.encode(newPassword));
+        managerUserRepository.save(manager);
+    }
 }
