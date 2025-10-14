@@ -28,120 +28,18 @@
         }
         
         /* 메인 컨테이너 */
-        .event-dashboard-container {
+        .dashboard-container {
             display: flex !important;
             min-height: 100vh !important;
             background-color: #f8f9fa !important;
         }
         
-        /* 사이드바 영역 */
-        .event-sidebar-area {
-            width: 250px !important;
-            flex-shrink: 0 !important;
-            background-color: white !important;
-            padding: 0 !important;
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            height: 100vh !important;
-            z-index: 999 !important;
-        }
-        
         /* 메인 콘텐츠 영역 */
-        .event-main-content-area {
+        .main-content {
             flex: 1 !important;
             background-color: #f8f9fa !important;
             min-height: 100vh !important;
             margin-left: 250px !important;
-        }
-        
-        /* 상단 헤더 */
-        .event-top-header {
-            background: white !important;
-            padding: 15px 30px !important;
-            display: flex !important;
-            justify-content: space-between !important;
-            align-items: center !important;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
-            margin-bottom: 20px !important;
-            position: relative !important;
-            z-index: 10 !important;
-            width: 100% !important;
-        }
-        
-        .event-header-left {
-            display: flex !important;
-            align-items: center !important;
-            gap: 20px !important;
-        }
-        
-        .event-search-bar {
-            position: relative !important;
-        }
-        
-        .event-search-input {
-            padding: 10px 40px 10px 15px !important;
-            border: 1px solid #ddd !important;
-            border-radius: 20px !important;
-            width: 300px !important;
-            font-size: 14px !important;
-        }
-        
-        .event-search-icon {
-            position: absolute !important;
-            right: 15px !important;
-            top: 50% !important;
-            transform: translateY(-50%) !important;
-            color: #7f8c8d !important;
-        }
-        
-        .event-header-center {
-            flex: 1 !important;
-            text-align: center !important;
-        }
-        
-        .event-header-title {
-            font-size: 24px !important;
-            font-weight: bold !important;
-            color: #2c3e50 !important;
-            margin: 0 !important;
-        }
-        
-        .event-header-right {
-            display: flex !important;
-            align-items: center !important;
-            gap: 20px !important;
-        }
-        
-        .event-notification-btn {
-            background: none !important;
-            border: none !important;
-            font-size: 20px !important;
-            color: #7f8c8d !important;
-            cursor: pointer !important;
-        }
-        
-        .event-profile-section {
-            display: flex !important;
-            align-items: center !important;
-            gap: 10px !important;
-        }
-        
-        .event-profile-img {
-            width: 35px !important;
-            height: 35px !important;
-            border-radius: 50% !important;
-            background: #3498db !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            color: white !important;
-            font-weight: bold !important;
-        }
-        
-        .event-profile-text {
-            font-size: 14px !important;
-            color: #2c3e50 !important;
         }
         
         /* 메인 콘텐츠 */
@@ -365,121 +263,14 @@
             font-size: 14px !important;
         }
         
-        /* 사이드바 스타일 오버라이드 */
-        .sidebar {
-            width: 100% !important;
-            background-color: white !important;
-            color: #333 !important;
-            display: flex !important;
-            flex-direction: column !important;
-            height: 100% !important;
-            position: relative !important;
-            border-radius: 0 !important;
-            box-shadow: none !important;
-            z-index: 1 !important;
-        }
-        
-        .sidebar-header {
-            padding: 20px !important;
-            border-bottom: none !important;
-            margin-bottom: 30px !important;
-        }
-        
-        .logo-section {
-            text-align: center !important;
-        }
-        
-        .logo-text {
-            font-size: 24px !important;
-            font-weight: bold !important;
-            color: #2c3e50 !important;
-            margin-bottom: 5px !important;
-        }
-        
-        .logo-tagline {
-            font-size: 12px !important;
-            color: #7f8c8d !important;
-        }
-        
-        .sidebar-nav {
-            flex: 1 !important;
-        }
-        
-        .nav-item {
-            margin-bottom: 5px !important;
-        }
-        
-        .nav-link {
-            display: flex !important;
-            align-items: center !important;
-            padding: 12px 15px !important;
-            color: #7f8c8d !important;
-            text-decoration: none !important;
-            transition: all 0.3s ease !important;
-            border-radius: 8px !important;
-            border-left: none !important;
-        }
-        
-        .nav-link:hover {
-            background-color: #e9ecef !important;
-            color: #3498db !important;
-        }
-        
-        .nav-link.active {
-            background-color: #3498db !important;
-            color: white !important;
-        }
-        
-        .nav-link i {
-            margin-right: 12px !important;
-            width: 20px !important;
-            text-align: center !important;
-        }
-        
-        .sidebar-footer {
-            padding: 0 !important;
-            border-top: none !important;
-        }
-        
-        .logout-btn {
-            width: 100% !important;
-            padding: 12px 15px !important;
-            background: none !important;
-            border: none !important;
-            color: #7f8c8d !important;
-            text-align: left !important;
-            cursor: pointer !important;
-            border-radius: 8px !important;
-            transition: all 0.3s ease !important;
-            display: flex !important;
-            align-items: center !important;
-            gap: 12px !important;
-        }
-        
-        .logout-btn:hover {
-            background-color: #e9ecef !important;
-            color: #e74c3c !important;
-        }
-        
         /* 반응형 디자인 */
         @media (max-width: 768px) {
-            .event-dashboard-container {
+            .dashboard-container {
                 flex-direction: column !important;
             }
             
-            .event-sidebar-area {
-                width: 100% !important;
-                padding: 10px !important;
-                position: relative !important;
-                height: auto !important;
-            }
-            
-            .event-main-content-area {
+            .main-content {
                 margin-left: 0 !important;
-            }
-            
-            .event-search-input {
-                width: 200px !important;
             }
             
             .event-date-group {
@@ -494,51 +285,44 @@
     </style>
 </head>
 <body>
-    <div class="event-dashboard-container">
+    <div class="dashboard-container">
         <!-- 사이드바 -->
-        <div class="event-sidebar-area">
-            <div th:replace="common/company_sidebar :: company_sidebar"></div>
-        </div>
+        <div th:replace="common/company_sidebar :: company_sidebar"></div>
         
         <!-- 메인 콘텐츠 -->
-        <div class="event-main-content-area">
-            <!-- 상단 헤더 -->
-            <div class="event-top-header">
-                <div class="event-header-left">
-                    <div class="event-search-bar">
-                        <input type="text" class="event-search-input" placeholder="Search">
-                        <i class="fas fa-search event-search-icon"></i>
-                    </div>
-                </div>
-                <div class="event-header-center">
-                    <h1 class="event-header-title">피부과병원_힝거피부과</h1>
-                </div>
-                <div class="event-header-right">
-                    <button class="event-notification-btn">
-                        <i class="fas fa-bell"></i>
-                    </button>
-                    <div class="event-profile-section">
-                        <div class="event-profile-img">힝</div>
-                        <div class="event-profile-text">힝거 피부과</div>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                </div>
-            </div>
-            
+        <div class="main-content">
+            <!-- 헤더 -->
+            <div th:replace="common/company_header :: company_header"></div>
+        
+        <script>
+            // 이벤트 등록 페이지에서 사이드바 활성 상태 설정
+            document.addEventListener('DOMContentLoaded', function() {
+                // 모든 nav-link에서 active 클래스 제거
+                const allNavLinks = document.querySelectorAll('.nav-link');
+                allNavLinks.forEach(link => link.classList.remove('active'));
+                
+                // 의료 서비스 관리 링크에 active 클래스 추가
+                const medicalServiceLink = document.querySelector('a[href="/company/medical-services"]');
+                if (medicalServiceLink) {
+                    medicalServiceLink.classList.add('active');
+                }
+            });
+        </script>
+        
             <!-- 메인 콘텐츠 -->
             <div class="event-main-content">
                 <div class="event-page-header">
-                    <h2 class="event-page-title">이벤트 등록</h2>
-                    <button class="event-approval-btn">이벤트 승인 요청</button>
+                    <h2 class="event-page-title">의료 서비스 등록</h2>
+                    <button class="event-approval-btn">서비스 등록</button>
                 </div>
                 
                 <!-- 이벤트 정보 섹션 -->
                 <div class="event-form-section">
-                    <h3 class="event-section-title">이벤트 정보</h3>
+                    <h3 class="event-section-title">서비스 정보</h3>
                     
                     <!-- 이벤트 제목 -->
                     <div class="event-form-group">
-                        <label class="event-form-label">이벤트 제목</label>
+                        <label class="event-form-label">서비스 제목</label>
                         <input type="text" class="event-form-input" placeholder="예: 사각턱보톡스 리즈톡스 50유닛 / 자연유착 쌍꺼풀" maxlength="100">
                         <div class="event-form-note">비용을 입력하지 마세요. & - , . _ 를 제외한 다른 특수문자는 입력하지 마세요.</div>
                         <div class="event-char-counter">0 / 100</div>
@@ -546,7 +330,7 @@
                     
                     <!-- 이벤트 기간 -->
                     <div class="event-form-group">
-                        <label class="event-form-label">이벤트 기간</label>
+                        <label class="event-form-label">서비스 기간</label>
                         <div class="event-date-group">
                             <div class="event-date-input">
                                 <input type="date" class="event-form-input">
@@ -589,13 +373,13 @@
                         <div class="event-tags-container" id="freeTagsContainer">
                             <input type="text" class="event-tag-input" placeholder="단어를 입력하고 엔터키를 누르세요" id="freeTagInput">
                         </div>
-                        <div class="event-form-note">단어를 입력하시고 엔터키를 누르시면 자유 태그로 등록됩니다. 최대 5개까지 입력 가능합니다. 이벤트와 관련 없는 태그는 통보 없이 삭제될 수 있습니다.</div>
+                        <div class="event-form-note">단어를 입력하시고 엔터키를 누르시면 자유 태그로 등록됩니다. 최대 5개까지 입력 가능합니다. 의료 서비스와 관련 없는 태그는 통보 없이 삭제될 수 있습니다.</div>
                     </div>
                 </div>
                 
                 <!-- 이벤트 분류 섹션 -->
                 <div class="event-form-section">
-                    <h3 class="event-section-title">이벤트 분류</h3>
+                    <h3 class="event-section-title">서비스 분류</h3>
                     
                     <!-- 대상 국가 -->
                     <div class="event-form-group">
@@ -630,7 +414,7 @@
                             </div>
                             <input type="text" class="event-tag-input" placeholder="시술명을 입력하고 엔터키를 누르세요" id="procedureTagInput">
                         </div>
-                        <div class="event-form-note">최대 8개까지 선택할 수 있어요. 이벤트와 관련 없는 태그는 통보 없이 삭제될 수 있어요.</div>
+                        <div class="event-form-note">최대 8개까지 선택할 수 있어요. 의료 서비스와 관련 없는 태그는 통보 없이 삭제될 수 있어요.</div>
                         <ul style="margin-top: 10px; padding-left: 20px; font-size: 12px; color: #7f8c8d;">
                             <li>앱 결제 기능이 있는 경우, 결제 금액을 입력해주세요.</li>
                             <li>정산은 매월 말일 기준으로 진행됩니다.</li>
@@ -644,12 +428,12 @@
                     
                     <!-- 이벤트 가격 -->
                     <div class="event-form-group">
-                        <label class="event-form-label">이벤트 가격</label>
+                        <label class="event-form-label">서비스 가격</label>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <input type="number" class="event-form-input" placeholder="가격을 입력하세요" id="eventPrice" style="flex: 1;">
                             <span style="font-size: 16px; color: #2c3e50; font-weight: 600;">원</span>
                         </div>
-                        <div class="event-form-note">이벤트 가격을 숫자로만 입력해주세요. (예: 290000)</div>
+                        <div class="event-form-note">서비스 가격을 숫자로만 입력해주세요. (예: 290000)</div>
                     </div>
                     
                     <!-- VAT -->
@@ -823,22 +607,22 @@
             
             // 필수 필드 검증
             if (!formData.title.trim()) {
-                alert('이벤트 제목을 입력해주세요.');
+                alert('의료 서비스 제목을 입력해주세요.');
                 return;
             }
             
             if (!formData.price || formData.price <= 0) {
-                alert('이벤트 가격을 올바르게 입력해주세요.');
+                alert('의료 서비스 가격을 올바르게 입력해주세요.');
                 return;
             }
             
             if (!formData.startDate || !formData.endDate) {
-                alert('이벤트 기간을 선택해주세요.');
+                alert('의료 서비스 기간을 선택해주세요.');
                 return;
             }
             
             console.log('Event registration data:', formData);
-            alert('이벤트 승인 요청이 완료되었습니다.');
+            alert('의료 서비스 등록이 완료되었습니다.');
         });
     </script>
 </body>
