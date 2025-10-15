@@ -1,0 +1,285 @@
+/* 기본 리셋 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+    background-color: #f8f9fa !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+    min-height: 100vh !important;
+}
+
+/* 메인 컨테이너 */
+.medical-dashboard-container {
+    display: flex !important;
+    min-height: 100vh !important;
+    background-color: #f8f9fa !important;
+}
+
+/* 사이드바 영역 */
+.medical-sidebar-area {
+    width: 250px !important;
+    flex-shrink: 0 !important;
+    background-color: white !important;
+    padding: 0 !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    height: 100vh !important;
+    z-index: 999 !important;
+}
+
+/* 메인 콘텐츠 영역 */
+.medical-main-content-area {
+    flex: 1 !important;
+    background-color: #f8f9fa !important;
+    min-height: 100vh !important;
+    margin-left: 250px !important;
+}
+
+/* 상단 헤더 */
+.medical-top-header {
+    background: white !important;
+    padding: 15px 30px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    margin-bottom: 20px !important;
+    position: relative !important;
+    z-index: 10 !important;
+    width: 100% !important;
+}
+
+.medical-header-left {
+    display: flex !important;
+    align-items: center !important;
+    gap: 20px !important;
+}
+
+.medical-search-bar {
+    position: relative !important;
+}
+
+.medical-search-input {
+    padding: 10px 40px 10px 15px !important;
+    border: 1px solid #ddd !important;
+    border-radius: 20px !important;
+    width: 300px !important;
+    font-size: 14px !important;
+}
+
+.medical-search-icon {
+    position: absolute !important;
+    right: 15px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    color: #7f8c8d !important;
+}
+
+.medical-header-center {
+    flex: 1 !important;
+    text-align: center !important;
+}
+
+.medical-header-title {
+    font-size: 24px !important;
+    font-weight: bold !important;
+    color: #2c3e50 !important;
+    margin: 0 !important;
+}
+
+.medical-header-right {
+    display: flex !important;
+    align-items: center !important;
+    gap: 20px !important;
+}
+
+.medical-notification-btn {
+    background: none !important;
+    border: none !important;
+    font-size: 20px !important;
+    color: #7f8c8d !important;
+    cursor: pointer !important;
+}
+
+.medical-profile-section {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+}
+
+.medical-profile-img {
+    width: 35px !important;
+    height: 35px !important;
+    border-radius: 50% !important;
+    background: #3498db !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: white !important;
+    font-weight: bold !important;
+}
+
+.medical-profile-text {
+    font-size: 14px !important;
+    color: #2c3e50 !important;
+}
+
+.medical-event-btn {
+    background: #3498db !important;
+    color: white !important;
+    border: none !important;
+    padding: 10px 20px !important;
+    border-radius: 6px !important;
+    font-size: 14px !important;
+    cursor: pointer !important;
+    transition: background-color 0.3s !important;
+}
+
+.medical-event-btn:hover {
+    background: #2980b9 !important;
+}
+
+/* 새 프로모션 추가 버튼 */
+.add-promotion-btn {
+    padding: 12px 24px !important;
+    background: #27ae60 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    transition: all 0.3s !important;
+    box-shadow: 0 2px 6px rgba(39, 174, 96, 0.3) !important;
+}
+
+.add-promotion-btn:hover {
+    background: #229954 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4) !important;
+}
+
+.add-promotion-btn i {
+    font-size: 14px !important;
+}
+
+/* 메인 콘텐츠 */
+.medical-main-content {
+    padding: 0 30px 30px 30px !important;
+}
+
+.medical-page-title {
+    font-size: 28px !important;
+    font-weight: bold !important;
+    color: #2c3e50 !important;
+    margin-bottom: 20px !important;
+}
+
+/* 서비스 카드 목록 */
+.medical-services-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px !important;
+}
+
+.medical-service-card {
+    background: white !important;
+    border-radius: 12px !important;
+    padding: 20px !important;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 20px !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.medical-service-card:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
+}
+
+.medical-service-image {
+    width: 120px !important;
+    height: 120px !important;
+    border-radius: 8px !important;
+    background: #f0f0f0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #7f8c8d !important;
+    font-size: 12px !important;
+    flex-shrink: 0 !important;
+}
+
+.medical-service-content {
+    flex: 1 !important;
+}
+
+.medical-service-code {
+    font-size: 12px !important;
+    color: #7f8c8d !important;
+    margin-bottom: 5px !important;
+}
+
+.medical-service-name {
+    font-size: 20px !important;
+    font-weight: 600 !important;
+    color: #2c3e50 !important;
+    margin-bottom: 8px !important;
+}
+
+.medical-service-rating {
+    font-size: 16px !important;
+    color: #f39c12 !important;
+    margin-bottom: 10px !important;
+}
+
+.medical-service-price {
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    color: #e74c3c !important;
+}
+
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .medical-dashboard-container {
+        flex-direction: column !important;
+    }
+    
+    .medical-sidebar-area {
+        width: 100% !important;
+        padding: 10px !important;
+        position: relative !important;
+        height: auto !important;
+    }
+    
+    .medical-main-content-area {
+        margin-left: 0 !important;
+    }
+    
+    .medical-search-input {
+        width: 200px !important;
+    }
+    
+    .medical-service-card {
+        flex-direction: column !important;
+        text-align: center !important;
+    }
+    
+    .medical-service-image {
+        width: 100px !important;
+        height: 100px !important;
+    }
+}
+
