@@ -227,6 +227,7 @@ public class CompanyAuthController {
             session.setAttribute("companyId", company.getCompanyId());
             session.setAttribute("companyEmail", company.getEmail());
             session.setAttribute("companyName", company.getCompanyName());
+            session.setAttribute("companyAddress", company.getAddress());
             session.setAttribute("userType", "company");
             
             response.put("success", true);
