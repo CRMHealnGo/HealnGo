@@ -9,7 +9,9 @@ import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventDateTime;
 import com.google.api.services.calendar.model.Events;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.graphql.GraphQlProperties;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -42,14 +44,18 @@ public class CalendarController {
     }
 
     @GetMapping("/admin/reservation-management")
-    public String reservationManagement(Model model) {
+    public String reservationManagement(Model model, HttpSession session) {
         model.addAttribute("sidebarType", "admin");
+        model.addAttribute("managerName", session.getAttribute("managerName"));
+
         return "admin/reservation-management";
     }
 
     @GetMapping("/company/company_reservation_management")
-    public String companyReservationManagement(Model model) {
+    public String companyReservationManagement(Model model, HttpSession session) {
         model.addAttribute("sidebarType", "company");
+        model.addAttribute("companyName", session.getAttribute("companyName"));
+
         return "crm/company_reservation_management";
     }
 

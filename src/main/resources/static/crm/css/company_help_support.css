@@ -3,17 +3,12 @@
 /* company_sidebar.css와 company_header.css가 메인 레이아웃 처리 */
 
 /* 상단 헤더 */
-.help-top-header {
-    background: white;
-    padding: 20px 30px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    margin-bottom: 0;
-}
 
 .help-header-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 0 30px;
 }
 
 .help-page-title {
@@ -35,22 +30,6 @@
     gap: 15px;
 }
 
-.notification-btn {
-    background: #f8f9fa;
-    border: none;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    cursor: pointer;
-    color: #7f8c8d;
-    transition: all 0.3s;
-}
-
-.notification-btn:hover {
-    background: #e9ecef;
-    color: #3498db;
-}
-
 .profile-section {
     display: flex;
     align-items: center;
@@ -61,21 +40,8 @@
     cursor: pointer;
 }
 
-.profile-img {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: #3498db;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-}
-
 /* 탭 네비게이션 */
 .help-tabs {
-    background: white;
     padding: 0 30px;
     border-bottom: 2px solid #e9ecef;
 }

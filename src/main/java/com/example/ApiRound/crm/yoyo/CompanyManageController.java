@@ -1,5 +1,6 @@
 package com.example.ApiRound.crm.yoyo;
 
+import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,21 +14,25 @@ import java.util.Arrays;
 public class CompanyManageController {
 
     @GetMapping("/review")
-    public String companyReview(Model model) {
+    public String companyReview(Model model, HttpSession session) {
         // 리뷰 통계 데이터 (실제로는 서비스에서 가져와야 함)
         model.addAttribute("totalReviews", 26);
         model.addAttribute("pendingReplies", 3);
         model.addAttribute("completedReplies", 16);
         model.addAttribute("averageRating", 4.7);
         model.addAttribute("sidebarType", "company");
-        
+        model.addAttribute("companyName", session.getAttribute("companyName"));
+
         return "crm/company_review";
     }
 
     @GetMapping("/report")
-    public String companyReport(Model model) {
+    public String companyReport(Model model, HttpSession session) {
         // 리포트 데이터 (실제로는 서비스에서 가져와야 함)
-        
+
+        // 헤더 companyName 데이터
+        model.addAttribute("companyName", session.getAttribute("companyName"));
+
         // 일일 매출 리포트 데이터
         List<Map<String, Object>> dailySalesData = getDailySalesData();
         model.addAttribute("dailySalesData", dailySalesData);
@@ -139,9 +144,11 @@ public class CompanyManageController {
     }
 
     @GetMapping("/edit")
-    public String companyEdit(Model model) {
+    public String companyEdit(Model model, HttpSession session) {
         // 업체 정보 수정 페이지 데이터 (실제로는 서비스에서 가져와야 함)
-        
+
+        model.addAttribute("companyName", session.getAttribute("companyName"));
+
         // 기본 정보 데이터
         Map<String, Object> basicInfo = getBasicInfo();
         model.addAttribute("basicInfo", basicInfo);

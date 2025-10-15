@@ -25,11 +25,11 @@ public class CompanyController {
         // 세션 체크: 업체로 로그인한 사용자만 접근 가능
         Integer companyId = (Integer) session.getAttribute("companyId");
         String userType = (String) session.getAttribute("userType");
-        
+
         if (companyId == null || !"company".equals(userType)) {
             return "redirect:/crm/crm_login";
         }
-        
+
         // 업체 정보 추가
         model.addAttribute("companyId", companyId);
         model.addAttribute("companyName", session.getAttribute("companyName"));
@@ -39,21 +39,21 @@ public class CompanyController {
         companyStats.put("foreignTouristIncrease", "15% 증가");
         companyStats.put("koreanTouristIncrease", "5% 증가");
         companyStats.put("newEventProducts", "4건");
-        
+
         model.addAttribute("companyStats", companyStats);
-        
+
         // 예약 차트 데이터
         Map<String, Object> reservationChartData = getReservationChartData();
         model.addAttribute("reservationChartData", reservationChartData);
-        
+
         // 후기 데이터
         List<Map<String, Object>> reviews = getCompanyReviews();
         model.addAttribute("reviews", reviews);
-        
+
         // 인기 이벤트 데이터
         List<Map<String, Object>> popularEvents = getPopularEvents();
         model.addAttribute("popularEvents", popularEvents);
-        
+
         model.addAttribute("sidebarType", "company");
         return "crm/company";
     }
@@ -62,11 +62,14 @@ public class CompanyController {
      * 의료 서비스 관리 페이지
      */
     @GetMapping("/medical-services")
-    public String medicalServices(Model model) {
+    public String medicalServices(HttpSession session, Model model) {
         // 의료 서비스 데이터 (실제로는 서비스에서 가져와야 함)
         List<Map<String, Object>> medicalServices = getMedicalServices();
         model.addAttribute("medicalServices", medicalServices);
-        
+
+        model.addAttribute("companyName", session.getAttribute("companyName"));
+
+
         model.addAttribute("sidebarType", "company");
         return "crm/medical_services";
     }
@@ -75,10 +78,12 @@ public class CompanyController {
      * 이벤트 등록 페이지
      */
     @GetMapping("/event-registration")
-    public String eventRegistration(Model model) {
+    public String eventRegistration(HttpSession session, Model model) {
         // 이벤트 등록 페이지 데이터 (실제로는 서비스에서 가져와야 함)
         // 예: 기존 태그 목록, 카테고리 목록 등
         model.addAttribute("sidebarType", "company");
+        model.addAttribute("companyName", session.getAttribute("companyName"));
+
         return "crm/event_registration";
     }
 
@@ -86,11 +91,12 @@ public class CompanyController {
      * 문의 & 채팅 페이지
      */
     @GetMapping("/inquiry-chat")
-    public String inquiryChat(Model model) {
+    public String inquiryChat(HttpSession session, Model model) {
         // 문의 목록 데이터 (실제로는 서비스에서 가져와야 함)
         List<Map<String, Object>> inquiries = getInquiries();
         model.addAttribute("inquiries", inquiries);
-        
+
+        model.addAttribute("companyName", session.getAttribute("companyName"));
         model.addAttribute("sidebarType", "company");
         return "crm/inquiry_chat";
     }
@@ -99,12 +105,13 @@ public class CompanyController {
      * 문의/신고 접수 페이지
      */
     @GetMapping("/inquiry-report")
-    public String inquiryReport(Model model) {
+    public String inquiryReport(HttpSession session, Model model) {
         // 문의/신고 목록 데이터 (실제로는 서비스에서 가져와야 함)
         List<Map<String, Object>> reports = getInquiryReports();
         model.addAttribute("reports", reports);
         model.addAttribute("sidebarType", "company");
-        
+        model.addAttribute("companyName", session.getAttribute("companyName"));
+
         return "crm/inquiry_report";
     }
 
@@ -112,12 +119,13 @@ public class CompanyController {
      * 문의/신고 상세 페이지 (업체용)
      */
     @GetMapping("/inquiry-report/detail/{id}")
-    public String inquiryReportDetail(@PathVariable("id") Long id, Model model) {
+    public String inquiryReportDetail(@PathVariable("id") Long id, Model model, HttpSession session) {
         // 문의/신고 상세 데이터 (실제로는 서비스에서 가져와야 함)
         Map<String, Object> report = getInquiryReportById(id);
         model.addAttribute("report", report);
         model.addAttribute("sidebarType", "company");
-        
+        model.addAttribute("companyName", session.getAttribute("companyName"));
+
         return "crm/inquiry_detail";
     }
 
@@ -125,22 +133,23 @@ public class CompanyController {
      * 마케팅 페이지 (업체용)
      */
     @GetMapping("/marketing")
-    public String marketing(Model model) {
+    public String marketing(Model model, HttpSession session) {
         // 마케팅 KPI 데이터
         model.addAttribute("totalImpressions", 125000);
         model.addAttribute("totalClicks", 8500);
         model.addAttribute("totalInquiries", 450);
         model.addAttribute("totalReservations", 180);
         model.addAttribute("conversionRate", 2.12);
-        
+        model.addAttribute("companyName", session.getAttribute("companyName"));
+
         // 노출 요청 목록
         List<Map<String, Object>> placements = getPlacementRequests();
         model.addAttribute("placements", placements);
-        
+
         // 쿠폰 목록
         List<Map<String, Object>> coupons = getCoupons();
         model.addAttribute("coupons", coupons);
-        
+
         model.addAttribute("sidebarType", "company");
         return "crm/company_marketing";
     }
@@ -149,12 +158,13 @@ public class CompanyController {
      * 도움말/고객센터 페이지 (업체용)
      */
     @GetMapping("/help-support")
-    public String helpSupport(Model model) {
+    public String helpSupport(Model model, HttpSession session) {
         // 요청 목록 데이터 (실제로는 서비스에서 가져와야 함)
         List<Map<String, Object>> requests = getHelpRequests();
         model.addAttribute("requests", requests);
         model.addAttribute("sidebarType", "company");
-        
+        model.addAttribute("companyName", session.getAttribute("companyName"));
+
         return "crm/company_help_support";
     }
 
@@ -162,37 +172,38 @@ public class CompanyController {
      * 도움말/고객센터 상세 페이지 (업체용)
      */
     @GetMapping("/help-support/detail/{id}")
-    public String helpSupportDetail(@PathVariable("id") Long id, Model model) {
+    public String helpSupportDetail(@PathVariable("id") Long id, Model model, HttpSession session) {
         // 요청 상세 데이터 (실제로는 서비스에서 가져와야 함)
         Map<String, Object> request = getHelpRequestById(id);
         model.addAttribute("request", request);
         model.addAttribute("sidebarType", "company");
-        
+        model.addAttribute("companyName", session.getAttribute("companyName"));
+
         return "crm/company_help_support_detail";
     }
 
     // 업체 페이지용 데이터 생성 메서드들
     private Map<String, Object> getReservationChartData() {
         Map<String, Object> chartData = new HashMap<>();
-        
+
         // 외국인 사용객 데이터
         List<Integer> foreignUsers = List.of(36, 24, 30, 44, 58, 77, 89);
         chartData.put("foreignUsers", foreignUsers);
-        
+
         // 한국인 사용객 데이터
         List<Integer> koreanUsers = List.of(50, 60, 52, 59, 62, 80, 70);
         chartData.put("koreanUsers", koreanUsers);
-        
+
         // 월별 라벨
         List<String> months = List.of("4월", "5월", "6월", "7월", "8월", "9월", "10월");
         chartData.put("months", months);
-        
+
         return chartData;
     }
 
     private List<Map<String, Object>> getCompanyReviews() {
         List<Map<String, Object>> reviews = new ArrayList<>();
-        
+
         // 브이라인 리프팅 리뷰
         Map<String, Object> review1 = new HashMap<>();
         review1.put("name", "브이라인 리프팅");
@@ -201,7 +212,7 @@ public class CompanyController {
         review1.put("price", "290,000원");
         review1.put("text", "한국어 리뷰 텍스트...\nEnglish review text...\n일본어 리뷰 텍스트...");
         reviews.add(review1);
-        
+
         // 울쎄라피 프라임 리뷰
         Map<String, Object> review2 = new HashMap<>();
         review2.put("name", "울쎄라피 프라임");
@@ -210,7 +221,7 @@ public class CompanyController {
         review2.put("price", "1,290,000원");
         review2.put("text", "한국어 리뷰 텍스트...\nEnglish review text...\n일본어 리뷰 텍스트...");
         reviews.add(review2);
-        
+
         // 힝거 어깨필러 리뷰
         Map<String, Object> review3 = new HashMap<>();
         review3.put("name", "힝거 어깨필러");
@@ -219,13 +230,13 @@ public class CompanyController {
         review3.put("price", "1,100,000원");
         review3.put("text", "일본어 리뷰 텍스트...\n한국어 리뷰 텍스트...");
         reviews.add(review3);
-        
+
         return reviews;
     }
 
     private List<Map<String, Object>> getPopularEvents() {
         List<Map<String, Object>> events = new ArrayList<>();
-        
+
         // 브이라인 리프팅 이벤트
         Map<String, Object> event1 = new HashMap<>();
         event1.put("name", "브이라인 리프팅");
@@ -233,7 +244,7 @@ public class CompanyController {
         event1.put("count", "553+");
         event1.put("trend", "up");
         events.add(event1);
-        
+
         // 모공제로 모공주사 이벤트
         Map<String, Object> event2 = new HashMap<>();
         event2.put("name", "모공제로 모공주사");
@@ -241,7 +252,7 @@ public class CompanyController {
         event2.put("count", "200+");
         event2.put("trend", "down");
         events.add(event2);
-        
+
         // 백옥같은 피부 레이저 이벤트
         Map<String, Object> event3 = new HashMap<>();
         event3.put("name", "백옥같은 피부 레이저");
@@ -249,13 +260,13 @@ public class CompanyController {
         event3.put("count", "110+");
         event3.put("trend", "down");
         events.add(event3);
-        
+
         return events;
     }
 
     private List<Map<String, Object>> getMedicalServices() {
         List<Map<String, Object>> services = new ArrayList<>();
-        
+
         // 브이라인 리프팅 1
         Map<String, Object> service1 = new HashMap<>();
         service1.put("productCode", "PN0001265");
@@ -264,7 +275,7 @@ public class CompanyController {
         service1.put("eventPrice", "이벤트 가 290,000원");
         service1.put("category", "lifting");
         services.add(service1);
-        
+
         // 브이라인 리프팅 2
         Map<String, Object> service2 = new HashMap<>();
         service2.put("productCode", "PN0001265");
@@ -273,7 +284,7 @@ public class CompanyController {
         service2.put("eventPrice", "이벤트 가 1,290,000원");
         service2.put("category", "lifting");
         services.add(service2);
-        
+
         // 브이라인 리프팅 3
         Map<String, Object> service3 = new HashMap<>();
         service3.put("productCode", "PN0001265");
@@ -282,7 +293,7 @@ public class CompanyController {
         service3.put("eventPrice", "이벤트 가 1,100,000원");
         service3.put("category", "lifting");
         services.add(service3);
-        
+
         // 모공주사
         Map<String, Object> service4 = new HashMap<>();
         service4.put("productCode", "PN0001265");
@@ -291,13 +302,13 @@ public class CompanyController {
         service4.put("eventPrice", "이벤트 가 380,000원");
         service4.put("category", "pore");
         services.add(service4);
-        
+
         return services;
     }
 
     private List<Map<String, Object>> getInquiries() {
         List<Map<String, Object>> inquiries = new ArrayList<>();
-        
+
         // 김민수 문의
         Map<String, Object> inquiry1 = new HashMap<>();
         inquiry1.put("id", 1);
@@ -307,7 +318,7 @@ public class CompanyController {
         inquiry1.put("status", "new");
         inquiry1.put("unreadCount", 3);
         inquiries.add(inquiry1);
-        
+
         // 이영희 문의
         Map<String, Object> inquiry2 = new HashMap<>();
         inquiry2.put("id", 2);
@@ -317,7 +328,7 @@ public class CompanyController {
         inquiry2.put("status", "in-progress");
         inquiry2.put("unreadCount", 0);
         inquiries.add(inquiry2);
-        
+
         // 박준호 문의
         Map<String, Object> inquiry3 = new HashMap<>();
         inquiry3.put("id", 3);
@@ -327,7 +338,7 @@ public class CompanyController {
         inquiry3.put("status", "resolved");
         inquiry3.put("unreadCount", 0);
         inquiries.add(inquiry3);
-        
+
         // 최수진 문의
         Map<String, Object> inquiry4 = new HashMap<>();
         inquiry4.put("id", 4);
@@ -337,7 +348,7 @@ public class CompanyController {
         inquiry4.put("status", "new");
         inquiry4.put("unreadCount", 1);
         inquiries.add(inquiry4);
-        
+
         // 정다은 문의
         Map<String, Object> inquiry5 = new HashMap<>();
         inquiry5.put("id", 5);
@@ -347,13 +358,13 @@ public class CompanyController {
         inquiry5.put("status", "in-progress");
         inquiry5.put("unreadCount", 0);
         inquiries.add(inquiry5);
-        
+
         return inquiries;
     }
 
     private List<Map<String, Object>> getInquiryReports() {
         List<Map<String, Object>> reports = new ArrayList<>();
-        
+
         // 시술 후 부작용 문의
         Map<String, Object> report1 = new HashMap<>();
         report1.put("id", 1);
@@ -367,7 +378,7 @@ public class CompanyController {
         report1.put("priority", "high");
         report1.put("createdDate", "2024-01-15 14:30");
         reports.add(report1);
-        
+
         // 의료진 태도 문제 신고
         Map<String, Object> report2 = new HashMap<>();
         report2.put("id", 2);
@@ -381,7 +392,7 @@ public class CompanyController {
         report2.put("priority", "medium");
         report2.put("createdDate", "2024-01-14 16:45");
         reports.add(report2);
-        
+
         // 예약 변경 요청
         Map<String, Object> report3 = new HashMap<>();
         report3.put("id", 3);
@@ -395,7 +406,7 @@ public class CompanyController {
         report3.put("priority", "low");
         report3.put("createdDate", "2024-01-13 10:20");
         reports.add(report3);
-        
+
         // 시설 청결도 문제 신고
         Map<String, Object> report4 = new HashMap<>();
         report4.put("id", 4);
@@ -409,7 +420,7 @@ public class CompanyController {
         report4.put("priority", "medium");
         report4.put("createdDate", "2024-01-12 09:15");
         reports.add(report4);
-        
+
         // 시술 비용 환불 요청
         Map<String, Object> report5 = new HashMap<>();
         report5.put("id", 5);
@@ -423,14 +434,14 @@ public class CompanyController {
         report5.put("priority", "high");
         report5.put("createdDate", "2024-01-11 15:30");
         reports.add(report5);
-        
+
         return reports;
     }
 
     private Map<String, Object> getInquiryReportById(Long id) {
         // 실제로는 DB에서 조회해야 함
         List<Map<String, Object>> reports = getInquiryReports();
-        
+
         return reports.stream()
                 .filter(report -> report.get("id").equals(id.intValue()))
                 .findFirst()
@@ -439,7 +450,7 @@ public class CompanyController {
 
     private List<Map<String, Object>> getHelpRequests() {
         List<Map<String, Object>> requests = new ArrayList<>();
-        
+
         // 11월 프로모션 요청
         Map<String, Object> request1 = new HashMap<>();
         request1.put("id", 1);
@@ -453,7 +464,7 @@ public class CompanyController {
         request1.put("attachment", "event_banner.png");
         request1.put("adminAnswer", "검토 중입니다. 이벤트 상세 내용을 추가로 전달해주시면 신속히 처리하겠습니다.");
         requests.add(request1);
-        
+
         // 악성 리뷰 신고
         Map<String, Object> request2 = new HashMap<>();
         request2.put("id", 2);
@@ -467,7 +478,7 @@ public class CompanyController {
         request2.put("attachment", "review_screenshot.png");
         request2.put("adminAnswer", "해당 리뷰를 확인했으며, 커뮤니티 가이드라인 위반으로 삭제 조치하였습니다.");
         requests.add(request2);
-        
+
         // 시스템 오류 문의
         Map<String, Object> request3 = new HashMap<>();
         request3.put("id", 3);
@@ -481,7 +492,7 @@ public class CompanyController {
         request3.put("attachment", null);
         request3.put("adminAnswer", "시스템 오류를 확인하여 긴급 수정하였습니다. 현재 정상 작동 중입니다.");
         requests.add(request3);
-        
+
         // 정산 문의
         Map<String, Object> request4 = new HashMap<>();
         request4.put("id", 4);
@@ -495,7 +506,7 @@ public class CompanyController {
         request4.put("attachment", null);
         request4.put("adminAnswer", "정산 내역을 확인하여 이메일로 상세 내역을 발송하였습니다.");
         requests.add(request4);
-        
+
         // 계정 관리 문의
         Map<String, Object> request5 = new HashMap<>();
         request5.put("id", 5);
@@ -509,14 +520,14 @@ public class CompanyController {
         request5.put("attachment", null);
         request5.put("adminAnswer", "현재 요금제에서는 관리자 계정 1개만 제공됩니다. 프리미엄 요금제로 업그레이드 시 추가 가능합니다.");
         requests.add(request5);
-        
+
         return requests;
     }
 
     private Map<String, Object> getHelpRequestById(Long id) {
         // 실제로는 DB에서 조회해야 함
         List<Map<String, Object>> requests = getHelpRequests();
-        
+
         return requests.stream()
                 .filter(request -> request.get("id").equals(id.intValue()))
                 .findFirst()
@@ -525,7 +536,7 @@ public class CompanyController {
 
     private List<Map<String, Object>> getPlacementRequests() {
         List<Map<String, Object>> placements = new ArrayList<>();
-        
+
         Map<String, Object> p1 = new HashMap<>();
         p1.put("id", 1);
         p1.put("title", "브이라인 리프팅 홈 배너");
@@ -537,7 +548,7 @@ public class CompanyController {
         p1.put("priority", "높음");
         p1.put("clicks", 2450);
         placements.add(p1);
-        
+
         Map<String, Object> p2 = new HashMap<>();
         p2.put("id", 2);
         p2.put("title", "울쎄라피 카테고리 노출");
@@ -549,13 +560,13 @@ public class CompanyController {
         p2.put("priority", "보통");
         p2.put("clicks", 0);
         placements.add(p2);
-        
+
         return placements;
     }
 
     private List<Map<String, Object>> getCoupons() {
         List<Map<String, Object>> coupons = new ArrayList<>();
-        
+
         Map<String, Object> c1 = new HashMap<>();
         c1.put("id", 1);
         c1.put("name", "가을맞이 10% 할인");
@@ -567,7 +578,7 @@ public class CompanyController {
         c1.put("used", 87);
         c1.put("status", "진행중");
         coupons.add(c1);
-        
+
         Map<String, Object> c2 = new HashMap<>();
         c2.put("id", 2);
         c2.put("name", "첫 방문 20,000원 할인");
@@ -579,7 +590,7 @@ public class CompanyController {
         c2.put("used", 234);
         c2.put("status", "진행중");
         coupons.add(c2);
-        
+
         return coupons;
     }
 }
