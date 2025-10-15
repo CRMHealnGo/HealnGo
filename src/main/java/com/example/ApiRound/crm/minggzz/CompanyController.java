@@ -68,6 +68,7 @@ public class CompanyController {
         model.addAttribute("medicalServices", medicalServices);
 
         model.addAttribute("companyName", session.getAttribute("companyName"));
+        model.addAttribute("companyAddress", session.getAttribute("companyAddress"));
 
 
         model.addAttribute("sidebarType", "company");

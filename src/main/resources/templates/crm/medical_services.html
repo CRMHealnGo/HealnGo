@@ -198,41 +198,6 @@
             margin-bottom: 20px !important;
         }
         
-        /* 필터 버튼들 */
-        .medical-filter-section {
-            margin-bottom: 30px !important;
-        }
-        
-        .medical-filter-buttons {
-            display: flex !important;
-            gap: 10px !important;
-            flex-wrap: wrap !important;
-        }
-        
-        .medical-filter-btn {
-            padding: 8px 16px !important;
-            border: none !important;
-            border-radius: 20px !important;
-            font-size: 14px !important;
-            cursor: pointer !important;
-            transition: all 0.3s ease !important;
-            background: #e9ecef !important;
-            color: #6c757d !important;
-        }
-        
-        .medical-filter-btn.active {
-            background: #3498db !important;
-            color: white !important;
-        }
-        
-        .medical-filter-btn:hover {
-            background: #dee2e6 !important;
-        }
-        
-        .medical-filter-btn.active:hover {
-            background: #2980b9 !important;
-        }
-        
         /* 서비스 카드 목록 */
         .medical-services-list {
             display: flex !important;
@@ -329,10 +294,6 @@
                 width: 100px !important;
                 height: 100px !important;
             }
-            
-            .medical-filter-buttons {
-                justify-content: center !important;
-            }
         }
     </style>
 </head>
@@ -363,36 +324,18 @@
         
             <!-- 메인 콘텐츠 -->
             <div class="medical-main-content">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h2 class="medical-page-title" style="margin-bottom: 0;">피부과병원_힝거피부과</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                    <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); flex: 1; margin-right: 20px;">
+                        <h2 class="medical-page-title" style="margin-bottom: 8px; color: #2c3e50; font-size: 24px;" th:text="${companyName}">피부과병원_힝거피부과</h2>
+                        <p style="margin: 0; color: #7f8c8d; font-size: 14px; display: flex; align-items: center;">
+                            <i class="fas fa-map-marker-alt" style="margin-right: 8px; color: #3498db;"></i>
+                            <span th:text="${companyAddress}">주소 정보</span>
+                        </p>
+                    </div>
                     <button class="add-promotion-btn" onclick="window.location.href='/company/event-registration'">
                         <i class="fas fa-plus"></i>
                         의료 서비스 추가
                     </button>
-                </div>
-                
-                <!-- 필터 버튼들 -->
-                <div class="medical-filter-section">
-                    <div class="medical-filter-buttons">
-                        <button class="medical-filter-btn" data-filter="whitening">미백</button>
-                        <button class="medical-filter-btn" data-filter="elasticity">탄력</button>
-                        <button class="medical-filter-btn" data-filter="hair-removal">제모</button>
-                        <button class="medical-filter-btn" data-filter="pore">모공</button>
-                        <button class="medical-filter-btn active" data-filter="lifting">리프팅</button>
-                    </div>
-                </div>
-                
-                <!-- 서비스 카드 목록 -->
-                <div class="medical-services-list">
-                    <div class="medical-service-card" th:each="service : ${medicalServices}">
-                        <div class="medical-service-image">이미지</div>
-                        <div class="medical-service-content">
-                            <div class="medical-service-code" th:text="${service.productCode}">PN0001265</div>
-                            <div class="medical-service-name" th:text="${service.name}">브이라인 리프팅</div>
-                            <div class="medical-service-rating" th:text="${service.rating}">4.8★(288)</div>
-                            <div class="medical-service-price" th:text="${service.eventPrice}">이벤트 가 290,000원</div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -401,38 +344,5 @@
     <!-- JavaScript -->
     <script src="/crm/js/company_sidebar.js"></script>
     <script src="/crm/js/company_header.js"></script>
-    <script>
-        // 필터 버튼 기능
-        document.addEventListener('DOMContentLoaded', function() {
-            const filterButtons = document.querySelectorAll('.medical-filter-btn');
-            
-            filterButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    // 모든 버튼에서 active 클래스 제거
-                    filterButtons.forEach(btn => btn.classList.remove('active'));
-                    
-                    // 클릭된 버튼에 active 클래스 추가
-                    this.classList.add('active');
-                    
-                    // 여기서 실제 필터링 로직을 구현할 수 있습니다
-                    const filter = this.getAttribute('data-filter');
-                    console.log('Filter selected:', filter);
-                    
-                    // 예시: 서비스 카드 필터링
-                    // filterServices(filter);
-                });
-            });
-        });
-        
-        // 서비스 필터링 함수 (예시)
-        function filterServices(category) {
-            const serviceCards = document.querySelectorAll('.medical-service-card');
-            
-            serviceCards.forEach(card => {
-                // 실제 구현에서는 각 카드의 데이터 속성이나 클래스를 확인하여 필터링
-                // 예시: card.style.display = card.dataset.category === category ? 'flex' : 'none';
-            });
-        }
-    </script>
 </body>
 </html>

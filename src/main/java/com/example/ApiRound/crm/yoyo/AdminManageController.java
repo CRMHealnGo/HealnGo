@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
 @RequestMapping("/admin")
-public class AdminManageCompanyController {
+public class AdminManageController {
 
     @GetMapping("/companies")
     public String companies(Model model, HttpSession session) {

@@ -1,5 +1,6 @@
 package com.example.ApiRound.entity;
 
+import com.example.ApiRound.crm.hyeonah.entity.CompanyUser;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -40,6 +41,10 @@ public class ItemList {
     
     @Column(name = "category")
     private String category;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_company_id", referencedColumnName = "company_id")
+    private CompanyUser ownerCompany;
     
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -51,7 +56,7 @@ public class ItemList {
     public ItemList() {}
     
     public ItemList(String name, String region, String subregion, String address, 
-                   String phone, String homepage, Double coordX, Double coordY, String category) {
+                   String phone, String homepage, Double coordX, Double coordY, String category, CompanyUser ownerCompany) {
         this.name = name;
         this.region = region;
         this.subregion = subregion;
@@ -63,6 +68,7 @@ public class ItemList {
         this.category = category;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
+        this.ownerCompany = ownerCompany;
     }
    
 }
