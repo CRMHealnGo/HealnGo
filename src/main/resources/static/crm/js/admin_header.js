@@ -179,26 +179,17 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 사용자 드롭다운 메뉴 생성
     function createUserDropdownMenu() {
-        const menu = document.createElement('div');
-        menu.className = 'user-dropdown-menu';
-        menu.innerHTML = `
-            <a href="/admin/profile" class="dropdown-item">
-                <i class="fas fa-user"></i> 프로필
-            </a>
-            <a href="/admin/settings" class="dropdown-item">
-                <i class="fas fa-cog"></i> 설정
-            </a>
-            <a href="/admin/help" class="dropdown-item">
-                <i class="fas fa-question-circle"></i> 도움말
-            </a>
-            <hr style="margin: 8px 0; border: none; border-top: 1px solid #f0f0f0;">
-            <a href="/logout" class="dropdown-item">
-                <i class="fas fa-sign-out-alt"></i> 로그아웃
-            </a>
-        `;
-        
-        return menu;
-    }
+            const menu = document.createElement('div');
+            menu.className = 'user-dropdown-menu';
+            menu.innerHTML = `
+
+                <a href="/crm/logout" class="dropdown-item">
+                    <i class="fas fa-sign-out-alt"></i> 로그아웃
+                </a>
+            `;
+
+            return menu;
+        }
     
     // 키보드 단축키
     document.addEventListener('keydown', function(e) {

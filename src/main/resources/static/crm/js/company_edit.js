@@ -5,10 +5,10 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeCompanyEditPage();
     setupTabNavigation();
     setupFormValidation();
-    setupSpecializationTags();
     setupCharacterCounter();
     setupFormSubmission();
     setupRealTimePreview();
+    setupLogoUpload();
 });
 
 /**
@@ -134,7 +134,7 @@ function validateField(field) {
     }
     
     // 전화번호 형식 검증
-    if ((fieldName === 'mainPhone' || fieldName === 'mobilePhone') && value) {
+    if (fieldName === 'mainPhone' && value) {
         const phoneRegex = /^[0-9-+\s()]+$/;
         if (!phoneRegex.test(value)) {
             isValid = false;
@@ -193,64 +193,6 @@ function clearFieldError(field) {
 }
 
 /**
- * 전문 분야 태그 설정
- */
-function setupSpecializationTags() {
-    const input = document.getElementById('specializationInput');
-    const tagsContainer = document.getElementById('specializationTags');
-    
-    if (!input || !tagsContainer) return;
-    
-    // Enter 키로 태그 추가
-    input.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            addSpecializationTag(this.value.trim());
-            this.value = '';
-        }
-    });
-    
-    // 기존 태그 제거 이벤트
-    tagsContainer.addEventListener('click', function(e) {
-        if (e.target.classList.contains('remove-tag')) {
-            e.target.parentNode.remove();
-            updateProgressBar();
-        }
-    });
-}
-
-/**
- * 전문 분야 태그 추가
- */
-function addSpecializationTag(value) {
-    if (!value) return;
-    
-    const tagsContainer = document.getElementById('specializationTags');
-    const existingTags = Array.from(tagsContainer.querySelectorAll('.tag span')).map(tag => tag.textContent);
-    
-    // 중복 체크
-    if (existingTags.includes(value)) {
-        showNotification('이미 추가된 전문 분야입니다.', 'warning');
-        return;
-    }
-    
-    // 태그 생성
-    const tagElement = document.createElement('span');
-    tagElement.className = 'tag';
-    tagElement.innerHTML = `
-        <span>${value}</span>
-        <i class="fas fa-times remove-tag"></i>
-    `;
-    
-    tagsContainer.appendChild(tagElement);
-    
-    // 진행률 업데이트
-    updateProgressBar();
-    
-    showNotification('전문 분야가 추가되었습니다.', 'success');
-}
-
-/**
  * 문자 수 카운터 설정
  */
 function setupCharacterCounter() {
@@ -258,6 +200,10 @@ function setupCharacterCounter() {
     const counter = document.getElementById('charCount');
     
     if (!textarea || !counter) return;
+    
+    // 초기 문자 수 설정
+    const initialLength = textarea.value.length;
+    counter.textContent = initialLength;
     
     textarea.addEventListener('input', function() {
         const currentLength = this.value.length;
@@ -299,7 +245,7 @@ function setupFormSubmission() {
 /**
  * 회사 정보 저장
  */
-function saveCompanyInfo() {
+async function saveCompanyInfo() {
     console.log('Saving company information...');
     
     // 폼 검증
@@ -314,12 +260,33 @@ function saveCompanyInfo() {
     // 폼 데이터 수집
     const formData = collectFormData();
     
-    // 실제 구현에서는 AJAX 요청으로 서버에 저장
-    setTimeout(() => {
+    try {
+        // 서버에 저장 요청
+        const response = await fetch('/company/edit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const result = await response.json();
+        
         showLoadingState(false);
-        showNotification('회사 정보가 저장되었습니다.', 'success');
-        updateLastModifiedTime();
-    }, 1000);
+        
+        if (result.success) {
+            showNotification('회사 정보가 저장되었습니다.', 'success');
+            updateLastModifiedTime();
+            updateProgressBar();
+        } else {
+            showNotification(result.message || '저장에 실패했습니다.', 'error');
+        }
+        
+    } catch (error) {
+        console.error('Error:', error);
+        showLoadingState(false);
+        showNotification('저장 중 오류가 발생했습니다.', 'error');
+    }
 }
 
 /**
@@ -347,21 +314,17 @@ function collectFormData() {
             companyName: document.getElementById('companyName')?.value || '',
             businessNumber: document.getElementById('businessNumber')?.value || '',
             representative: document.getElementById('representative')?.value || '',
-            establishmentDate: document.getElementById('establishmentDate')?.value || ''
+            category: document.getElementById('category')?.value || '',
+            companyIntroduction: document.getElementById('companyIntroduction')?.value || ''
         },
         contactInfo: {
             email: document.getElementById('email')?.value || '',
             mainPhone: document.getElementById('mainPhone')?.value || '',
-            mobilePhone: document.getElementById('mobilePhone')?.value || '',
             fax: document.getElementById('fax')?.value || '',
-            address: document.getElementById('address')?.value || '',
+            postcode: document.getElementById('postcode')?.value || '',
+            address: document.getElementById('deliveryAddress')?.value || '',
             detailAddress: document.getElementById('detailAddress')?.value || '',
             website: document.getElementById('website')?.value || ''
-        },
-        detailInfo: {
-            employeeCount: document.getElementById('employeeCount')?.value || '',
-            specializations: Array.from(document.querySelectorAll('.specialization-tags .tag span')).map(tag => tag.textContent),
-            companyIntroduction: document.getElementById('companyIntroduction')?.value || ''
         }
     };
     
@@ -386,7 +349,9 @@ function setupRealTimePreview() {
         'representative',
         'email',
         'mainPhone',
-        'address'
+        'fax',
+        'deliveryAddress',
+        'detailAddress'
     ];
     
     previewFields.forEach(fieldId => {
@@ -422,7 +387,7 @@ function updateProgressBar() {
         progressFill.style.width = `${progress}%`;
     }
     
-    if (progressText) {
+    if (progressText && progressText.parentElement.querySelector('.status-label')?.textContent.includes('완료도')) {
         progressText.textContent = `${progress}%`;
     }
 }
@@ -456,10 +421,12 @@ function setupAutoSave() {
  * 마지막 수정 시간 업데이트
  */
 function updateLastModifiedTime() {
-    const timeElement = document.querySelector('.status-value');
-    if (timeElement) {
-        timeElement.textContent = '방금 전';
-    }
+    const timeElements = document.querySelectorAll('.status-value');
+    timeElements.forEach(element => {
+        if (element.parentElement.querySelector('.status-label')?.textContent.includes('마지막')) {
+            element.textContent = '방금 전';
+        }
+    });
 }
 
 /**
@@ -532,6 +499,8 @@ function showNotification(message, type = 'info') {
 function updateFormValidationStatus() {
     // 현재 활성 탭의 필드들 검증
     const activeTab = document.querySelector('.tab-pane.active');
+    if (!activeTab) return;
+    
     const fields = activeTab.querySelectorAll('input, textarea');
     
     fields.forEach(field => {
@@ -541,10 +510,159 @@ function updateFormValidationStatus() {
     });
 }
 
+/**
+ * 로고 업로드 설정
+ */
+function setupLogoUpload() {
+    const logoInput = document.getElementById('logoInput');
+    
+    if (!logoInput) return;
+    
+    logoInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        
+        if (!file) return;
+        
+        // 파일 유효성 검사
+        if (!file.type.startsWith('image/')) {
+            showNotification('이미지 파일만 업로드 가능합니다.', 'error');
+            return;
+        }
+        
+        // 파일 크기 검사 (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            showNotification('파일 크기는 5MB 이하여야 합니다.', 'error');
+            return;
+        }
+        
+        // 미리보기 표시
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const logoPreview = document.getElementById('companyLogoPreview');
+            const logoImage = document.getElementById('logoImage');
+            const logoInitial = document.getElementById('logoInitial');
+            
+            if (logoImage) {
+                logoImage.src = event.target.result;
+                logoImage.style.display = 'block';
+            } else {
+                // 이미지 엘리먼트가 없으면 생성
+                const img = document.createElement('img');
+                img.id = 'logoImage';
+                img.className = 'logo-image';
+                img.src = event.target.result;
+                img.alt = 'Company Logo';
+                img.style.cssText = 'width: 100%; height: 100%; object-fit: cover; display: block;';
+                logoPreview.insertBefore(img, logoPreview.firstChild);
+            }
+            
+            if (logoInitial) {
+                logoInitial.style.display = 'none';
+            }
+        };
+        reader.readAsDataURL(file);
+        
+        // 서버에 업로드
+        uploadLogo(file);
+    });
+}
+
+/**
+ * 로고 업로드
+ */
+async function uploadLogo(file) {
+    const formData = new FormData();
+    formData.append('logo', file);
+    
+    try {
+        const response = await fetch('/company/upload-logo', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showNotification('로고가 업로드되었습니다.', 'success');
+        } else {
+            showNotification(result.message || '로고 업로드에 실패했습니다.', 'error');
+        }
+    } catch (error) {
+        console.error('Logo upload error:', error);
+        showNotification('로고 업로드 중 오류가 발생했습니다.', 'error');
+    }
+}
+
+// 카카오 우편번호 API
+let element_wrap;
+
+function searchAddress() {
+    sample3_execDaumPostcode();
+}
+
+function foldDaumPostcode() {
+    if (element_wrap) {
+        element_wrap.style.display = 'none';
+    }
+}
+
+function sample3_execDaumPostcode() {
+    element_wrap = document.getElementById('wrap');
+    if (!element_wrap) return;
+
+    var currentScroll = Math.max(document.body.scrollTop, document.documentElement.scrollTop);
+
+    new daum.Postcode({
+        oncomplete: function(data) {
+            var addr = '';
+            var extraAddr = '';
+
+            if (data.userSelectedType === 'R') {
+                addr = data.roadAddress;
+            } else {
+                addr = data.jibunAddress;
+            }
+
+            if (data.userSelectedType === 'R') {
+                if (data.bname !== '' && /[동|로|가]$/g.test(data.bname)) {
+                    extraAddr += data.bname;
+                }
+                if (data.buildingName !== '' && data.apartment === 'Y') {
+                    extraAddr += (extraAddr !== '' ? ', ' + data.buildingName : data.buildingName);
+                }
+                if (extraAddr !== '') {
+                    extraAddr = ' (' + extraAddr + ')';
+                }
+                document.getElementById("deliveryAddress").value = addr + extraAddr;
+            } else {
+                document.getElementById("deliveryAddress").value = addr;
+            }
+
+            document.getElementById('postcode').value = data.zonecode;
+            document.getElementById("detailAddress").focus();
+
+            element_wrap.style.display = 'none';
+            document.body.scrollTop = currentScroll;
+            
+            // 미리보기 업데이트
+            updatePreview('deliveryAddress', addr);
+        },
+        onresize: function(size) {
+            element_wrap.style.height = size.height + 'px';
+        },
+        width: '100%',
+        height: '100%'
+    }).embed(element_wrap);
+
+    element_wrap.style.display = 'block';
+}
+
 // 내보내기
 window.CompanyEdit = {
-    addSpecializationTag,
     updateProgressBar,
     showNotification,
-    saveCompanyInfo
+    saveCompanyInfo,
+    searchAddress,
+    foldDaumPostcode,
+    uploadLogo
 };
