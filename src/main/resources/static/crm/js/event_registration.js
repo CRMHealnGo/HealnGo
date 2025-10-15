@@ -16,19 +16,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // 이벤트 제목 글자 수 카운터
     const titleInput = document.querySelector('input[placeholder*="사각턱보톡스"]');
     const charCounter = document.querySelector('.event-char-counter');
-    
+
     if (titleInput && charCounter) {
         titleInput.addEventListener('input', function() {
             const currentLength = this.value.length;
             charCounter.textContent = `${currentLength} / 100`;
         });
     }
-    
+
     // 자유 태그 기능
     const freeTagInput = document.getElementById('freeTagInput');
     const freeTagsContainer = document.getElementById('freeTagsContainer');
     let freeTagCount = 0;
-    
+
     if (freeTagInput) {
         freeTagInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter' && this.value.trim() && freeTagCount < 5) {
@@ -38,12 +38,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
+
     // 시술명 태그 기능
     const procedureTagInput = document.getElementById('procedureTagInput');
     const procedureTagsContainer = document.getElementById('procedureTagsContainer');
     let procedureTagCount = 2; // 이미 2개가 있음
-    
+
     if (procedureTagInput) {
         procedureTagInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter' && this.value.trim() && procedureTagCount < 8) {
@@ -64,10 +64,10 @@ function addFreeTag(tagText) {
         <span>${tagText}</span>
         <button class="event-tag-remove" onclick="removeTag(this)">×</button>
     `;
-    
+
     const input = document.getElementById('freeTagInput');
     container.insertBefore(tagDiv, input);
-    
+
     const freeTagCount = document.querySelectorAll('#freeTagsContainer .event-tag').length;
     if (freeTagCount >= 5) {
         input.style.display = 'none';
@@ -83,10 +83,10 @@ function addProcedureTag(tagText) {
         <span>${tagText}</span>
         <button class="event-tag-remove" onclick="removeTag(this)">×</button>
     `;
-    
+
     const input = document.getElementById('procedureTagInput');
     container.insertBefore(tagDiv, input);
-    
+
     const procedureTagCount = document.querySelectorAll('#procedureTagsContainer .event-tag').length;
     if (procedureTagCount >= 8) {
         input.style.display = 'none';
@@ -98,7 +98,7 @@ function removeTag(button) {
     const tag = button.parentElement;
     const container = tag.parentElement;
     tag.remove();
-    
+
     // 입력 필드 다시 표시
     const input = container.querySelector('.event-tag-input');
     if (input) {
@@ -107,40 +107,60 @@ function removeTag(button) {
 }
 
 // 이벤트 승인 요청 버튼
-document.querySelector('.event-approval-btn').addEventListener('click', function() {
-    // 폼 데이터 수집
+document.querySelector('.event-approval-btn').addEventListener('click', async function() {
+    // 태그 데이터 수집
+    const freeTags = Array.from(document.querySelectorAll('#freeTagsContainer .event-tag span')).map(span => span.textContent);
+    const procedureTags = Array.from(document.querySelectorAll('#procedureTagsContainer .event-tag span')).map(span => span.textContent);
+
+    // JSON 데이터 구성
     const formData = {
-        title: document.querySelector('input[placeholder*="사각턱보톡스"]').value,
-        price: document.getElementById('eventPrice').value,
-        startDate: document.querySelector('input[type="date"]:first-of-type').value,
-        endDate: document.querySelector('input[type="date"]:last-of-type').value,
-        businessEndDate: document.getElementById('businessEndDate').checked,
-        targetGender: document.querySelector('input[name="targetGender"]:checked').value,
-        targetCountry: document.querySelector('input[name="targetCountry"]:checked').value,
-        vat: document.querySelector('input[name="vat"]:checked').value,
-        anesthesia: document.querySelector('input[name="anesthesia"]:checked').value,
-        postCare: document.querySelector('input[name="postCare"]:checked').value,
-        freeTags: Array.from(document.querySelectorAll('#freeTagsContainer .event-tag span')).map(span => span.textContent),
-        procedureTags: Array.from(document.querySelectorAll('#procedureTagsContainer .event-tag span')).map(span => span.textContent)
+        name: document.querySelector('input[name="name"]')?.value || '',
+        startDate: document.querySelector('input[name="startDate"]')?.value || '',
+        endDate: document.querySelector('input[name="endDate"]')?.value || '',
+        genderTarget: document.querySelector('input[name="genderTarget"]:checked')?.value || 'ALL',
+        targetCountry: document.querySelector('input[name="targetCountry"]:checked')?.value || 'KOR',
+        tags: freeTags.join(','),
+        serviceCategory: procedureTags.join(','),
+        price: parseFloat(document.querySelector('input[name="price"]')?.value || '0'),
+        vatIncluded: document.querySelector('input[name="vatIncluded"]:checked')?.value === 'true',
+        isRefundable: document.querySelector('input[name="isRefundable"]:checked')?.value === 'true',
+        currency: 'KRW',
+        description: ''
     };
-    
+
     // 필수 필드 검증
-    if (!formData.title.trim()) {
+    if (!formData.name.trim()) {
         alert('의료 서비스 제목을 입력해주세요.');
         return;
     }
-    
+
     if (!formData.price || formData.price <= 0) {
         alert('의료 서비스 가격을 올바르게 입력해주세요.');
         return;
     }
-    
+
     if (!formData.startDate || !formData.endDate) {
         alert('의료 서비스 기간을 선택해주세요.');
         return;
     }
-    
-    console.log('Event registration data:', formData);
-    alert('의료 서비스 등록이 완료되었습니다.');
-});
 
+    try {
+        // fetch로 JSON 데이터 전송
+        const response = await fetch('/api/medical-services/item/1', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+
+        if (response.ok) {
+            alert('의료 서비스 등록이 완료되었습니다.');
+        } else {
+            alert('의료 서비스 등록에 실패했습니다.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('서버 오류가 발생했습니다.');
+    }
+});
