@@ -1,14 +1,20 @@
 package com.example.ApiRound.crm.yoyo.medi;
 
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import jakarta.servlet.http.HttpSession;
-import java.util.List;
-import java.util.Map;
+import lombok.RequiredArgsConstructor;
 
 @Controller
 @RequestMapping("/company")
@@ -36,7 +42,7 @@ public class MediServiceController {
         model.addAttribute("companyAddress", session.getAttribute("companyAddress"));
         model.addAttribute("sidebarType", "company");
         
-        return "crm/medical_services";
+        return "crm/company_medical_services";
     }
 
     /** 전체 조회 API */
