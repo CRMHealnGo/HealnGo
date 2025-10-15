@@ -4,6 +4,7 @@ import com.example.ApiRound.entity.ItemList;
 import com.example.ApiRound.repository.ItemListRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -26,6 +27,7 @@ public class MediServiceService {
     }
 
     /** 등록 */
+    @Transactional
     public MediServiceEntity create(Long itemId, MediServiceEntity entity) {
         ItemList item = itemListRepository.findById(itemId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 Item ID: " + itemId));
