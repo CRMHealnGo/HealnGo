@@ -8,8 +8,15 @@ let signupData = {
     // 업체용
     companyName: '',
     companyNumber: '',
+    representative: '',
+    mainPhone: '',
+    fax: '',
+    postcode: '',
     address: '',
+    detailAddress: '',
     category: '',
+    companyIntroduction: '',
+    website: '',
     // 관리자용
     managerName: '',
     adminInviteCode: ''
@@ -38,6 +45,31 @@ function initializeSignup() {
     
     // 폼 검증
     setupFormValidation();
+    
+    // 문자 수 카운터
+    setupCharacterCounter();
+}
+
+// 문자 수 카운터 설정
+function setupCharacterCounter() {
+    const textarea = document.getElementById('companyIntroduction');
+    const counter = document.getElementById('charCount');
+    
+    if (textarea && counter) {
+        textarea.addEventListener('input', function() {
+            const currentLength = this.value.length;
+            counter.textContent = currentLength;
+            
+            // 문자 수에 따른 스타일 변경
+            if (currentLength > 450) {
+                counter.style.color = '#E53E3E';
+            } else if (currentLength > 350) {
+                counter.style.color = '#F6AD55';
+            } else {
+                counter.style.color = '#6b7280';
+            }
+        });
+    }
 }
 
 // 이메일 인증 코드 전송
@@ -295,8 +327,15 @@ function saveCurrentStepData() {
         if (signupData.userType === 'company') {
             signupData.companyName = document.getElementById('companyName').value;
             signupData.companyNumber = document.getElementById('companyNumber').value;
-            signupData.address = document.getElementById('address').value;
+            signupData.representative = document.getElementById('representative').value;
+            signupData.mainPhone = document.getElementById('mainPhone').value;
+            signupData.fax = document.getElementById('fax').value;
+            signupData.postcode = document.getElementById('postcode').value;
+            signupData.address = document.getElementById('deliveryAddress').value;
+            signupData.detailAddress = document.getElementById('detailAddress').value;
             signupData.category = document.getElementById('category').value;
+            signupData.companyIntroduction = document.getElementById('companyIntroduction').value;
+            signupData.website = document.getElementById('website').value;
         } else {
             signupData.managerName = document.getElementById('managerName').value;
             signupData.adminInviteCode = document.getElementById('adminInviteCode').value;
@@ -316,15 +355,25 @@ function toggleUserTypeFields() {
         // 관리자 필드 required 제거
         document.getElementById('managerName').removeAttribute('required');
         document.getElementById('adminInviteCode').removeAttribute('required');
-        // 업체 필드 required 추가
+        // 업체 필수 필드 required 추가
         document.getElementById('companyName').setAttribute('required', 'required');
         document.getElementById('companyNumber').setAttribute('required', 'required');
+        document.getElementById('representative').setAttribute('required', 'required');
+        document.getElementById('mainPhone').setAttribute('required', 'required');
+        document.getElementById('postcode').setAttribute('required', 'required');
+        document.getElementById('deliveryAddress').setAttribute('required', 'required');
+        document.getElementById('category').setAttribute('required', 'required');
     } else {
         companyFields.forEach(field => field.style.display = 'none');
         managerFields.forEach(field => field.style.display = 'block');
         // 업체 필드 required 제거
         document.getElementById('companyName').removeAttribute('required');
         document.getElementById('companyNumber').removeAttribute('required');
+        document.getElementById('representative').removeAttribute('required');
+        document.getElementById('mainPhone').removeAttribute('required');
+        document.getElementById('postcode').removeAttribute('required');
+        document.getElementById('deliveryAddress').removeAttribute('required');
+        document.getElementById('category').removeAttribute('required');
         // 관리자 필드 required 추가
         document.getElementById('managerName').setAttribute('required', 'required');
         document.getElementById('adminInviteCode').setAttribute('required', 'required');
@@ -345,12 +394,32 @@ async function submitSignup() {
     // Step 2 검증 - userType에 따라 다르게 검증
     if (signupData.userType === 'company') {
         if (!signupData.companyName) {
-            alert('회사명을 입력해주세요.');
+            alert('업체명을 입력해주세요.');
             return;
         }
         
         if (!signupData.companyNumber) {
-            alert('사업자번호를 입력해주세요.');
+            alert('사업자등록번호를 입력해주세요.');
+            return;
+        }
+        
+        if (!signupData.representative) {
+            alert('대표자명을 입력해주세요.');
+            return;
+        }
+        
+        if (!signupData.mainPhone) {
+            alert('대표 전화번호를 입력해주세요.');
+            return;
+        }
+        
+        if (!signupData.postcode) {
+            alert('우편번호를 입력해주세요. (우편번호 찾기 버튼을 클릭하세요)');
+            return;
+        }
+        
+        if (!signupData.address) {
+            alert('주소를 입력해주세요. (우편번호 찾기 버튼을 클릭하세요)');
             return;
         }
         
@@ -382,8 +451,15 @@ async function submitSignup() {
     if (signupData.userType === 'company') {
         requestData.companyName = signupData.companyName;
         requestData.bizNo = signupData.companyNumber;
-        requestData.address = signupData.address || null;
+        requestData.representative = signupData.representative;
+        requestData.mainPhone = signupData.mainPhone;
+        requestData.fax = signupData.fax || null;
+        requestData.postcode = signupData.postcode;
+        requestData.address = signupData.address;
+        requestData.detailAddress = signupData.detailAddress || null;
         requestData.category = signupData.category;
+        requestData.companyIntroduction = signupData.companyIntroduction || null;
+        requestData.website = signupData.website || null;
     } else {
         requestData.name = signupData.managerName;
         requestData.inviteCode = signupData.adminInviteCode;
@@ -430,6 +506,67 @@ function showSuccessPage() {
 // 대시보드로 이동
 function goToDashboard() {
     window.location.href = '/crm/company';
+}
+
+// 카카오 우편번호 API
+let element_wrap;
+
+function searchAddress() {
+    sample3_execDaumPostcode();
+}
+
+function foldDaumPostcode() {
+    if (element_wrap) {
+        element_wrap.style.display = 'none';
+    }
+}
+
+function sample3_execDaumPostcode() {
+    element_wrap = document.getElementById('wrap');
+    if (!element_wrap) return;
+
+    var currentScroll = Math.max(document.body.scrollTop, document.documentElement.scrollTop);
+
+    new daum.Postcode({
+        oncomplete: function(data) {
+            var addr = '';
+            var extraAddr = '';
+
+            if (data.userSelectedType === 'R') {
+                addr = data.roadAddress;
+            } else {
+                addr = data.jibunAddress;
+            }
+
+            if (data.userSelectedType === 'R') {
+                if (data.bname !== '' && /[동|로|가]$/g.test(data.bname)) {
+                    extraAddr += data.bname;
+                }
+                if (data.buildingName !== '' && data.apartment === 'Y') {
+                    extraAddr += (extraAddr !== '' ? ', ' + data.buildingName : data.buildingName);
+                }
+                if (extraAddr !== '') {
+                    extraAddr = ' (' + extraAddr + ')';
+                }
+                document.getElementById("deliveryAddress").value = addr + extraAddr;
+            } else {
+                document.getElementById("deliveryAddress").value = addr;
+            }
+
+            document.getElementById('postcode').value = data.zonecode;
+            document.getElementById("detailAddress").focus();
+
+            element_wrap.style.display = 'none';
+            document.body.scrollTop = currentScroll;
+        },
+        onresize: function(size) {
+            element_wrap.style.height = size.height + 'px';
+        },
+        width: '100%',
+        height: '100%'
+    }).embed(element_wrap);
+
+    element_wrap.style.display = 'block';
 }
 
 // 페이지 로드 시 초기화

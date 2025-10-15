@@ -50,6 +50,27 @@ public class CompanyUser {
     @Column(name = "category", length = 50)
     private String category;
     
+    @Column(name = "representative", length = 100)
+    private String representative;
+    
+    @Column(name = "main_phone", length = 30)
+    private String mainPhone;
+    
+    @Column(name = "fax", length = 30)
+    private String fax;
+    
+    @Column(name = "postcode", length = 10)
+    private String postcode;
+    
+    @Column(name = "detail_address", length = 255)
+    private String detailAddress;
+    
+    @Column(name = "company_introduction", columnDefinition = "TEXT")
+    private String companyIntroduction;
+    
+    @Column(name = "website", length = 255)
+    private String website;
+    
     @Lob
     @Column(name = "avatar_blob", columnDefinition = "LONGBLOB")
     private byte[] avatarBlob;
@@ -63,6 +84,19 @@ public class CompanyUser {
     @Column(name = "is_active", columnDefinition = "TINYINT(1) DEFAULT 1")
     @Builder.Default
     private Boolean isActive = true;
+    
+    @Column(name = "approval_status", length = 20)
+    @Builder.Default
+    private String approvalStatus = "PENDING";
+    
+    @Column(name = "approved_by")
+    private Long approvedBy;
+    
+    @Column(name = "approved_at")
+    private LocalDateTime approvedAt;
+    
+    @Column(name = "rejection_reason", length = 500)
+    private String rejectionReason;
     
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

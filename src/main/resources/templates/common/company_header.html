@@ -17,7 +17,15 @@
             <span class="notification-badge">3</span>
         </button>
         <div class="user-profile">
-            <img src="/crm/images/로고 블랙.png.png" alt="Profile" class="profile-img">
+            <div class="profile-img-wrapper">
+                <img th:if="${hasAvatar}" 
+                     th:src="@{/company/avatar/{id}(id=${companyId})}" 
+                     alt="Profile" 
+                     class="profile-img">
+                <div th:unless="${hasAvatar}" class="profile-img profile-img-placeholder">
+                    <span th:text="${companyName != null && companyName.length() > 0 ? companyName.substring(0, 1) : 'H'}">H</span>
+                </div>
+            </div>
             <div class="user-dropdown">
                 <span class="user-name" th:text="${companyName != null ? companyName : '업체'}"></span>
                 <i class="fas fa-chevron-down"></i>

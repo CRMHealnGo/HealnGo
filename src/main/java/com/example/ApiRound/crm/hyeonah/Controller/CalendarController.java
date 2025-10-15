@@ -1,37 +1,43 @@
 package com.example.ApiRound.crm.hyeonah.Controller;
 
-import com.example.ApiRound.crm.hyeonah.entity.ReservationManagement;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.example.ApiRound.crm.hyeonah.Service.CompanyUserService;
 import com.example.ApiRound.crm.hyeonah.Service.ReservationManagementService;
+import com.example.ApiRound.crm.hyeonah.entity.CompanyUser;
+import com.example.ApiRound.crm.hyeonah.entity.ReservationManagement;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventDateTime;
-import com.google.api.services.calendar.model.Events;
+
 import jakarta.servlet.http.HttpSession;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.graphql.GraphQlProperties;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @Controller
 public class CalendarController {
 
     private final ReservationManagementService reservationManagementService;
+    private final CompanyUserService companyUserService;
     
     @Value("${google.client-id:}")
     private String googleClientId;
@@ -39,8 +45,10 @@ public class CalendarController {
     @Value("${google.calendar.application.name:HealnGo Calendar}")
     private String applicationName;
     
-    public CalendarController(ReservationManagementService reservationManagementService) {
+    public CalendarController(ReservationManagementService reservationManagementService,
+                             CompanyUserService companyUserService) {
         this.reservationManagementService = reservationManagementService;
+        this.companyUserService = companyUserService;
     }
 
     @GetMapping("/admin/reservation-management")
@@ -53,8 +61,22 @@ public class CalendarController {
 
     @GetMapping("/company/company_reservation_management")
     public String companyReservationManagement(Model model, HttpSession session) {
+        Integer companyId = (Integer) session.getAttribute("companyId");
+        
         model.addAttribute("sidebarType", "company");
         model.addAttribute("companyName", session.getAttribute("companyName"));
+        model.addAttribute("companyId", companyId);
+        
+        // 아바타 존재 여부 확인
+        if (companyId != null) {
+            Optional<CompanyUser> companyOpt = companyUserService.findById(companyId);
+            boolean hasAvatar = companyOpt.isPresent() && 
+                               companyOpt.get().getAvatarBlob() != null && 
+                               companyOpt.get().getAvatarBlob().length > 0;
+            model.addAttribute("hasAvatar", hasAvatar);
+        } else {
+            model.addAttribute("hasAvatar", false);
+        }
 
         return "crm/company_reservation_management";
     }
