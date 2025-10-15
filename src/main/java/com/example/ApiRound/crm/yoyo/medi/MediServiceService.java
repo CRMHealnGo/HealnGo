@@ -58,4 +58,9 @@ public class MediServiceService {
     public void delete(Long id) {
         mediServiceRepository.deleteById(id);
     }
+
+    /** 회사별 의료 서비스 조회 */
+    public List<MediServiceEntity> findByCompanyId(Integer companyId) {
+        return mediServiceRepository.findByItem_OwnerCompany_CompanyId(companyId);
+    }
 }

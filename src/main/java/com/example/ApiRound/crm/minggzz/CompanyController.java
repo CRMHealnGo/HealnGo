@@ -4,30 +4,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.example.ApiRound.crm.hyeonah.Service.CompanyUserService;
-import com.example.ApiRound.crm.hyeonah.entity.CompanyUser;
-
 import jakarta.servlet.http.HttpSession;
 
 @Controller
 @RequestMapping("/company")
 public class CompanyController {
-    
-    private final CompanyUserService companyUserService;
-    
-    @Autowired
-    public CompanyController(CompanyUserService companyUserService) {
-        this.companyUserService = companyUserService;
-    }
 
     /**
      * 업체 메인페이지 (힝거 피부과)
@@ -67,40 +55,20 @@ public class CompanyController {
         model.addAttribute("popularEvents", popularEvents);
 
         model.addAttribute("sidebarType", "company");
-        addAvatarInfo(model, companyId);
         return "crm/company";
     }
 
-    /**
-     * 의료 서비스 관리 페이지
-     */
-    @GetMapping("/medical-services")
-    public String medicalServices(HttpSession session, Model model) {
-        Integer companyId = (Integer) session.getAttribute("companyId");
-        
-        // 의료 서비스 데이터 (실제로는 서비스에서 가져와야 함)
-        List<Map<String, Object>> medicalServices = getMedicalServices();
-        model.addAttribute("medicalServices", medicalServices);
-
-        model.addAttribute("companyName", session.getAttribute("companyName"));
-        model.addAttribute("companyAddress", session.getAttribute("companyAddress"));
-        model.addAttribute("companyId", companyId);
-
-        model.addAttribute("sidebarType", "company");
-        addAvatarInfo(model, companyId);
-        return "crm/medical_services";
-    }
 
     /**
      * 이벤트 등록 페이지
      */
     @GetMapping("/event-registration")
     public String eventRegistration(HttpSession session, Model model) {
-        Integer companyId = (Integer) session.getAttribute("companyId");
+        // 이벤트 등록 페이지 데이터 (실제로는 서비스에서 가져와야 함)
+        // 예: 기존 태그 목록, 카테고리 목록 등
         model.addAttribute("sidebarType", "company");
         model.addAttribute("companyName", session.getAttribute("companyName"));
-        model.addAttribute("companyId", companyId);
-        addAvatarInfo(model, companyId);
+
         return "crm/event_registration";
     }
 
@@ -109,13 +77,12 @@ public class CompanyController {
      */
     @GetMapping("/inquiry-chat")
     public String inquiryChat(HttpSession session, Model model) {
-        Integer companyId = (Integer) session.getAttribute("companyId");
+        // 문의 목록 데이터 (실제로는 서비스에서 가져와야 함)
         List<Map<String, Object>> inquiries = getInquiries();
         model.addAttribute("inquiries", inquiries);
+
         model.addAttribute("companyName", session.getAttribute("companyName"));
-        model.addAttribute("companyId", companyId);
         model.addAttribute("sidebarType", "company");
-        addAvatarInfo(model, companyId);
         return "crm/inquiry_chat";
     }
 
@@ -124,13 +91,12 @@ public class CompanyController {
      */
     @GetMapping("/inquiry-report")
     public String inquiryReport(HttpSession session, Model model) {
-        Integer companyId = (Integer) session.getAttribute("companyId");
+        // 문의/신고 목록 데이터 (실제로는 서비스에서 가져와야 함)
         List<Map<String, Object>> reports = getInquiryReports();
         model.addAttribute("reports", reports);
         model.addAttribute("sidebarType", "company");
         model.addAttribute("companyName", session.getAttribute("companyName"));
-        model.addAttribute("companyId", companyId);
-        addAvatarInfo(model, companyId);
+
         return "crm/inquiry_report";
     }
 
@@ -139,13 +105,12 @@ public class CompanyController {
      */
     @GetMapping("/inquiry-report/detail/{id}")
     public String inquiryReportDetail(@PathVariable("id") Long id, Model model, HttpSession session) {
-        Integer companyId = (Integer) session.getAttribute("companyId");
+        // 문의/신고 상세 데이터 (실제로는 서비스에서 가져와야 함)
         Map<String, Object> report = getInquiryReportById(id);
         model.addAttribute("report", report);
         model.addAttribute("sidebarType", "company");
         model.addAttribute("companyName", session.getAttribute("companyName"));
-        model.addAttribute("companyId", companyId);
-        addAvatarInfo(model, companyId);
+
         return "crm/inquiry_detail";
     }
 
@@ -154,23 +119,23 @@ public class CompanyController {
      */
     @GetMapping("/marketing")
     public String marketing(Model model, HttpSession session) {
-        Integer companyId = (Integer) session.getAttribute("companyId");
+        // 마케팅 KPI 데이터
         model.addAttribute("totalImpressions", 125000);
         model.addAttribute("totalClicks", 8500);
         model.addAttribute("totalInquiries", 450);
         model.addAttribute("totalReservations", 180);
         model.addAttribute("conversionRate", 2.12);
         model.addAttribute("companyName", session.getAttribute("companyName"));
-        model.addAttribute("companyId", companyId);
 
+        // 노출 요청 목록
         List<Map<String, Object>> placements = getPlacementRequests();
         model.addAttribute("placements", placements);
 
+        // 쿠폰 목록
         List<Map<String, Object>> coupons = getCoupons();
         model.addAttribute("coupons", coupons);
 
         model.addAttribute("sidebarType", "company");
-        addAvatarInfo(model, companyId);
         return "crm/company_marketing";
     }
 
@@ -179,13 +144,12 @@ public class CompanyController {
      */
     @GetMapping("/help-support")
     public String helpSupport(Model model, HttpSession session) {
-        Integer companyId = (Integer) session.getAttribute("companyId");
+        // 요청 목록 데이터 (실제로는 서비스에서 가져와야 함)
         List<Map<String, Object>> requests = getHelpRequests();
         model.addAttribute("requests", requests);
         model.addAttribute("sidebarType", "company");
         model.addAttribute("companyName", session.getAttribute("companyName"));
-        model.addAttribute("companyId", companyId);
-        addAvatarInfo(model, companyId);
+
         return "crm/company_help_support";
     }
 
@@ -194,29 +158,13 @@ public class CompanyController {
      */
     @GetMapping("/help-support/detail/{id}")
     public String helpSupportDetail(@PathVariable("id") Long id, Model model, HttpSession session) {
-        Integer companyId = (Integer) session.getAttribute("companyId");
+        // 요청 상세 데이터 (실제로는 서비스에서 가져와야 함)
         Map<String, Object> request = getHelpRequestById(id);
         model.addAttribute("request", request);
         model.addAttribute("sidebarType", "company");
         model.addAttribute("companyName", session.getAttribute("companyName"));
-        model.addAttribute("companyId", companyId);
-        addAvatarInfo(model, companyId);
+
         return "crm/company_help_support_detail";
-    }
-    
-    /**
-     * 아바타 정보 추가 헬퍼 메서드
-     */
-    private void addAvatarInfo(Model model, Integer companyId) {
-        if (companyId != null) {
-            Optional<CompanyUser> companyOpt = companyUserService.findById(companyId);
-            boolean hasAvatar = companyOpt.isPresent() && 
-                               companyOpt.get().getAvatarBlob() != null && 
-                               companyOpt.get().getAvatarBlob().length > 0;
-            model.addAttribute("hasAvatar", hasAvatar);
-        } else {
-            model.addAttribute("hasAvatar", false);
-        }
     }
 
     // 업체 페이지용 데이터 생성 메서드들
