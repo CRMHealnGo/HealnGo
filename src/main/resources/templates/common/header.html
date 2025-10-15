@@ -12,7 +12,19 @@
                 <img src="/crm/images/로고 블랙.png.png" alt="HealnGo 로고" class="logo-image">
             </a>
             <div class="user-actions">
-                <a href="/mypage" class="text-button mypage-btn">마이페이지</a>
+                <!-- 로그인 상태 -->
+                <div th:if="${session.userId != null}">
+                    <span class="user-name" th:text="${session.userName} + '님'">사용자님</span>
+                    <a href="/mypage" class="text-button mypage-btn">마이페이지</a>
+                    <a href="/logout" class="text-button logout-btn">로그아웃</a>
+                </div>
+                
+                <!-- 비로그인 상태 -->
+                <div th:unless="${session.userId != null}">
+                    <a href="/login" class="text-button login-btn">로그인</a>
+                    <a href="/signup" class="text-button signup-btn">회원가입</a>
+                </div>
+                
                 <div class="dropdown">
                     <button class="lang_btn">번역</button>
                     <div class="dropdown-content">
@@ -30,7 +42,6 @@
                         </a>
                     </div>
                 </div>
-                <a href="/login" class="text-button login-btn">로그인</a>
             </div>
         </div>
     </header>

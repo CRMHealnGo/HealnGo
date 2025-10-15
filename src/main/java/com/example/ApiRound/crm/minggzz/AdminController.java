@@ -1,5 +1,10 @@
 package com.example.ApiRound.crm.minggzz;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -7,10 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 @RequestMapping("/admin")
@@ -20,7 +22,19 @@ public class AdminController {
      * 관리자 대시보드 메인 페이지
      */
     @GetMapping("/dashboard")
-    public String dashboard(Model model) {
+    public String dashboard(HttpSession session, Model model) {
+        // 세션 체크: 관리자로 로그인한 사용자만 접근 가능
+        Long managerId = (Long) session.getAttribute("managerId");
+        String userType = (String) session.getAttribute("userType");
+        
+        if (managerId == null || !"manager".equals(userType)) {
+            return "redirect:/crm/crm_login";
+        }
+        
+        // 관리자 정보 추가
+        model.addAttribute("managerId", managerId);
+        model.addAttribute("managerName", session.getAttribute("managerName"));
+        model.addAttribute("managerEmail", session.getAttribute("managerEmail"));
         // 대시보드 통계 데이터 (실제로는 서비스에서 가져와야 함)
         Map<String, Object> stats = new HashMap<>();
         stats.put("totalUsers", 1250);

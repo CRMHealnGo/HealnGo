@@ -23,12 +23,12 @@
                         <i class="fas fa-user"></i>
                     </div>
                     <div class="profile-info">
-                        <span class="user-id">sampleID</span>
+                        <span class="user-id" th:text="${userEmail}">sampleID</span>
                         <i class="fas fa-cog settings-icon" onclick="openProfileModal()"></i>
                     </div>
                 </div>
                 <div class="profile-right">
-                    <h2 class="user-name">진라면맛있음 님</h2>
+                    <h2 class="mypage-user-name" th:text="${userName} + ' 님'">진라면맛있음 님</h2>
                     <div class="action-buttons">
                         <button class="action-btn" onclick="window.location.href='/favorite'">
                             <i class="fas fa-heart"></i>
@@ -139,22 +139,15 @@
                     <div class="profile-form">
                         <div class="form-group">
                             <label>아이디</label>
-                            <input type="text" value="sampleID" readonly>
+                            <input type="text" th:value="${userId}" readonly>
                         </div>
                         <div class="form-group">
-                            <label>닉네임</label>
-                            <input type="text" value="진라면맛있음">
+                            <label>이름</label>
+                            <input type="text" th:value="${userName}">
                         </div>
                         <div class="form-group">
                             <label>이메일</label>
-                            <input type="email" value="sampleID@gmail.com">
-                        </div>
-                        <div class="form-group">
-                            <label>성별</label>
-                            <select>
-                                <option value="female" selected>여</option>
-                                <option value="male">남</option>
-                            </select>
+                            <input type="email" th:value="${userEmail}" readonly>
                         </div>
                     </div>
                 </div>
