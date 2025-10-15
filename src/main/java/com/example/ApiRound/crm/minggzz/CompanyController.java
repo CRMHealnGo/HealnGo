@@ -58,22 +58,6 @@ public class CompanyController {
         return "crm/company";
     }
 
-    /**
-     * 의료 서비스 관리 페이지
-     */
-    @GetMapping("/medical-services")
-    public String medicalServices(HttpSession session, Model model) {
-        // 의료 서비스 데이터 (실제로는 서비스에서 가져와야 함)
-        List<Map<String, Object>> medicalServices = getMedicalServices();
-        model.addAttribute("medicalServices", medicalServices);
-
-        model.addAttribute("companyName", session.getAttribute("companyName"));
-        model.addAttribute("companyAddress", session.getAttribute("companyAddress"));
-
-
-        model.addAttribute("sidebarType", "company");
-        return "crm/medical_services";
-    }
 
     /**
      * 이벤트 등록 페이지
