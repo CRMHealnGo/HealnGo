@@ -1,3 +1,25 @@
+// 로그아웃 확인 함수
+function confirmLogout() {
+    if (confirm('정말 로그아웃 하시겠습니까?')) {
+        // 로그아웃 API 호출
+        fetch('/crm/logout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            // 로그아웃 후 로그인 페이지로 리다이렉트
+            window.location.href = '/crm/crm_login';
+        })
+        .catch(error => {
+            console.error('로그아웃 실패:', error);
+            // 에러가 발생해도 로그인 페이지로 이동
+            window.location.href = '/crm/crm_login';
+        });
+    }
+}
+
 // 사이드바 JavaScript
 document.addEventListener('DOMContentLoaded', function() {
     // 현재 URL에 따라 active 링크 설정
@@ -14,18 +36,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
-    
-    // 로그아웃 버튼 클릭 이벤트
-    const logoutBtn = document.querySelector('.logout-btn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', function() {
-            if (confirm('정말 로그아웃 하시겠습니까?')) {
-                // 로그아웃 로직 (필요시 구현)
-                console.log('Logout clicked');
-                // window.location.href = '/logout';
-            }
-        });
-    }
     
     // 모바일에서 사이드바 토글 (필요시)
     const sidebarToggle = document.querySelector('.sidebar-toggle');

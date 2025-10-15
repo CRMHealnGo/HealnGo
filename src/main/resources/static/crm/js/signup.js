@@ -1,33 +1,12 @@
 // 회원가입 페이지 JavaScript
-document.addEventListener('DOMContentLoaded', function() {
-    // 사용자 타입 선택 기능
-    const userTypeButtons = document.querySelectorAll('.user-type-btn');
-    const signupForms = document.querySelectorAll('.signup-form');
-    
-    userTypeButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const userType = this.dataset.type;
-            
-            // 모든 버튼에서 active 클래스 제거
-            userTypeButtons.forEach(btn => btn.classList.remove('active'));
-            // 클릭된 버튼에 active 클래스 추가
-            this.classList.add('active');
-            
-            // 모든 폼 숨기기
-            signupForms.forEach(form => form.classList.remove('active'));
-            // 선택된 타입의 폼만 보이기
-            document.getElementById(userType + '-signup-form').classList.add('active');
-        });
-    });
+let emailVerified = false;
 
+document.addEventListener('DOMContentLoaded', function() {
     // 폼 유효성 검사 및 제출
     setupFormValidation('social-signup-form');
-    setupFormValidation('company-signup-form');
-    setupFormValidation('manager-signup-form');
 
-    // 아바타 미리보기 기능
-    setupAvatarPreview('social-avatar', 'social-avatar-preview');
-    setupAvatarPreview('company-avatar', 'company-avatar-preview');
+    // 이메일 인증 기능 초기화
+    initializeEmailVerification();
 });
 
 // 폼 유효성 검사 설정
@@ -37,6 +16,11 @@ function setupFormValidation(formId) {
 
     form.addEventListener('submit', function(e) {
         e.preventDefault();
+        
+        if (!emailVerified) {
+            showMessage('이메일 인증을 완료해주세요.', 'error');
+            return;
+        }
         
         if (validateForm(form)) {
             submitForm(form);
@@ -108,26 +92,14 @@ function validateField(field) {
         if (value.length < 8) {
             errorMessage = '비밀번호는 8자 이상이어야 합니다.';
             isValid = false;
-        } else if (!/(?=.*[a-zA-Z])(?=.*\d)/.test(value)) {
-            errorMessage = '비밀번호는 영문과 숫자를 포함해야 합니다.';
-            isValid = false;
         }
     }
 
-    // 전화번호 유효성 검사
+    // 전화번호 유효성 검사 (선택 사항)
     if (fieldName === 'phone' && value) {
         const phoneRegex = /^010-\d{4}-\d{4}$/;
         if (!phoneRegex.test(value)) {
             errorMessage = '올바른 전화번호 형식을 입력해주세요. (010-1234-5678)';
-            isValid = false;
-        }
-    }
-
-    // 사업자등록번호 유효성 검사
-    if (fieldName === 'bizNo' && value) {
-        const bizNoRegex = /^\d{3}-\d{2}-\d{5}$/;
-        if (!bizNoRegex.test(value)) {
-            errorMessage = '올바른 사업자등록번호 형식을 입력해주세요. (123-45-67890)';
             isValid = false;
         }
     }
@@ -175,13 +147,21 @@ function submitForm(form) {
     submitBtn.textContent = '처리 중...';
     submitBtn.disabled = true;
 
-    // FormData 생성
-    const formData = new FormData(form);
+    // 데이터 수집
+    const formData = {
+        email: document.getElementById('social-email').value,
+        password: document.getElementById('social-password').value,
+        name: document.getElementById('social-name').value,
+        phone: document.getElementById('social-phone').value || null
+    };
     
     // fetch로 서버에 전송
-    fetch(form.action, {
+    fetch('/api/user/register', {
         method: 'POST',
-        body: formData
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
     })
     .then(response => {
         if (response.ok) {
@@ -194,8 +174,8 @@ function submitForm(form) {
             showMessage('회원가입이 완료되었습니다!', 'success');
             // 3초 후 로그인 페이지로 이동
             setTimeout(() => {
-                window.location.href = '/crm/login';
-            }, 3000);
+                window.location.href = '/login';
+            }, 2000);
         } else {
             showMessage(data.message || '회원가입에 실패했습니다.', 'error');
         }
@@ -237,43 +217,6 @@ function showMessage(message, type) {
     }, 5000);
 }
 
-// 아바타 미리보기 설정
-function setupAvatarPreview(inputId, previewId) {
-    const input = document.getElementById(inputId);
-    const preview = document.getElementById(previewId);
-    
-    if (!input || !preview) return;
-    
-    input.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        
-        if (file) {
-            // 파일 크기 검사 (5MB 제한)
-            if (file.size > 5 * 1024 * 1024) {
-                alert('파일 크기는 5MB 이하여야 합니다.');
-                this.value = '';
-                return;
-            }
-            
-            // 이미지 파일 검사
-            if (!file.type.startsWith('image/')) {
-                alert('이미지 파일만 업로드 가능합니다.');
-                this.value = '';
-                return;
-            }
-            
-            // 미리보기 표시
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                preview.innerHTML = `<img src="${e.target.result}" alt="미리보기">`;
-            };
-            reader.readAsDataURL(file);
-        } else {
-            preview.innerHTML = '';
-        }
-    });
-}
-
 // 전화번호 자동 포맷팅
 document.addEventListener('input', function(e) {
     if (e.target.type === 'tel') {
@@ -292,163 +235,164 @@ document.addEventListener('input', function(e) {
     }
 });
 
-// 사업자등록번호 자동 포맷팅
-document.addEventListener('input', function(e) {
-    if (e.target.name === 'bizNo') {
-        let value = e.target.value.replace(/\D/g, '');
-        
-        if (value.length >= 10) {
-            value = value.substring(0, 10);
-            value = value.replace(/(\d{3})(\d{2})(\d{5})/, '$1-$2-$3');
-        } else if (value.length >= 5) {
-            value = value.replace(/(\d{3})(\d{2})/, '$1-$2');
-        } else if (value.length >= 3) {
-            value = value.replace(/(\d{3})/, '$1-');
-        }
-        
-        e.target.value = value;
-    }
-});
-
-// 엔터키로 폼 제출 방지 (비밀번호 확인 필드 제외)
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && e.target.type !== 'password') {
-        e.preventDefault();
-    }
-});
-
-// 페이지 로드 시 첫 번째 폼 활성화
-window.addEventListener('load', function() {
-    const firstForm = document.querySelector('.signup-form');
-    if (firstForm) {
-        firstForm.classList.add('active');
-    }
+// 이메일 인증 기능 초기화
+function initializeEmailVerification() {
+    const emailInput = document.getElementById('social-email');
+    const verifyBtn = document.getElementById('social-verify-btn');
+    const verificationGroup = document.getElementById('social-verification-group');
+    const verificationCode = document.getElementById('social-verification-code');
+    const verifyCodeBtn = document.getElementById('social-verify-code-btn');
+    const timer = document.getElementById('social-timer');
+    const timeLeft = document.getElementById('social-time-left');
     
-    // 전화번호 인증 기능 초기화
-    initializePhoneVerification();
-});
-
-// 전화번호 인증 기능 초기화
-function initializePhoneVerification() {
-    // 일반 사용자 인증
-    setupPhoneVerification('social');
-    // 업체 인증
-    setupPhoneVerification('company');
-}
-
-// 전화번호 인증 설정
-function setupPhoneVerification(userType) {
-    const phoneInput = document.getElementById(userType + '-phone');
-    const verifyBtn = document.getElementById(userType + '-verify-btn');
-    const verificationGroup = document.getElementById(userType + '-verification-group');
-    const verificationCode = document.getElementById(userType + '-verification-code');
-    const verifyCodeBtn = document.getElementById(userType + '-verify-code-btn');
-    const timer = document.getElementById(userType + '-timer');
-    const timeLeft = document.getElementById(userType + '-time-left');
-    const phoneError = document.getElementById(userType + '-phone-error');
-    const verificationError = document.getElementById(userType + '-verification-error');
-    
-    let verificationCodeValue = '';
     let timeInterval = null;
-    let timeLeftSeconds = 180; // 3분
+    let timeLeftSeconds = 300; // 5분
     
     // 인증번호 발송 버튼 클릭
     verifyBtn.addEventListener('click', function() {
-        const phone = phoneInput.value.trim();
+        const email = emailInput.value.trim();
         
-        if (!phone) {
-            showError(phoneInput, '전화번호를 입력해주세요.');
+        if (!email) {
+            showError(emailInput, '이메일을 입력해주세요.');
             return;
         }
         
-        if (!validatePhoneNumber(phone)) {
-            showError(phoneInput, '올바른 전화번호 형식을 입력해주세요.');
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            showError(emailInput, '올바른 이메일 형식을 입력해주세요.');
             return;
         }
         
         // 인증번호 발송 요청
-        sendVerificationCode(userType, phone);
+        sendVerificationCode(email);
     });
     
     // 인증 확인 버튼 클릭
     verifyCodeBtn.addEventListener('click', function() {
         const code = verificationCode.value.trim();
+        const email = emailInput.value.trim();
         
         if (!code) {
             showError(verificationCode, '인증번호를 입력해주세요.');
             return;
         }
         
-        if (code.length !== 6) {
-            showError(verificationCode, '인증번호는 6자리입니다.');
-            return;
-        }
-        
         // 인증번호 확인
-        verifyCode(userType, phoneInput.value.trim(), code);
+        verifyCode(email, code);
     });
     
     // 인증번호 입력 시 실시간 검증
     verificationCode.addEventListener('input', function() {
-        this.value = this.value.replace(/[^0-9]/g, '');
+        // 영문자와 숫자만 허용 (대소문자 구분 없이)
+        this.value = this.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
         clearError(this);
     });
     
     // 인증번호 발송 함수
-    function sendVerificationCode(userType, phone) {
+    async function sendVerificationCode(email) {
         verifyBtn.disabled = true;
-        verifyBtn.textContent = '발송 중...';
+        verifyBtn.textContent = '확인중...';
         
-        // 실제로는 서버에 요청을 보내야 함
-        // 여기서는 시뮬레이션
-        setTimeout(() => {
-            verificationCodeValue = Math.floor(100000 + Math.random() * 900000).toString();
-            console.log(`${userType} 인증번호: ${verificationCodeValue}`); // 개발용
+        try {
+            // 1단계: 이메일 중복 확인
+            const checkResponse = await fetch(`/api/user/check-email?email=${encodeURIComponent(email)}`);
+            const checkResult = await checkResponse.json();
             
-            verificationGroup.style.display = 'block';
-            timer.style.display = 'block';
-            startTimer();
+            if (!checkResult.available) {
+                showMessage('이미 사용 중인 이메일입니다. 다른 이메일을 사용해주세요.', 'error');
+                verifyBtn.disabled = false;
+                verifyBtn.textContent = '인증번호 발송';
+                // 이메일 입력 필드 포커스
+                emailInput.focus();
+                emailInput.select();
+                return;
+            }
             
-            verifyBtn.textContent = '재발송';
+            // 2단계: 인증 코드 발송
+            verifyBtn.textContent = '발송 중...';
+            
+            const response = await fetch('/api/user/send-code', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email: email })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                verificationGroup.style.display = 'block';
+                timer.style.display = 'block';
+                startTimer();
+                
+                verifyBtn.textContent = '재발송';
+                verifyBtn.disabled = false;
+                emailInput.disabled = true;
+                
+                showMessage('인증번호가 이메일로 전송되었습니다.', 'success');
+            } else {
+                showMessage(data.message || '인증번호 발송에 실패했습니다.', 'error');
+                verifyBtn.disabled = false;
+                verifyBtn.textContent = '인증번호 발송';
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showMessage('네트워크 오류가 발생했습니다.', 'error');
             verifyBtn.disabled = false;
-            
-            showMessage('인증번호가 발송되었습니다.', 'success');
-        }, 1000);
+            verifyBtn.textContent = '인증번호 발송';
+        }
     }
     
     // 인증번호 확인 함수
-    function verifyCode(userType, phone, code) {
+    function verifyCode(email, code) {
         verifyCodeBtn.disabled = true;
         verifyCodeBtn.textContent = '확인 중...';
         
-        // 실제로는 서버에 요청을 보내야 함
-        // 여기서는 시뮬레이션
-        setTimeout(() => {
-            if (code === verificationCodeValue) {
+        fetch('/api/user/verify-code', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email: email, code: code })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
                 // 인증 성공
+                emailVerified = true;
                 verificationGroup.style.display = 'none';
                 timer.style.display = 'none';
                 clearInterval(timeInterval);
                 
-                phoneInput.disabled = true;
                 verifyBtn.textContent = '인증완료';
                 verifyBtn.disabled = true;
                 verifyBtn.style.background = '#28a745';
                 
-                showMessage('전화번호 인증이 완료되었습니다.', 'success');
+                showMessage('이메일 인증이 완료되었습니다.', 'success');
             } else {
                 // 인증 실패
-                showError(verificationCode, '인증번호가 올바르지 않습니다.');
+                showError(verificationCode, data.message || '인증번호가 올바르지 않습니다.');
                 verifyCodeBtn.disabled = false;
                 verifyCodeBtn.textContent = '인증 확인';
             }
-        }, 1000);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showMessage('네트워크 오류가 발생했습니다.', 'error');
+            verifyCodeBtn.disabled = false;
+            verifyCodeBtn.textContent = '인증 확인';
+        });
     }
     
     // 타이머 시작
     function startTimer() {
-        timeLeftSeconds = 180;
+        timeLeftSeconds = 300;
         updateTimer();
+        
+        if (timeInterval) {
+            clearInterval(timeInterval);
+        }
         
         timeInterval = setInterval(() => {
             timeLeftSeconds--;
@@ -458,6 +402,7 @@ function setupPhoneVerification(userType) {
                 clearInterval(timeInterval);
                 timer.classList.add('danger');
                 showError(verificationCode, '인증 시간이 만료되었습니다. 다시 발송해주세요.');
+                verifyCodeBtn.disabled = true;
             }
         }, 1000);
     }
@@ -468,16 +413,11 @@ function setupPhoneVerification(userType) {
         const seconds = timeLeftSeconds % 60;
         timeLeft.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         
+        timer.classList.remove('warning', 'danger');
         if (timeLeftSeconds <= 30) {
             timer.classList.add('danger');
         } else if (timeLeftSeconds <= 60) {
             timer.classList.add('warning');
         }
     }
-}
-
-// 전화번호 유효성 검사
-function validatePhoneNumber(phone) {
-    const phoneRegex = /^010-\d{4}-\d{4}$/;
-    return phoneRegex.test(phone);
 }

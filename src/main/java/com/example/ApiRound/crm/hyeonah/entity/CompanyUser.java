@@ -2,159 +2,82 @@ package com.example.ApiRound.crm.hyeonah.entity;
 
 import java.time.LocalDateTime;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Table(name = "company_user")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class CompanyUser {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "company_id")
     private Integer companyId;
+    
+    @Column(name = "email", length = 190, unique = true, nullable = false)
     private String email;
+    
+    @Column(name = "password_hash", length = 255)
     private String passwordHash;
+    
+    @Column(name = "company_name", length = 150)
     private String companyName;
+    
+    @Column(name = "biz_no", length = 40)
     private String bizNo;
+    
+    @Column(name = "phone", length = 30)
     private String phone;
+    
+    @Column(name = "address", length = 255)
     private String address;
+    
+    @Lob
+    @Column(name = "avatar_blob", columnDefinition = "LONGBLOB")
     private byte[] avatarBlob;
+    
+    @Column(name = "avatar_mime", length = 50)
     private String avatarMime;
+    
+    @Column(name = "avatar_updated_at")
     private LocalDateTime avatarUpdatedAt;
-    private Integer isActive;
+    
+    @Column(name = "is_active", columnDefinition = "TINYINT(1) DEFAULT 1")
+    @Builder.Default
+    private Boolean isActive = true;
+    
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+    
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    // 기본 생성자
-    public CompanyUser() {}
-
-    // 전체 생성자
-    public CompanyUser(Integer companyId, String email, String passwordHash, String companyName, String bizNo,
-                      String phone, String address, byte[] avatarBlob, String avatarMime, LocalDateTime avatarUpdatedAt,
-                      Integer isActive, LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this.companyId = companyId;
-        this.email = email;
-        this.passwordHash = passwordHash;
-        this.companyName = companyName;
-        this.bizNo = bizNo;
-        this.phone = phone;
-        this.address = address;
-        this.avatarBlob = avatarBlob;
-        this.avatarMime = avatarMime;
-        this.avatarUpdatedAt = avatarUpdatedAt;
-        this.isActive = isActive;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
+    
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+        if (this.isActive == null) {
+            this.isActive = true;
+        }
     }
-
-    // Getters and Setters
-    public Integer getCompanyId() {
-        return companyId;
-    }
-
-    public void setCompanyId(Integer companyId) {
-        this.companyId = companyId;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPasswordHash() {
-        return passwordHash;
-    }
-
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
-    }
-
-    public String getCompanyName() {
-        return companyName;
-    }
-
-    public void setCompanyName(String companyName) {
-        this.companyName = companyName;
-    }
-
-    public String getBizNo() {
-        return bizNo;
-    }
-
-    public void setBizNo(String bizNo) {
-        this.bizNo = bizNo;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public byte[] getAvatarBlob() {
-        return avatarBlob;
-    }
-
-    public void setAvatarBlob(byte[] avatarBlob) {
-        this.avatarBlob = avatarBlob;
-    }
-
-    public String getAvatarMime() {
-        return avatarMime;
-    }
-
-    public void setAvatarMime(String avatarMime) {
-        this.avatarMime = avatarMime;
-    }
-
-    public LocalDateTime getAvatarUpdatedAt() {
-        return avatarUpdatedAt;
-    }
-
-    public void setAvatarUpdatedAt(LocalDateTime avatarUpdatedAt) {
-        this.avatarUpdatedAt = avatarUpdatedAt;
-    }
-
-    public Integer getIsActive() {
-        return isActive;
-    }
-
-    public void setIsActive(Integer isActive) {
-        this.isActive = isActive;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    @Override
-    public String toString() {
-        return "CompanyUser{" +
-                "companyId=" + companyId +
-                ", email='" + email + '\'' +
-                ", companyName='" + companyName + '\'' +
-                ", bizNo='" + bizNo + '\'' +
-                ", phone='" + phone + '\'' +
-                ", address='" + address + '\'' +
-                ", isActive=" + isActive +
-                ", createdAt=" + createdAt +
-                '}';
+    
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 }

@@ -19,7 +19,7 @@
         <div class="user-profile">
             <img src="/crm/images/로고 블랙.png.png" alt="Profile" class="profile-img">
             <div class="user-dropdown">
-                <span class="user-name">관리자 정민서</span>
+                <span class="user-name" th:text="${managerName != null ? managerName + ' 관리자님' : '관리자님'}"></span>
                 <i class="fas fa-chevron-down"></i>
             </div>
         </div>

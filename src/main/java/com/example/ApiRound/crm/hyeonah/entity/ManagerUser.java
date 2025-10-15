@@ -1,118 +1,49 @@
 package com.example.ApiRound.crm.hyeonah.entity;
 
+
+import jakarta.persistence.*;
+import lombok.*;
 import java.time.LocalDateTime;
 
+@Entity
+@Table(name = "manager_user")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ManagerUser {
-    private Integer managerId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "manager_id")
+    private Long managerId;
+
+    @Column(name = "email", unique = true, nullable = false, length = 190)
     private String email;
+
+    @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
+
+    @Column(name = "name", length = 100)
     private String name;
-    private String role;
-    private Integer isActive;
-    private LocalDateTime lastLoginAt;
+
+    @Column(name = "is_active")
+    private Integer isActive; // 1 활성, 0 비활성
+
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    // 기본 생성자
-    public ManagerUser() {}
-
-    // 전체 생성자
-    public ManagerUser(Integer managerId, String email, String passwordHash, String name, String role,
-                      Integer isActive, LocalDateTime lastLoginAt, LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this.managerId = managerId;
-        this.email = email;
-        this.passwordHash = passwordHash;
-        this.name = name;
-        this.role = role;
-        this.isActive = isActive;
-        this.lastLoginAt = lastLoginAt;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
+    @PrePersist
+    void prePersist() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+        if (isActive == null) isActive = 1;
     }
 
-    // Getters and Setters
-    public Integer getManagerId() {
-        return managerId;
-    }
-
-    public void setManagerId(Integer managerId) {
-        this.managerId = managerId;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPasswordHash() {
-        return passwordHash;
-    }
-
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
-
-    public Integer getIsActive() {
-        return isActive;
-    }
-
-    public void setIsActive(Integer isActive) {
-        this.isActive = isActive;
-    }
-
-    public LocalDateTime getLastLoginAt() {
-        return lastLoginAt;
-    }
-
-    public void setLastLoginAt(LocalDateTime lastLoginAt) {
-        this.lastLoginAt = lastLoginAt;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    @Override
-    public String toString() {
-        return "ManagerUser{" +
-                "managerId=" + managerId +
-                ", email='" + email + '\'' +
-                ", name='" + name + '\'' +
-                ", role='" + role + '\'' +
-                ", isActive=" + isActive +
-                ", lastLoginAt=" + lastLoginAt +
-                ", createdAt=" + createdAt +
-                '}';
+    @PreUpdate
+    void preUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 }

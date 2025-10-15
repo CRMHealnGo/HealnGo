@@ -180,7 +180,7 @@ body {
 }
 
 /* 회원가입 버튼 */
-.signup-btn {
+.user-signup-btn {
     width: 100%;
     padding: 15px;
     background: linear-gradient(135deg, #2a7a5b, #1e5a3e);
@@ -196,16 +196,16 @@ body {
     overflow: hidden;
 }
 
-.signup-btn:hover {
+.user-signup-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
 }
 
-.signup-btn:active {
+.user-signup-btn:active {
     transform: translateY(0);
 }
 
-.signup-btn::before {
+.user-signup-btn::before {
     content: '';
     position: absolute;
     top: 0;
@@ -216,7 +216,7 @@ body {
     transition: left 0.5s;
 }
 
-.signup-btn:hover::before {
+.user-signup-btn:hover::before {
     left: 100%;
 }
 
@@ -402,9 +402,10 @@ input[name="bizNo"] {
 .verification-input input {
     flex: 1;
     text-align: center;
-    font-family: monospace;
+    font-family: 'Courier New', monospace;
     font-size: 16px;
     letter-spacing: 2px;
+    text-transform: uppercase;
 }
 
 .verification-timer {

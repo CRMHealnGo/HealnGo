@@ -15,7 +15,7 @@
             <p data-i18n="login.subtitle">간편하게 로그인하고 서비스를 이용하세요</p>
 
             <!-- 일반 로그인 폼 -->
-            <form id="login-form" class="login-form" th:action="@{/login}" method="post">
+            <form id="login-form" class="login-form">
                 <div class="form-group">
                     <label for="email">이메일</label>
                     <input type="email" id="email" name="email" required>
@@ -45,13 +45,13 @@
             </div>
 
             <!-- 카카오 로그인 -->
-            <a href="${kakaoLoginUrl}" id="kakao-login-btn" class="login-btn kakao-btn">
+            <a th:href="${kakaoLoginUrl}" id="kakao-login-btn" class="login-btn kakao-btn">
                 <img src="https://developers.kakao.com/assets/img/about/logos/kakaolink/kakaolink_btn_medium.png" alt="Kakao" class="kakao-icon" />
                 <span data-i18n="login.kakao.button">카카오로 로그인</span>
             </a>
 
             <!-- 구글 로그인 -->
-            <a href="${googleLoginUrl}" id="google-login-btn" class="login-btn google-btn">
+            <a th:href="${googleLoginUrl}" id="google-login-btn" class="login-btn google-btn">
                 <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" class="google-icon" />
                 <span data-i18n="login.google.button">구글로 로그인</span>
             </a>
@@ -59,7 +59,14 @@
             <!-- 회원가입 링크 -->
             <div class="signup-link">
                 <p data-i18n="login.signup.text">아직 계정이 없으신가요?</p>
-                <a th:href="@{/crm/signup}" class="signup-btn" data-i18n="login.signup.button">회원가입</a>
+                <a th:href="@{/signup}" class="signup-btn user-signup-btn" data-i18n="login.signup.button">회원가입</a>
+            </div>
+            
+            <!-- 업체 로그인 -->
+            <div class="company-login-link" style="margin-top: 20px; text-align: center; padding: 15px; background: #f8f9ff; border-radius: 8px;">
+                <a th:href="@{/crm/crm_login}" style="color: #667eea; text-decoration: none; font-weight: 500;">
+                    업체 회원이신가요? → 업체 로그인
+                </a>
             </div>
         </div>
     </div>
@@ -67,6 +74,36 @@
     <!-- 공통 JavaScript -->
     <script src="/resources/js/i18n.js"></script>
     <!-- Login 전용 JavaScript -->
+    <script>
+        document.getElementById('login-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('/api/user/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('로그인 성공!');
+                    window.location.href = result.redirectUrl || '/main';
+                } else {
+                    document.getElementById('email-error').textContent = result.message || '로그인에 실패했습니다.';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('email-error').textContent = '로그인 처리 중 오류가 발생했습니다.';
+            }
+        });
+    </script>
     <script src="/resources/js/login.js"></script>
     
         <!-- 푸터 -->

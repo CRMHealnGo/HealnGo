@@ -30,14 +30,15 @@
                 <p>즐겨찾기 기능을 사용하려면 로그인해주세요.</p>
                 <div class="login-actions">
                     <a th:href="@{/login}" class="login-btn">로그인</a>
-                    <a th:href="@{/crm/signup}" class="signup-btn">회원가입</a>
+                    <a th:href="@{/signup}" class="signup-btn">회원가입</a>
                 </div>
             </div>
         </div>
         
         <!-- 로그인한 사용자 즐겨찾기 목록 -->
-        <div th:if="${isLoggedIn}" id="favorites-content">
+        <div th:if="${isLoggedIn}" id="favorites-content" style="width: 100%;">
             <!-- JavaScript로 내용이 채워집니다 -->
+            <p style="text-align: center; color: #999;">로딩 중...</p>
         </div>
     </div>
 </div>
@@ -52,40 +53,45 @@
     </div>
 </div>
 
-<script src="/resources/crm/js/includeHTML.js"></script>
 <script src="/resources/js/favorite.js"></script>
-<div data-include="/common/footer.html"></div>
 
 <!-- 서버 데이터를 JavaScript로 전달 -->
-<script>
+<script th:inline="javascript">
     // 서버에서 전달된 데이터를 JavaScript에서 사용할 수 있도록 설정
-    // HTML에서는 JSP 문법을 사용할 수 없으므로 API 호출로 대체
     window.serverData = {
-        favorites: []
+        isLoggedIn: /*[[${isLoggedIn}]]*/ false,
+        totalCount: /*[[${totalCount}]]*/ 0,
+        favorites: /*[[${favorites}]]*/ []
     };
 </script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        includeHTML();
+        console.log('DOM loaded');
+        console.log('Server data:', window.serverData);
         
         // 서버 데이터 로드
         loadFavorites();
     });
     
     // 즐겨찾기 데이터 로드
-    async function loadFavorites() {
-        try {
-            const response = await fetch('/api/favorites');
-            if (response.ok) {
-                const favorites = await response.json();
+    function loadFavorites() {
+        console.log('loadFavorites called');
+        console.log('isLoggedIn:', window.serverData.isLoggedIn);
+        console.log('favorites:', window.serverData.favorites);
+        
+        // 서버에서 전달된 데이터 사용
+        if (window.serverData.isLoggedIn) {
+            const favorites = window.serverData.favorites;
+            if (favorites && favorites.length > 0) {
+                console.log('Rendering favorites:', favorites.length);
                 renderFavorites(favorites);
             } else {
+                console.log('No favorites, rendering empty state');
                 renderEmptyFavorites();
             }
-        } catch (error) {
-            console.error('즐겨찾기 데이터 로드 중 오류:', error);
-            renderEmptyFavorites();
+        } else {
+            console.log('User not logged in');
         }
     }
     
@@ -129,7 +135,7 @@
                 </div>
                 <div class="item-actions">
                     <button class="btn-detail" onclick="showDetail(${favorite.id})">상세보기</button>
-                    <button class="btn-remove" title="삭제">
+                    <button class="btn-remove" onclick="removeFavorite(${favorite.id})" title="삭제">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -156,8 +162,40 @@
             </div>
         `;
     }
+    
+    // 찜 삭제 함수
+    async function removeFavorite(itemId) {
+        try {
+            const response = await fetch(`/favorite/remove/${itemId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                // 페이지 새로고침
+                window.location.reload();
+            } else if (response.status === 401) {
+                alert('로그인이 필요한 서비스입니다.');
+                window.location.href = '/login';
+            } else {
+                alert('삭제에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('네트워크 오류가 발생했습니다.');
+        }
+    }
+    
+    // 상세보기 함수
+    function showDetail(itemId) {
+        // 상세 페이지로 이동
+        window.location.href = `/detail/${itemId}`;
+    }
 </script>
-    <!-- 푸터 -->
-    <div th:replace="~{common/footer :: footer}"></div>
+
+<!-- 푸터 -->
+<div th:replace="~{common/footer :: footer}"></div>
 </body>
 </html>

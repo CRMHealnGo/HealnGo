@@ -1,15 +1,17 @@
 package com.example.ApiRound.crm.minggzz;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 @RequestMapping("/company")
@@ -19,7 +21,19 @@ public class CompanyController {
      * 업체 메인페이지 (힝거 피부과)
      */
     @GetMapping("/dashboard")
-    public String company(Model model) {
+    public String company(HttpSession session, Model model) {
+        // 세션 체크: 업체로 로그인한 사용자만 접근 가능
+        Integer companyId = (Integer) session.getAttribute("companyId");
+        String userType = (String) session.getAttribute("userType");
+        
+        if (companyId == null || !"company".equals(userType)) {
+            return "redirect:/crm/crm_login";
+        }
+        
+        // 업체 정보 추가
+        model.addAttribute("companyId", companyId);
+        model.addAttribute("companyName", session.getAttribute("companyName"));
+        model.addAttribute("companyEmail", session.getAttribute("companyEmail"));
         // 업체 대시보드 데이터 (실제로는 서비스에서 가져와야 함)
         Map<String, Object> companyStats = new HashMap<>();
         companyStats.put("foreignTouristIncrease", "15% 증가");
