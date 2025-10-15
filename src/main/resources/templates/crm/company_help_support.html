@@ -12,29 +12,24 @@
 <body>
     <!-- 사이드바 -->
     <div th:replace="common/company_sidebar :: company_sidebar"></div>
-    
+
     <!-- 메인 콘텐츠 -->
     <div class="main-content">
+
+
         <!-- 상단 헤더 -->
         <div class="help-top-header">
+            <!-- 헤더 -->
+            <div th:replace="common/company_header :: company_header"></div>
+
             <div class="help-header-content">
                 <h1 class="help-page-title">
                     <i class="fas fa-headset"></i>
                     도움말 / 고객센터
                 </h1>
-                <div class="help-header-right">
-                    <button class="notification-btn">
-                        <i class="fas fa-bell"></i>
-                    </button>
-                    <div class="profile-section">
-                        <div class="profile-img">힝</div>
-                        <span>힝거 피부과</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                </div>
             </div>
         </div>
-        
+
         <!-- 탭 네비게이션 -->
         <div class="help-tabs">
             <ul class="tab-list">
