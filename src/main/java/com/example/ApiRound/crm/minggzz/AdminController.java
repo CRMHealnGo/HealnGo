@@ -63,7 +63,9 @@ public class AdminController {
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestParam(value = "search", required = false) String search,
-            Model model) {
+            Model model, HttpSession session) {
+
+        model.addAttribute("managerName", session.getAttribute("managerName"));
 
         // 사용자 목록 데이터 (실제로는 서비스에서 가져와야 함)
         List<Map<String, Object>> users = getUsers(page, size, search);
@@ -89,8 +91,10 @@ public class AdminController {
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestParam(value = "search", required = false) String search,
-            Model model) {
-        
+            Model model, HttpSession session) {
+
+        model.addAttribute("managerName", session.getAttribute("managerName"));
+
         // 예약 목록 데이터 (실제로는 서비스에서 가져와야 함)
         List<Map<String, Object>> reservations = getReservations(page, size, search);
         model.addAttribute("reservations", reservations);
@@ -117,8 +121,10 @@ public class AdminController {
             @RequestParam(value = "search", required = false) String search,
             @RequestParam(value = "type", required = false) String type,
             @RequestParam(value = "status", required = false) String status,
-            Model model) {
-        
+            Model model, HttpSession session) {
+
+        model.addAttribute("managerName", session.getAttribute("managerName"));
+
         // 문의/신고 목록 데이터 (실제로는 서비스에서 가져와야 함)
         List<Map<String, Object>> reports = getInquiryReports();
         model.addAttribute("reports", reports);
@@ -142,12 +148,13 @@ public class AdminController {
      * 문의/신고 상세 페이지 (관리자용)
      */
     @GetMapping("/inquiry-report/detail/{id}")
-    public String inquiryReportDetail(@PathVariable("id") Long id, Model model) {
+    public String inquiryReportDetail(@PathVariable("id") Long id, Model model, HttpSession session) {
         // 문의/신고 상세 데이터 (실제로는 서비스에서 가져와야 함)
         Map<String, Object> report = getInquiryReportById(id);
         model.addAttribute("report", report);
         model.addAttribute("sidebarType", "admin");
-        
+        model.addAttribute("managerName", session.getAttribute("managerName"));
+
         return "crm/inquiry_detail";
     }
 
@@ -348,7 +355,10 @@ public class AdminController {
      * 공지사항 & 알림 관리 페이지
      */
     @GetMapping("/notice-notify")
-    public String noticeNotify(Model model) {
+    public String noticeNotify(Model model, HttpSession session) {
+
+        model.addAttribute("managerName", session.getAttribute("managerName"));
+
         // 공지사항 목록 (실제로는 서비스에서 가져와야 함)
         List<Map<String, Object>> notices = getNotices();
         model.addAttribute("notices", notices);

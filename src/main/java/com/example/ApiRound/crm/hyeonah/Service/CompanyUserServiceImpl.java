@@ -43,6 +43,7 @@ public class CompanyUserServiceImpl implements CompanyUserService {
                 .bizNo(dto.getBizNo())
                 .phone(dto.getPhone())
                 .address(dto.getAddress())
+                .category(dto.getCategory())
                 .isActive(true)
                 .build();
         
