@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>이벤트 등록 - 힝거 피부과</title>
-    
+
     <!-- CSS 파일들 -->
     <link rel="stylesheet" href="/crm/css/company_sidebar.css">
     <link rel="stylesheet" href="/crm/css/company_header.css">
@@ -12,45 +12,47 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <div class="dashboard-container">
-        <!-- 사이드바 -->
-        <div th:replace="common/company_sidebar :: company_sidebar"></div>
-        
+<div class="dashboard-container">
+    <!-- 사이드바 -->
+    <div th:replace="common/company_sidebar :: company_sidebar"></div>
+
+    <!-- 메인 콘텐츠 -->
+    <div class="main-content">
+        <!-- 헤더 -->
+        <div th:replace="common/company_header :: company_header"></div>
+
         <!-- 메인 콘텐츠 -->
-        <div class="main-content">
-            <!-- 헤더 -->
-            <div th:replace="common/company_header :: company_header"></div>
-        
-            <!-- 메인 콘텐츠 -->
-            <div class="event-main-content">
-                <div class="event-page-header">
-                    <h2 class="event-page-title">의료 서비스 등록</h2>
-                    <button class="event-approval-btn">서비스 등록</button>
-                </div>
-                
+        <div class="event-main-content">
+            <div class="event-page-header">
+                <h2 class="event-page-title">의료 서비스 등록</h2>
+                <button class="event-approval-btn">서비스 등록</button>
+            </div>
+
+            <!-- 의료 서비스 등록 폼 -->
+            <form id="medicalServiceForm" action="/api/medical-services/item/1" method="POST">
                 <!-- 이벤트 정보 섹션 -->
                 <div class="event-form-section">
                     <h3 class="event-section-title">서비스 정보</h3>
-                    
+
                     <!-- 이벤트 제목 -->
                     <div class="event-form-group">
                         <label class="event-form-label">서비스 제목</label>
-                        <input type="text" class="event-form-input" placeholder="예: 사각턱보톡스 리즈톡스 50유닛 / 자연유착 쌍꺼풀" maxlength="100">
+                        <input type="text" name="name" class="event-form-input" placeholder="예: 사각턱보톡스 리즈톡스 50유닛 / 자연유착 쌍꺼풀" maxlength="100" required>
                         <div class="event-form-note">비용을 입력하지 마세요. & - , . _ 를 제외한 다른 특수문자는 입력하지 마세요.</div>
                         <div class="event-char-counter">0 / 100</div>
                     </div>
-                    
+
                     <!-- 이벤트 기간 -->
                     <div class="event-form-group">
                         <label class="event-form-label">서비스 기간</label>
                         <div class="event-date-group">
                             <div class="event-date-input">
-                                <input type="date" class="event-form-input">
+                                <input type="date" name="startDate" class="event-form-input">
                                 <i class="fas fa-calendar event-date-icon"></i>
                             </div>
                             <span>~</span>
                             <div class="event-date-input">
-                                <input type="date" class="event-form-input">
+                                <input type="date" name="endDate" class="event-form-input">
                                 <i class="fas fa-calendar event-date-icon"></i>
                             </div>
                             <div class="event-checkbox-group">
@@ -59,7 +61,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- 대상 성별 -->
                     <div class="event-form-group">
                         <label class="event-form-label">대상 성별</label>
@@ -78,40 +80,41 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- 자유 태그 -->
                     <div class="event-form-group">
                         <label class="event-form-label">자유 태그</label>
                         <div class="event-tags-container" id="freeTagsContainer">
                             <input type="text" class="event-tag-input" placeholder="단어를 입력하고 엔터키를 누르세요" id="freeTagInput">
                         </div>
+                        <input type="hidden" name="tags" id="tagsInput">
                         <div class="event-form-note">단어를 입력하시고 엔터키를 누르시면 자유 태그로 등록됩니다. 최대 5개까지 입력 가능합니다. 의료 서비스와 관련 없는 태그는 통보 없이 삭제될 수 있습니다.</div>
                     </div>
                 </div>
-                
+
                 <!-- 이벤트 분류 섹션 -->
                 <div class="event-form-section">
                     <h3 class="event-section-title">서비스 분류</h3>
-                    
+
                     <!-- 대상 국가 -->
                     <div class="event-form-group">
                         <label class="event-form-label">대상 국가</label>
                         <div class="event-radio-group">
                             <div class="event-radio-item">
-                                <input type="radio" class="event-radio" name="targetCountry" value="korea" checked>
+                                <input type="radio" class="event-radio" name="targetCountry" value="KOR" checked>
                                 <label class="event-radio-label">한국 (한국어)</label>
                             </div>
                             <div class="event-radio-item">
-                                <input type="radio" class="event-radio" name="targetCountry" value="japan">
+                                <input type="radio" class="event-radio" name="targetCountry" value="JPN">
                                 <label class="event-radio-label">일본 (일본어)</label>
                             </div>
                             <div class="event-radio-item">
-                                <input type="radio" class="event-radio" name="targetCountry" value="other">
+                                <input type="radio" class="event-radio" name="targetCountry" value="OTHER">
                                 <label class="event-radio-label">그 외 국가 (영어)</label>
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- 시술명 태그 -->
                     <div class="event-form-group">
                         <label class="event-form-label">시술명 태그</label>
@@ -126,6 +129,7 @@
                             </div>
                             <input type="text" class="event-tag-input" placeholder="시술명을 입력하고 엔터키를 누르세요" id="procedureTagInput">
                         </div>
+                        <input type="hidden" name="serviceCategory" id="serviceCategoryInput">
                         <div class="event-form-note">최대 8개까지 선택할 수 있어요. 의료 서비스와 관련 없는 태그는 통보 없이 삭제될 수 있어요.</div>
                         <ul style="margin-top: 10px; padding-left: 20px; font-size: 12px; color: #7f8c8d;">
                             <li>앱 결제 기능이 있는 경우, 결제 금액을 입력해주세요.</li>
@@ -133,37 +137,37 @@
                         </ul>
                     </div>
                 </div>
-                
+
                 <!-- 가격 정보 섹션 -->
                 <div class="event-form-section">
                     <h3 class="event-section-title">가격 정보</h3>
-                    
+
                     <!-- 이벤트 가격 -->
                     <div class="event-form-group">
                         <label class="event-form-label">서비스 가격</label>
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <input type="number" class="event-form-input" placeholder="가격을 입력하세요" id="eventPrice" style="flex: 1;">
+                            <input type="number" name="price" class="event-form-input" placeholder="가격을 입력하세요" id="eventPrice" style="flex: 1;" required>
                             <span style="font-size: 16px; color: #2c3e50; font-weight: 600;">원</span>
                         </div>
                         <div class="event-form-note">서비스 가격을 숫자로만 입력해주세요. (예: 290000)</div>
                     </div>
-                    
+
                     <!-- VAT -->
                     <div class="event-form-group">
                         <label class="event-form-label">VAT</label>
                         <div class="event-radio-group">
                             <div class="event-radio-item">
-                                <input type="radio" class="event-radio" name="vat" value="included" checked>
+                                <input type="radio" class="event-radio" name="vatIncluded" value="true" checked>
                                 <label class="event-radio-label">포함</label>
                             </div>
                             <div class="event-radio-item">
-                                <input type="radio" class="event-radio" name="vat" value="notApplicable">
+                                <input type="radio" class="event-radio" name="vatIncluded" value="false">
                                 <label class="event-radio-label">비대상</label>
                             </div>
                         </div>
                         <div class="event-form-note">VAT가 부과되는 시술은 VAT가 포함된 가격으로 입력해야 합니다.</div>
                     </div>
-                    
+
                     <!-- 마취비 -->
                     <div class="event-form-group">
                         <label class="event-form-label">마취비</label>
@@ -179,7 +183,7 @@
                         </div>
                         <div class="event-form-note">[없음]은 추가비용이 드는 수면마취가 필수적이지 않은 경우에만 가능합니다. 이를 어길시 패널티가 적용될 수 있습니다.</div>
                     </div>
-                    
+
                     <!-- 사후관리비 -->
                     <div class="event-form-group">
                         <label class="event-form-label">사후관리비</label>
@@ -195,14 +199,35 @@
                         </div>
                         <div class="event-form-note">[없음]은 사후관리가 필수적이지 않은 경우에만 가능합니다. 이를 어길시 패널티가 적용될 수 있습니다.</div>
                     </div>
+
+                    <!-- 환불 가능 여부 -->
+                    <div class="event-form-group">
+                        <label class="event-form-label">환불 가능 여부</label>
+                        <div class="event-radio-group">
+                            <div class="event-radio-item">
+                                <input type="radio" class="event-radio" name="isRefundable" value="true" checked>
+                                <label class="event-radio-label">환불 가능</label>
+                            </div>
+                            <div class="event-radio-item">
+                                <input type="radio" class="event-radio" name="isRefundable" value="false">
+                                <label class="event-radio-label">환불 불가</label>
+                            </div>
+                        </div>
+                        <div class="event-form-note">환불 가능 여부를 선택해주세요.</div>
+                    </div>
+
+                    <!-- 숨겨진 필드들 -->
+                    <input type="hidden" name="currency" value="KRW">
+                    <input type="hidden" name="description" value="">
                 </div>
-            </div>
+            </form>
         </div>
     </div>
+</div>
 
-    <!-- JavaScript -->
-    <script src="/crm/js/company_sidebar.js"></script>
-    <script src="/crm/js/company_header.js"></script>
-    <script src="/crm/js/event_registration.js"></script>
+<!-- JavaScript -->
+<script src="/crm/js/company_sidebar.js"></script>
+<script src="/crm/js/company_header.js"></script>
+<script src="/crm/js/event_registration.js"></script>
 </body>
 </html>
