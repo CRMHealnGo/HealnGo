@@ -135,6 +135,20 @@
                         <input type="text" class="address" id="address" placeholder="서울시 강남구...">
                     </div>
                     
+                    <div class="form-group company-only">
+                        <label>카테고리 (Category)</label>
+                        <select class="category-select" id="category" required>
+                            <option value="">카테고리를 선택하세요</option>
+                            <option value="성형외과">성형외과</option>
+                            <option value="피부과">피부과</option>
+                            <option value="치과">치과</option>
+                            <option value="약국">약국</option>
+                            <option value="한의학">한의학</option>
+                            <option value="마사지">마사지</option>
+                            <option value="왁싱">왁싱</option>
+                        </select>
+                    </div>
+                    
                     <div class="form-actions">
                         <button type="button" class="btn-previous" onclick="previousStep()"><i class="fas fa-arrow-left"></i> Previous</button>
                         <button type="button" class="btn-next" onclick="submitSignup()">회원가입 완료 <i class="fas fa-check"></i></button>

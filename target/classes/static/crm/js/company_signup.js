@@ -9,6 +9,7 @@ let signupData = {
     companyName: '',
     companyNumber: '',
     address: '',
+    category: '',
     // 관리자용
     managerName: '',
     adminInviteCode: ''
@@ -295,6 +296,7 @@ function saveCurrentStepData() {
             signupData.companyName = document.getElementById('companyName').value;
             signupData.companyNumber = document.getElementById('companyNumber').value;
             signupData.address = document.getElementById('address').value;
+            signupData.category = document.getElementById('category').value;
         } else {
             signupData.managerName = document.getElementById('managerName').value;
             signupData.adminInviteCode = document.getElementById('adminInviteCode').value;
@@ -351,6 +353,11 @@ async function submitSignup() {
             alert('사업자번호를 입력해주세요.');
             return;
         }
+        
+        if (!signupData.category) {
+            alert('카테고리를 선택해주세요.');
+            return;
+        }
     } else if (signupData.userType === 'manager') {
         if (!signupData.managerName) {
             alert('이름을 입력해주세요.');
@@ -376,6 +383,7 @@ async function submitSignup() {
         requestData.companyName = signupData.companyName;
         requestData.bizNo = signupData.companyNumber;
         requestData.address = signupData.address || null;
+        requestData.category = signupData.category;
     } else {
         requestData.name = signupData.managerName;
         requestData.inviteCode = signupData.adminInviteCode;
