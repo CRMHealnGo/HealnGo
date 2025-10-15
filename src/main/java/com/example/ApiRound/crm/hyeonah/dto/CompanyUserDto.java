@@ -15,8 +15,15 @@ public class CompanyUserDto {
     private String password;
     private String companyName;
     private String bizNo;
+    private String representative;
+    private String mainPhone;
     private String phone;
+    private String fax;
+    private String postcode;
     private String address;
+    private String detailAddress;
     private String category;
+    private String companyIntroduction;
+    private String website;
 }
 
