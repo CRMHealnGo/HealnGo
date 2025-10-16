@@ -26,7 +26,14 @@ public interface MediServiceRepository extends JpaRepository<MediServiceEntity, 
     
     // Item ID로 의료 서비스 조회 (삭제되지 않은 것만, 내림차순)
     @Query("SELECT m FROM MediServiceEntity m " +
-            "WHERE m.item.id = :itemId AND m.deletedAt IS NULL " +
-            "ORDER BY m.serviceId DESC")
+           "WHERE m.item.id = :itemId AND m.deletedAt IS NULL " +
+           "ORDER BY m.serviceId DESC")
     List<MediServiceEntity> findAllByItem_IdOrderByServiceIdDesc(@Param("itemId") Long itemId);
+    
+    // 회사별 활성 의료 서비스 개수 조회
+    @Query("SELECT COUNT(m) FROM MediServiceEntity m " +
+           "JOIN m.item i " +
+           "JOIN i.ownerCompany c " +
+           "WHERE c.companyId = :companyId AND m.deletedAt IS NULL")
+    int countActiveServicesByCompanyId(@Param("companyId") Integer companyId);
 }

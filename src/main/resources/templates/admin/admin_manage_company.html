@@ -33,22 +33,18 @@
                     <div class="stats-cards">
                         <div class="stat-card">
                             <div class="stat-number" th:text="${totalCompanies}">0</div>
-                            <div class="stat-change positive">+12</div>
                             <div class="stat-label">전체 업체</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-number" th:text="${newThisMonth}">0</div>
-                            <div class="stat-change positive">+3</div>
                             <div class="stat-label">이번달 신규</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-number" th:text="${reportsReceived}">0</div>
-                            <div class="stat-change positive">+1</div>
                             <div class="stat-label">신고 접수</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-number" th:text="${underSanction}">0</div>
-                            <div class="stat-change neutral">0</div>
                             <div class="stat-label">제재 중</div>
                         </div>
                     </div>
@@ -72,12 +68,36 @@
                         
                         <!-- 필터 탭 -->
                         <div class="filter-tabs">
-                            <button class="filter-tab active">전체</button>
-                            <button class="filter-tab">정상</button>
-                            <button class="filter-tab">신고 접수</button>
-                            <button class="filter-tab">제재중</button>
-                            <button class="filter-tab">휴먼</button>
-                            <button class="filter-tab">입점관리</button>
+                            <button class="filter-tab" 
+                                    th:classappend="${status == null or status == ''} ? 'active' : ''"
+                                    onclick="location.href='/admin/companies'">
+                                전체
+                            </button>
+                            <button class="filter-tab" 
+                                    th:classappend="${status == 'APPROVED'} ? 'active' : ''"
+                                    onclick="location.href='/admin/companies?status=APPROVED'">
+                                정상
+                            </button>
+                            <button class="filter-tab" 
+                                    th:classappend="${status == 'REPORTED'} ? 'active' : ''"
+                                    onclick="location.href='/admin/companies?status=REPORTED'">
+                                신고 접수
+                            </button>
+                            <button class="filter-tab" 
+                                    th:classappend="${status == 'SUSPENDED'} ? 'active' : ''"
+                                    onclick="location.href='/admin/companies?status=SUSPENDED'">
+                                제재중
+                            </button>
+                            <button class="filter-tab" 
+                                    th:classappend="${status == 'DORMANT'} ? 'active' : ''"
+                                    onclick="location.href='/admin/companies?status=DORMANT'">
+                                휴먼
+                            </button>
+                            <button class="filter-tab" 
+                                    th:classappend="${status == 'PENDING'} ? 'active' : ''"
+                                    onclick="location.href='/admin/companies?status=PENDING'">
+                                입점관리
+                            </button>
                         </div>
                         
                         <!-- 업체 리스트 -->
@@ -117,21 +137,38 @@
                                         <span class="review-count">(0)</span>
                                     </div>
                                 </div>
-                                <div class="company-data">
-                                    <div class="data-header">이 업체의 Data</div>
-                                    <div class="data-items">
+                                <div class="company-data-section">
+                                    <div class="company-data">
+                                        <div class="data-header">이 업체의 Data</div>
+                                        <div class="data-items">
                                         <div class="data-item">
                                             <span class="data-label">상품</span>
-                                            <span class="data-value">0</span>
+                                            <span class="data-value" 
+                                                  th:if="${company.name != null and !company.name.contains('(임시)')}"
+                                                  th:text="${#vars['serviceCount_' + company.ownerCompany.companyId]}">0</span>
+                                            <span class="data-value" 
+                                                  th:if="${company.name != null and company.name.contains('(임시)')}">-</span>
                                         </div>
-                                        <div class="data-item">
-                                            <span class="data-label">리뷰</span>
-                                            <span class="data-value">0</span>
+                                            <div class="data-item">
+                                                <span class="data-label">리뷰</span>
+                                                <span class="data-value">0</span>
+                                            </div>
+                                        </div>
+                                        <div class="sales-info">
+                                            <span class="sales-amount">0 만원</span>
+                                            <span class="sales-label">이번달 매출</span>
                                         </div>
                                     </div>
-                                    <div class="sales-info">
-                                        <span class="sales-amount">0 만원</span>
-                                        <span class="sales-label">이번달 매출</span>
+                                    
+                                    <!-- 승인 버튼 (PENDING 상태일 때만 표시) -->
+                                    <div class="approval-actions" th:if="${company.ownerCompany.approvalStatus == 'PENDING'}">
+                                        <button class="approve-btn" 
+                                                th:data-company-id="${company.ownerCompany.companyId}"
+                                                th:data-company-name="${company.name}"
+                                                onclick="approveCompany(this)">
+                                            <i class="fas fa-check"></i>
+                                            입점 승인
+                                        </button>
                                     </div>
                                 </div>
                             </div>

@@ -10,12 +10,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
 @Slf4j
 @Controller
@@ -65,6 +67,16 @@ public class AdminManageController {
             
             model.addAttribute("companies", companies);
             
+            // 각 업체별 의료 서비스 개수 조회
+            for (ItemList company : companies) {
+                Integer companyId = company.getOwnerCompany() != null ? company.getOwnerCompany().getCompanyId() : null;
+                if (companyId != null) {
+                    int serviceCount = adminManageService.getMedicalServiceCount(companyId);
+                    model.addAttribute("serviceCount_" + companyId, serviceCount);
+                    log.info("업체 {}의 의료 서비스 개수: {}", companyId, serviceCount);
+                }
+            }
+            
             // 검색 및 필터 정보
             model.addAttribute("search", search);
             model.addAttribute("status", status);
@@ -110,6 +122,48 @@ public class AdminManageController {
                 "error", "서비스 조회 중 오류가 발생했습니다.",
                 "message", e.getMessage()
             ));
+        }
+    }
+    
+    /**
+     * 업체 승인 처리 API
+     */
+    @PostMapping("/api/companies/{companyId}/approve")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> approveCompany(@PathVariable Integer companyId) {
+        log.info("====== AdminManageController.approveCompany 호출 ======");
+        log.info("승인할 업체 ID: {}", companyId);
+        
+        try {
+            boolean success = adminManageService.approveCompany(companyId);
+            
+            Map<String, Object> response = new HashMap<>();
+            
+            if (success) {
+                response.put("success", true);
+                response.put("message", "업체가 성공적으로 승인되었습니다.");
+                response.put("companyId", companyId);
+                log.info("✅ 업체 승인 API 성공: {}", companyId);
+                
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("success", false);
+                response.put("message", "업체 승인에 실패했습니다. 업체를 찾을 수 없거나 이미 승인되었을 수 있습니다.");
+                response.put("companyId", companyId);
+                log.warn("⚠️ 업체 승인 API 실패: {}", companyId);
+                
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+        } catch (Exception e) {
+            log.error("❌ 업체 승인 API 오류 발생: ", e);
+            
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "서버 오류가 발생했습니다: " + e.getMessage());
+            errorResponse.put("companyId", companyId);
+            
+            return ResponseEntity.status(500).body(errorResponse);
         }
     }
 }

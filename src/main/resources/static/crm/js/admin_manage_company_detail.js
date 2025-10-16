@@ -13,6 +13,12 @@ let currentFilter = 'all';
 function selectCompany(element) {
     console.log('===== 업체 선택 =====');
     
+    // element가 null인지 확인
+    if (!element) {
+        console.error('업체 요소가 null입니다.');
+        return;
+    }
+    
     // 이전 선택 해제
     document.querySelectorAll('.company-item').forEach(item => {
         item.classList.remove('selected');
@@ -377,6 +383,188 @@ function formatDate(dateString) {
     
     const date = new Date(dateString);
     return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
+}
+
+// ========================================
+// 업체 승인 처리
+// ========================================
+function approveCompany(button) {
+    const companyId = button.getAttribute('data-company-id');
+    const companyName = button.getAttribute('data-company-name');
+    
+    console.log('===== 업체 승인 요청 =====');
+    console.log('업체 ID:', companyId);
+    console.log('업체명:', companyName);
+    
+    // 확인 대화상자
+    if (!confirm(`${companyName} 업체를 승인하시겠습니까?\n\n승인 후에는 되돌릴 수 없습니다.`)) {
+        console.log('승인 취소됨');
+        return;
+    }
+    
+    // 버튼 비활성화
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 승인 중...';
+    
+    // API 호출
+    fetch(`/admin/api/companies/${companyId}/approve`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('승인 응답:', data);
+        
+        if (data.success) {
+            // 성공 메시지 표시
+            showApprovalSuccess(companyName);
+            
+            // 페이지 새로고침 (승인된 업체는 PENDING 목록에서 사라짐)
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+            
+        } else {
+            // 실패 메시지 표시
+            showApprovalError(data.message || '승인에 실패했습니다.');
+            
+            // 버튼 복원
+            button.disabled = false;
+            button.innerHTML = '<i class="fas fa-check"></i> 입점 승인';
+        }
+    })
+    .catch(error => {
+        console.error('승인 요청 오류:', error);
+        showApprovalError('서버와의 통신 중 오류가 발생했습니다.');
+        
+        // 버튼 복원
+        button.disabled = false;
+        button.innerHTML = '<i class="fas fa-check"></i> 입점 승인';
+    });
+}
+
+// 승인 성공 메시지 표시
+function showApprovalSuccess(companyName) {
+    const alertElement = document.createElement('div');
+    alertElement.className = 'approval-success-alert';
+    alertElement.innerHTML = `
+        <div class="alert-content">
+            <i class="fas fa-check-circle"></i>
+            <div class="alert-text">
+                <h4>승인 완료!</h4>
+                <p>${companyName} 업체가 성공적으로 승인되었습니다.</p>
+            </div>
+        </div>
+    `;
+    
+    // 스타일 적용
+    alertElement.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #4caf50, #45a049);
+        color: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3);
+        z-index: 10000;
+        animation: slideInRight 0.5s ease;
+        max-width: 400px;
+    `;
+    
+    // CSS 애니메이션 추가
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .alert-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .alert-content i {
+            font-size: 24px;
+        }
+        .alert-text h4 {
+            margin: 0 0 5px 0;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .alert-text p {
+            margin: 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+    `;
+    document.head.appendChild(style);
+    
+    document.body.appendChild(alertElement);
+    
+    // 3초 후 자동 제거
+    setTimeout(() => {
+        alertElement.style.animation = 'slideOutRight 0.5s ease';
+        setTimeout(() => {
+            if (alertElement.parentNode) {
+                alertElement.remove();
+            }
+        }, 500);
+    }, 3000);
+    
+    // 슬라이드아웃 애니메이션 추가
+    const slideOutStyle = document.createElement('style');
+    slideOutStyle.textContent = `
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(slideOutStyle);
+}
+
+// 승인 실패 메시지 표시
+function showApprovalError(message) {
+    const alertElement = document.createElement('div');
+    alertElement.className = 'approval-error-alert';
+    alertElement.innerHTML = `
+        <div class="alert-content">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div class="alert-text">
+                <h4>승인 실패</h4>
+                <p>${message}</p>
+            </div>
+        </div>
+    `;
+    
+    // 스타일 적용
+    alertElement.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #f44336, #d32f2f);
+        color: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 8px 25px rgba(244, 67, 54, 0.3);
+        z-index: 10000;
+        animation: slideInRight 0.5s ease;
+        max-width: 400px;
+    `;
+    
+    document.body.appendChild(alertElement);
+    
+    // 5초 후 자동 제거
+    setTimeout(() => {
+        alertElement.style.animation = 'slideOutRight 0.5s ease';
+        setTimeout(() => {
+            if (alertElement.parentNode) {
+                alertElement.remove();
+            }
+        }, 500);
+    }, 5000);
 }
 
 console.log('admin_manage_company_detail.js 로드 완료');
