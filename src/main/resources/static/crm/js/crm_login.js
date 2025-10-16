@@ -21,7 +21,16 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
                 window.location.href = result.redirectUrl || '/crm/company';
             }, 1000);
         } else {
-            showAlert(result.message || '로그인에 실패했습니다.', 'error');
+            // 승인 상태별 처리
+            if (result.status === 'PENDING') {
+                showApprovalModal('승인 대기중입니다', result.detail || '관리자의 승인을 기다리고 있습니다. 승인 완료 후 로그인이 가능합니다.', 'pending');
+            } else if (result.status === 'REJECTED') {
+                showApprovalModal('승인이 거부되었습니다', result.detail || '관리자에게 문의하시기 바랍니다.', 'rejected');
+            } else if (result.status === 'INACTIVE') {
+                showApprovalModal('비활성화된 계정입니다', result.detail || '관리자에게 문의하시기 바랍니다.', 'inactive');
+            } else {
+                showAlert(result.message || '로그인에 실패했습니다.', 'error');
+            }
         }
     } catch (error) {
         console.error('Error:', error);
@@ -37,6 +46,45 @@ function showAlert(message, type) {
     setTimeout(() => {
         alertBox.innerHTML = '';
     }, 5000);
+}
+
+// 승인 상태 모달 표시 함수
+function showApprovalModal(title, message, status) {
+    const modal = document.getElementById('approvalModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalMessage = document.getElementById('modalMessage');
+    const modalIcon = document.getElementById('modalIcon');
+    
+    modalTitle.textContent = title;
+    modalMessage.textContent = message;
+    
+    // 상태에 따른 아이콘 변경
+    if (status === 'pending') {
+        modalIcon.innerHTML = '<i class="fas fa-clock"></i>';
+        modalIcon.className = 'modal-icon status-pending';
+    } else if (status === 'rejected') {
+        modalIcon.innerHTML = '<i class="fas fa-times-circle"></i>';
+        modalIcon.className = 'modal-icon status-rejected';
+    } else if (status === 'inactive') {
+        modalIcon.innerHTML = '<i class="fas fa-ban"></i>';
+        modalIcon.className = 'modal-icon status-inactive';
+    }
+    
+    modal.style.display = 'flex';
+}
+
+// 모달 닫기 함수
+function closeApprovalModal() {
+    const modal = document.getElementById('approvalModal');
+    modal.style.display = 'none';
+}
+
+// 모달 외부 클릭 시 닫기
+window.onclick = function(event) {
+    const modal = document.getElementById('approvalModal');
+    if (event.target === modal) {
+        closeApprovalModal();
+    }
 }
 
 // URL 파라미터 확인
