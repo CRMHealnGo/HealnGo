@@ -173,7 +173,7 @@
                     .join('');
                 const priceText = (s.price != null ? s.price : '') + (s.currency ? ' ' + s.currency : '');
                 return `
-                <div class="service-item">
+                <div class="service-item" onclick="goToServiceDetail(${s.serviceId})" style="cursor: pointer;">
                     <div class="service-image">이미지</div>
                     <div class="service-content">
                         <h3 class="service-title">${s.name || '서비스'}</h3>
@@ -209,6 +209,13 @@
                 <button class="consultation-btn">병원 상담 신청</button>
             </div>
         `;
+    }
+
+    // ===== 서비스 상세 페이지로 이동 =====
+    function goToServiceDetail(serviceId) {
+        if (serviceId) {
+            window.location.href = `/service/detail/${serviceId}`;
+        }
     }
 
     // ===== 페이지 변경(더미 버튼용) =====

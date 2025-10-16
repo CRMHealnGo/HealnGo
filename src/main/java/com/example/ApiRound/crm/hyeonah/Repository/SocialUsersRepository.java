@@ -20,6 +20,10 @@ public interface SocialUsersRepository extends JpaRepository<SocialUsers, Intege
 
     Optional<SocialUsers> findByEmailAndIsDeleted(String email, Boolean isDeleted);
 
+    // 통계용 카운트
+    long countByIsDeletedFalse();
+    long countByStatusAndIsDeletedFalse(String status);
+
     // admin 사용자 관리 메서드
     // 목록/페이지네이션
     Page<SocialUsers> findByIsDeletedFalse(Pageable pageable);
@@ -37,7 +41,7 @@ public interface SocialUsersRepository extends JpaRepository<SocialUsers, Intege
 
     // 상태별 조회
     Page<SocialUsers> findByStatusAndIsDeletedFalse(String status, Pageable pageable);
-    
+
     // 검색 + 상태 필터
     @Query("""
             SELECT u FROM SocialUsers u
@@ -54,3 +58,4 @@ public interface SocialUsersRepository extends JpaRepository<SocialUsers, Intege
     Optional<SocialUsers> findByUserIdAndIsDeletedFalse(Integer userId);
 
 }
+

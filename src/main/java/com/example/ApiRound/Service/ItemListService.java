@@ -1,10 +1,12 @@
 package com.example.ApiRound.Service;
 
-import com.example.ApiRound.entity.ItemList;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import java.util.List;
+import com.example.ApiRound.entity.ItemList;
 
 public interface ItemListService {
 
@@ -21,6 +23,7 @@ public interface ItemListService {
 
     // ===== 단건/전체 =====
     ItemList getListById(Long id);
+    Optional<ItemList> findById(Long id);
     List<ItemList> getAllList();
 
     // ===== 등록/저장 =====

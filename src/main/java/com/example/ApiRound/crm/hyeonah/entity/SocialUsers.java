@@ -23,47 +23,51 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class SocialUsers {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private Integer userId;
-    
+
     @Column(name = "email", length = 190, unique = true, nullable = false)
     private String email;
-    
+
     @Column(name = "password_hash", length = 255)
     private String passwordHash;
-    
+
     @Column(name = "name", length = 100)
     private String name;
-    
+
     @Column(name = "phone", length = 30)
     private String phone;
-    
+
     @Lob
     @Column(name = "avatar_blob", columnDefinition = "LONGBLOB")
     private byte[] avatarBlob;
-    
+
     @Column(name = "avatar_mime", length = 50)
     private String avatarMime;
-    
+
     @Column(name = "avatar_updated_at")
     private LocalDateTime avatarUpdatedAt;
-    
+
     @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
-    
+
     @Column(name = "is_deleted", columnDefinition = "TINYINT(1) DEFAULT 0")
     @Builder.Default
     private Boolean isDeleted = false;
-    
+
+    @Column(name = "status", length = 20)
+    @Builder.Default
+    private String status = "ACTIVE"; // ACTIVE, SUSPENDED, INACTIVE
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
-    
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-    
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
@@ -72,7 +76,7 @@ public class SocialUsers {
             this.isDeleted = false;
         }
     }
-    
+
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
