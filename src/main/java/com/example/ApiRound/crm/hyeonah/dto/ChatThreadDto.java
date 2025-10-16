@@ -1,11 +1,11 @@
 package com.example.ApiRound.crm.hyeonah.dto;
 
+import java.time.LocalDateTime;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -17,8 +17,9 @@ public class ChatThreadDto {
     private Integer companyId;
     private Long itemId;
     private String title;
-    private boolean isMuted;
+    private boolean muted;
+    private String status; // NEW, IN_PROGRESS, COMPLETED
     private LocalDateTime lastMsgAt;
-    private LocalDateTime createAt;
+    private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

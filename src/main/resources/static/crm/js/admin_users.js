@@ -91,6 +91,7 @@ function performSearch() {
 function applyFilters() {
     const statusFilter = document.getElementById('statusFilter');
     const sortBy = document.getElementById('sortBy');
+    const sortDir = document.getElementById('sortDir');
     const searchInput = document.getElementById('searchInput');
     
     const url = new URL(window.location);
@@ -119,9 +120,22 @@ function applyFilters() {
         url.searchParams.delete('sort');
     }
     
+    // 정렬 방향
+    const dir = sortDir ? sortDir.value : '';
+    if (dir) {
+        url.searchParams.set('dir', dir);
+    } else {
+        url.searchParams.delete('dir');
+    }
+    
     url.searchParams.set('page', '1'); // 필터 적용 시 첫 페이지로 이동
     
     window.location.href = url.toString();
+}
+
+// 필터 초기화
+function clearFilters() {
+    window.location.href = '/admin/users';
 }
 
 // 페이지 이동
@@ -141,9 +155,9 @@ function selectAll() {
 }
 
 // 일괄 작업
-function bulkAction(action) {
+async function bulkAction(action) {
     const checkedBoxes = document.querySelectorAll('.user-checkbox:checked');
-    const userIds = Array.from(checkedBoxes).map(checkbox => checkbox.value);
+    const userIds = Array.from(checkedBoxes).map(checkbox => parseInt(checkbox.value));
     
     if (userIds.length === 0) {
         showNotification('선택된 사용자가 없습니다.', 'warning');
@@ -164,41 +178,80 @@ function bulkAction(action) {
     }
     
     if (confirm(message)) {
-        // 실제로는 서버에 요청을 보내야 함
-        console.log(`${action} action for users:`, userIds);
-        showNotification(`${userIds.length}명의 사용자에 대한 작업이 완료되었습니다.`, 'success');
-        
-        // 체크박스 초기화
-        checkedBoxes.forEach(checkbox => {
-            checkbox.checked = false;
-        });
-        updateSelectAllCheckbox();
-        updateBulkActions();
+        try {
+            if (action === 'suspend') {
+                // 일괄 정지 API 호출
+                const response = await fetch('/admin/api/users/bulk-suspend', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ userIds: userIds })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNotification(result.message, 'success');
+                    
+                    // 페이지 새로고침
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    alert(result.message || '작업에 실패했습니다.');
+                }
+            } else {
+                // 다른 작업은 아직 구현 안됨
+                console.log(`${action} action for users:`, userIds);
+                showNotification(`${userIds.length}명의 사용자에 대한 작업이 완료되었습니다.`, 'success');
+            }
+            
+            // 체크박스 초기화
+            checkedBoxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            updateSelectAllCheckbox();
+            updateBulkActions();
+            
+        } catch (error) {
+            console.error('Error:', error);
+            alert('작업 중 오류가 발생했습니다.');
+        }
     }
 }
 
 // 사용자 상세 보기
-function viewUser(userId) {
-    // 실제로는 서버에서 사용자 상세 정보를 가져와야 함
+async function viewUser(userId) {
     console.log('View user:', userId);
     
-    // 모달에 사용자 정보 로드
-    loadUserDetail(userId);
-    
-    // 모달 표시
-    const modal = document.getElementById('userDetailModal');
-    if (modal) {
-        modal.style.display = 'block';
+    // 서버에서 사용자 상세 정보 가져오기
+    try {
+        const response = await fetch(`/admin/api/users/${userId}`);
+        if (!response.ok) {
+            throw new Error('사용자 정보를 불러올 수 없습니다.');
+        }
+        
+        const userInfo = await response.json();
+        
+        // 모달에 사용자 정보 로드
+        loadUserDetail(userInfo);
+        
+        // 모달 표시
+        const modal = document.getElementById('userDetailModal');
+        if (modal) {
+            modal.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('사용자 정보를 불러오는데 실패했습니다.');
     }
 }
 
 // 사용자 상세 정보 로드
-function loadUserDetail(userId) {
+function loadUserDetail(userInfo) {
     const content = document.getElementById('userDetailContent');
     if (!content) return;
-    
-    // 임시 사용자 정보 (실제로는 서버에서 가져와야 함)
-    const userInfo = getUserData(userId);
     
     content.innerHTML = `
         <div class="detail-section">
@@ -245,36 +298,6 @@ function loadUserDetail(userId) {
             </div>
         </div>
         
-        <div class="detail-section">
-            <h3><i class="fas fa-exclamation-triangle"></i> 신고 정보</h3>
-            <div class="detail-row">
-                <label>신고 횟수:</label>
-                <span>
-                    <span class="report-badge ${userInfo.reportCount >= 3 ? 'report-high' : userInfo.reportCount >= 1 ? 'report-medium' : 'report-low'}" id="reportCountBadge-${userInfo.id}">${userInfo.reportCount || 0}회</span>
-                    <button class="btn-add-report" onclick="addReport(${userInfo.id})" title="신고 추가">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                </span>
-            </div>
-            ${userInfo.reportCount > 0 ? `
-                <div class="detail-row">
-                    <label>최근 신고일:</label>
-                    <span id="lastReportDate-${userInfo.id}">${userInfo.lastReportDate || '정보 없음'}</span>
-                </div>
-            ` : `
-                <div class="detail-row" id="lastReportRow-${userInfo.id}" style="display: none;">
-                    <label>최근 신고일:</label>
-                    <span id="lastReportDate-${userInfo.id}">정보 없음</span>
-                </div>
-            `}
-            <div class="detail-row">
-                <button class="btn-view-reports" onclick="viewReportHistory(${userInfo.id})">
-                    <i class="fas fa-list"></i>
-                    신고 내역 보기
-                </button>
-            </div>
-        </div>
-        
         ${userInfo.notes ? `
             <div class="detail-section">
                 <h3><i class="fas fa-sticky-note"></i> 관리자 메모</h3>
@@ -286,27 +309,7 @@ function loadUserDetail(userId) {
     `;
 }
 
-// 사용자 데이터 가져오기 (임시)
-function getUserData(userId) {
-    // 실제로는 서버 API 호출
-    const userDataMap = {
-        '1': {
-            id: 1,
-            name: '김철수',
-            email: 'kim@example.com',
-            phone: '010-1234-5678',
-            joinDate: '2024-01-15',
-            lastLogin: '2024-10-09 14:30',
-            status: '활성',
-            reportCount: 0,
-            totalReservations: 15,
-            totalSpent: 750000,
-            notes: ''
-        }
-    };
-    
-    return userDataMap[userId] || userDataMap['1'];
-}
+// getUserData 함수는 더 이상 사용하지 않음 (서버 API로 대체됨)
 
 // 상세 모달 닫기
 function closeUserDetailModal() {
@@ -314,22 +317,32 @@ function closeUserDetailModal() {
 }
 
 // 사용자 수정
-function editUser(userId) {
+async function editUser(userId) {
     console.log('Edit user:', userId);
     
-    // 사용자 데이터 가져오기
-    const userData = getUserData(userId);
-    
-    // 폼에 데이터 채우기
-    document.getElementById('editUserId').value = userId;
-    document.getElementById('editUserName').value = userData.name;
-    document.getElementById('editUserEmail').value = userData.email;
-    document.getElementById('editUserPhone').value = userData.phone || '';
-    document.getElementById('editUserStatus').value = userData.status === '활성' ? 'active' : 'inactive';
-    document.getElementById('editUserNotes').value = userData.notes || '';
-    
-    // 모달 열기
-    document.getElementById('editUserModal').style.display = 'block';
+    // 서버에서 사용자 데이터 가져오기
+    try {
+        const response = await fetch(`/admin/api/users/${userId}`);
+        if (!response.ok) {
+            throw new Error('사용자 정보를 불러올 수 없습니다.');
+        }
+        
+        const userData = await response.json();
+        
+        // 폼에 데이터 채우기
+        document.getElementById('editUserId').value = userId;
+        document.getElementById('editUserName').value = userData.name;
+        document.getElementById('editUserEmail').value = userData.email;
+        document.getElementById('editUserPhone').value = userData.phone || '';
+        document.getElementById('editUserStatus').value = userData.status === '활성' ? 'active' : 'inactive';
+        document.getElementById('editUserNotes').value = userData.notes || '';
+        
+        // 모달 열기
+        document.getElementById('editUserModal').style.display = 'block';
+    } catch (error) {
+        console.error('Error:', error);
+        alert('사용자 정보를 불러오는데 실패했습니다.');
+    }
 }
 
 // 수정 모달 닫기
@@ -338,32 +351,45 @@ function closeEditUserModal() {
 }
 
 // 사용자 수정 처리
-function processEditUser() {
+async function processEditUser() {
     const userId = document.getElementById('editUserId').value;
     const name = document.getElementById('editUserName').value;
-    const email = document.getElementById('editUserEmail').value;
     const phone = document.getElementById('editUserPhone').value;
     const status = document.getElementById('editUserStatus').value;
     const notes = document.getElementById('editUserNotes').value;
     
-    console.log('사용자 수정:', { userId, name, email, phone, status, notes });
-    
-    // 실제로는 서버에 수정 요청
-    
-    // 테이블 업데이트
-    const row = document.querySelector(`tr .user-checkbox[value="${userId}"]`)?.closest('tr');
-    if (row) {
-        row.querySelector('.user-name').textContent = name;
-        row.querySelector('.user-email').textContent = email;
+    try {
+        const response = await fetch(`/admin/api/users/${userId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name, phone, status, notes })
+        });
         
-        const statusBadge = row.querySelector('.status-badge');
-        const statusText = status === 'active' ? '활성' : status === 'suspended' ? '정지' : '비활성';
-        statusBadge.textContent = statusText;
-        statusBadge.className = `status-badge status-${status}`;
+        const result = await response.json();
+        
+        if (result.success) {
+            // 테이블 업데이트
+            const row = document.querySelector(`tr .user-checkbox[value="${userId}"]`)?.closest('tr');
+            if (row) {
+                row.querySelector('.user-name').textContent = name;
+                
+                const statusBadge = row.querySelector('.status-badge');
+                const statusText = status === 'active' ? '활성' : status === 'suspended' ? '정지' : '비활성';
+                statusBadge.textContent = statusText;
+                statusBadge.className = `status-badge status-${status}`;
+            }
+            
+            closeEditUserModal();
+            showNotification('사용자 정보가 수정되었습니다.', 'success');
+        } else {
+            alert(result.message || '수정에 실패했습니다.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('사용자 정보 수정 중 오류가 발생했습니다.');
     }
-    
-    closeEditUserModal();
-    alert('사용자 정보가 수정되었습니다.');
 }
 
 // 모달 이벤트 설정
@@ -379,127 +405,43 @@ function setupModalEvents() {
     }
 }
 
-// 신고 추가
-function addReport(userId) {
-    const reason = prompt('신고 사유를 입력하세요:');
-    
-    if (reason && reason.trim()) {
-        console.log('신고 추가:', userId, '사유:', reason);
-        
-        // 실제로는 서버에 신고 추가 요청
-        
-        // 신고 횟수 업데이트
-        const reportBadge = document.getElementById(`reportCountBadge-${userId}`);
-        const lastReportDate = document.getElementById(`lastReportDate-${userId}`);
-        const lastReportRow = document.getElementById(`lastReportRow-${userId}`);
-        
-        if (reportBadge) {
-            const currentCount = parseInt(reportBadge.textContent);
-            const newCount = currentCount + 1;
-            reportBadge.textContent = `${newCount}회`;
-            
-            // 배지 색상 업데이트
-            reportBadge.className = `report-badge ${newCount >= 3 ? 'report-high' : newCount >= 1 ? 'report-medium' : 'report-low'}`;
-        }
-        
-        // 최근 신고일 업데이트
-        if (lastReportDate) {
-            const now = new Date();
-            const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-            lastReportDate.textContent = dateStr;
-        }
-        
-        // 최근 신고일 행 표시
-        if (lastReportRow) {
-            lastReportRow.style.display = '';
-        }
-        
-        // 테이블의 신고 횟수도 업데이트
-        const row = document.querySelector(`tr .user-checkbox[value="${userId}"]`)?.closest('tr');
-        if (row) {
-            const tableReportBadge = row.querySelector('.report-badge');
-            if (tableReportBadge) {
-                const currentCount = parseInt(tableReportBadge.textContent);
-                const newCount = currentCount + 1;
-                tableReportBadge.textContent = newCount;
-                tableReportBadge.className = `report-badge ${newCount >= 3 ? 'report-high' : newCount >= 1 ? 'report-medium' : 'report-low'}`;
-            }
-        }
-        
-        alert('신고가 추가되었습니다.');
-    }
-}
-
-// 신고 내역 보기
-function viewReportHistory(userId) {
-    console.log('신고 내역 보기:', userId);
-    
-    // 임시 신고 내역 데이터
-    const reportHistory = [
-        {
-            date: '2024-10-05',
-            reason: '부적절한 리뷰 작성',
-            reporter: '업체: 힝거피부과',
-            status: '처리완료'
-        },
-        {
-            date: '2024-09-20',
-            reason: '예약 노쇼',
-            reporter: '업체: 뷰티클리닉',
-            status: '처리완료'
-        }
-    ];
-    
-    let historyHtml = '<div class="report-history">';
-    historyHtml += '<h4 style="margin-bottom: 15px; font-size: 16px; font-weight: 600;">신고 내역</h4>';
-    
-    if (reportHistory.length > 0) {
-        reportHistory.forEach((report, index) => {
-            historyHtml += `
-                <div class="report-history-item" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 3px solid #e74c3c;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                        <strong>${index + 1}. ${report.date}</strong>
-                        <span class="status-badge status-active" style="font-size: 11px;">${report.status}</span>
-                    </div>
-                    <div style="font-size: 14px; color: #2c3e50; margin-bottom: 5px;">
-                        <strong>사유:</strong> ${report.reason}
-                    </div>
-                    <div style="font-size: 13px; color: #7f8c8d;">
-                        <strong>신고자:</strong> ${report.reporter}
-                    </div>
-                </div>
-            `;
+// 사용자 상태 토글 (활성 → 정지 → 비활성화 → 활성)
+async function suspendUser(userId) {
+    try {
+        const response = await fetch(`/admin/api/users/${userId}/toggle-status`, {
+            method: 'POST'
         });
-    } else {
-        historyHtml += '<p style="text-align: center; color: #7f8c8d; padding: 20px;">신고 내역이 없습니다.</p>';
-    }
-    
-    historyHtml += '</div>';
-    
-    alert('신고 내역:\n\n' + reportHistory.map((r, i) => `${i+1}. ${r.date} - ${r.reason}`).join('\n'));
-    // 실제로는 모달로 표시하는 것이 더 좋습니다
-}
-
-// 사용자 정지
-function suspendUser(userId) {
-    if (confirm('이 사용자를 정지하시겠습니까?')) {
-        // 실제로는 서버에 요청을 보내야 함
-        console.log('Suspend user:', userId);
-        showNotification('사용자가 정지되었습니다.', 'success');
         
-        // 테이블에서 상태 업데이트
-        updateUserStatus(userId, '정지');
+        const result = await response.json();
+        
+        if (result.success) {
+            showNotification(result.message, 'success');
+            
+            // 테이블에서 상태 업데이트
+            updateUserStatus(userId, result.newStatus);
+        } else {
+            alert(result.message || '상태 변경에 실패했습니다.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('상태 변경 중 오류가 발생했습니다.');
     }
 }
 
 // 사용자 상태 업데이트
 function updateUserStatus(userId, status) {
-    const userRow = document.querySelector(`tr[data-user-id="${userId}"]`);
-    if (userRow) {
-        const statusBadge = userRow.querySelector('.status-badge');
+    const row = document.querySelector(`tr .user-checkbox[value="${userId}"]`)?.closest('tr');
+    if (row) {
+        const statusBadge = row.querySelector('.status-badge');
         if (statusBadge) {
             statusBadge.textContent = status;
-            statusBadge.className = `status-badge ${status === '활성' ? 'status-active' : 'status-inactive'}`;
+            let statusClass = 'status-inactive';
+            if (status === '활성') {
+                statusClass = 'status-active';
+            } else if (status === '정지') {
+                statusClass = 'status-suspended';
+            }
+            statusBadge.className = `status-badge ${statusClass}`;
         }
     }
 }

@@ -225,11 +225,55 @@ public class CompanyAuthController {
         if (companyOpt.isPresent()) {
             CompanyUser company = companyOpt.get();
             
-            log.info("====== 업체 로그인 성공 ======");
+            log.info("====== 업체 로그인 시도 ======");
             log.info("업체 ID: {}", company.getCompanyId());
             log.info("업체 이름: {}", company.getCompanyName());
             log.info("업체 주소: {}", company.getAddress());
             log.info("승인 상태: {}", company.getApprovalStatus());
+            
+            // 승인 상태 체크
+            String approvalStatus = company.getApprovalStatus();
+            
+            // 승인 대기 중인 경우
+            if ("PENDING".equals(approvalStatus)) {
+                log.warn("승인 대기 중인 업체 로그인 시도: {}", company.getEmail());
+                response.put("success", false);
+                response.put("status", "PENDING");
+                response.put("message", "승인 대기중입니다.");
+                response.put("detail", "관리자의 승인을 기다리고 있습니다. 승인 완료 후 로그인이 가능합니다.");
+                return ResponseEntity.ok(response);
+            }
+            
+            // 반려된 경우
+            if ("REJECTED".equals(approvalStatus)) {
+                log.warn("반려된 업체 로그인 시도: {}", company.getEmail());
+                response.put("success", false);
+                response.put("status", "REJECTED");
+                response.put("message", "승인이 거부되었습니다.");
+                response.put("detail", company.getRejectionReason() != null ? 
+                    company.getRejectionReason() : "관리자에게 문의하시기 바랍니다.");
+                return ResponseEntity.ok(response);
+            }
+            
+            // 활성화되지 않은 경우
+            if (!company.getIsActive()) {
+                log.warn("비활성화된 업체 로그인 시도: {}", company.getEmail());
+                response.put("success", false);
+                response.put("status", "INACTIVE");
+                response.put("message", "비활성화된 계정입니다.");
+                response.put("detail", "관리자에게 문의하시기 바랍니다.");
+                return ResponseEntity.ok(response);
+            }
+            
+            // 승인된 경우에만 로그인 허용 (APPROVED)
+            if (!"APPROVED".equals(approvalStatus)) {
+                log.warn("알 수 없는 승인 상태: {}", approvalStatus);
+                response.put("success", false);
+                response.put("message", "로그인할 수 없는 계정 상태입니다.");
+                return ResponseEntity.ok(response);
+            }
+            
+            log.info("====== 업체 로그인 성공 ======");
             
             // 세션에 업체 정보 저장
             session.setAttribute("companyId", company.getCompanyId());

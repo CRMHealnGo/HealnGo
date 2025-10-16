@@ -1,9 +1,10 @@
 // 채팅 페이지 JavaScript
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 대화 목록 초기화
-    initializeConversations();
-    
+
+    // 대화 목록 로드
+    initializeConversations
+
     // 메시지 입력 이벤트
     setupMessageInput();
     
@@ -14,352 +15,249 @@ document.addEventListener('DOMContentLoaded', function() {
     setupDetailsToggle();
 });
 
-// 대화 목록 초기화
-function initializeConversations() {
-    const conversations = [
-        {
-            id: 1,
-            name: 'Medical App Team',
-            lastMessage: '새로운 업데이트가 준비되었습니다.',
-            time: '12:04',
-            unread: 12,
-            type: 'group',
-            pinned: true
-        },
-        {
-            id: 2,
-            name: 'Food Delivery Service',
-            lastMessage: '주문이 확인되었습니다.',
-            time: '11:30',
-            unread: 1,
-            type: 'group',
-            pinned: true
-        },
-        {
-            id: 3,
-            name: 'Garrett Watson',
-            lastMessage: '감사합니다!',
-            time: '12:04',
-            unread: 0,
-            type: 'individual'
-        },
-        {
-            id: 4,
-            name: 'Caroline Santos',
-            lastMessage: '내일 뵙겠습니다.',
-            time: '11:45',
-            unread: 0,
-            type: 'individual'
-        },
-        {
-            id: 5,
-            name: 'Leon Nunez',
-            lastMessage: '좋은 하루 되세요.',
-            time: '10:20',
-            unread: 0,
-            type: 'individual'
-        }
-    ];
-    
-    renderConversations(conversations);
+// ===== 공통 =====
+const CSRF_HEADER = document.querySelector('meta[name="_csrf_header"]')?.content;
+const CSRF_TOKEN  = document.querySelector('meta[name="_csrf"]')?.content;
+
+// 서버에서 템플릿으로 주입해둔 전역(예: 세션)
+// window.CURRENT_USER_ID, window.SENDER_ROLE('SOCIAL' | 'COMPANY')를 사용한다고 가정
+let currentThreadId = null;
+
+// 날짜
+function fmt(dt) {
+    if (!dt) return '';
+    const d = new Date(dt);
+    return d.toLocaleString();
 }
 
 // 대화 목록 렌더링
-function renderConversations(conversations) {
-    const container = document.querySelector('.conversations-section');
-    if (!container) return;
-    
-    // 고정된 대화
-    const pinnedConversations = conversations.filter(conv => conv.pinned);
-    const regularConversations = conversations.filter(conv => !conv.pinned);
-    
-    let html = '';
-    
-    if (pinnedConversations.length > 0) {
-        html += '<div class="section-title">고정</div>';
-        pinnedConversations.forEach(conv => {
-            html += createConversationItem(conv);
-        });
+asyn function initializeConversations {
+    try {
+        const res = await fetch(`/api/chat/threads/user/${window.CURRENT_USER_ID}?page1&size=30`);
+        if (!res.ok) throw new Error('thread list fail');
+        const page = await res.json();
+        const threads = page.content || [];
+        renderConversations(threads);
+
+        // 첫 스레드 자동 선택
+        if (threads.length > 0) selectConversation(threads[0].threadId);
+    } catch (e) {
+        const.error('스레드 로드 실패: ', e);
     }
-    
-    if (regularConversations.length > 0) {
-        html += '<div class="section-title">Messages</div>';
-        regularConversations.forEach(conv => {
-            html += createConversationItem(conv);
-        });
-    }
-    
-    container.innerHTML = html;
 }
 
 // 대화 아이템 생성
-function createConversationItem(conversation) {
-    const unreadBadge = conversation.unread > 0 ? 
-        `<span class="unread-badge">${conversation.unread}</span>` : '';
-    
+function renderConversations(threads) {
+    const container = document.querySelector('.conversations-section');
+    if (!container) return;
+
+    const html = threads.map(t => {
+        const name = t.tile || `대화 #${t.threadId}`;
+        const time = fmt(t.lastMsgAt);
+        const avatar = (name || 'U').charAt(0);
+
     return `
-        <div class="conversation-item" data-conversation-id="${conversation.id}">
+        <div class="conversation-item" data-conversation-id="${t.threadId}">
             <div class="conversation-avatar">
-                ${conversation.name.charAt(0)}
+                ${avatar}
             </div>
             <div class="conversation-info">
-                <div class="conversation-name">${conversation.name}</div>
-                <div class="conversation-last-message">${conversation.lastMessage}</div>
+                <div class="conversation-name">${name}</div>
+                <div class="conversation-last-message">${time}</div>
             </div>
-            <div class="conversation-time">${conversation.time}</div>
-            ${unreadBadge}
+            <div class="conversation-time">${time}</div>
         </div>
     `;
+    }).join('');
+
+    container.innerHTML = html;
 }
 
 // 대화 선택 이벤트
 function setupConversationSelection() {
     document.addEventListener('click', function(e) {
-        const conversationItem = e.target.closest('.conversation-item');
-        if (conversationItem) {
-            const conversationId = conversationItem.dataset.conversationId;
-            selectConversation(conversationId);
-        }
+        const item = e.target.closest('.conversation-item');
+        if (!item) return;
+
+        const item = e.target.closest('.conversation-item').forEach(el => el.classList.remove('active'));
+        item.classList.add('active');
+
+        const threadId = Number(item.dataset.conversationId);
+        selectConversation(threadId);
     });
 }
 
-// 대화 선택
-function selectConversation(conversationId) {
-    // 모든 대화 아이템에서 active 클래스 제거
-    document.querySelectorAll('.conversation-item').forEach(item => {
-        item.classList.remove('active');
-    });
-    
-    // 선택된 대화 아이템에 active 클래스 추가
-    const selectedItem = document.querySelector(`[data-conversation-id="${conversationId}"]`);
-    if (selectedItem) {
-        selectedItem.classList.add('active');
-    }
-    
+// 대화 선택 > 메시지 로드
+function selectConversation(threadId) {
+    currentThreadId = Number(threadId);
     // 채팅 내용 로드
-    loadChatMessages(conversationId);
-}
-
-// 채팅 메시지 로드
-function loadChatMessages(conversationId) {
-    const messages = getSampleMessages(conversationId);
-    renderMessages(messages);
-}
-
-// 샘플 메시지 데이터
-function getSampleMessages(conversationId) {
-    const sampleMessages = {
-        1: [
-            {
-                type: 'date',
-                content: 'Friday, September 8'
-            },
-            {
-                type: 'received',
-                sender: 'Olive Dixon',
-                content: 'UX Login + Registration',
-                time: '12:04 AM',
-                avatar: 'O'
-            },
-            {
-                type: 'sent',
-                content: 'Thank you for the update!',
-                time: '12:15 AM'
-            }
-        ],
-        2: [
-            {
-                type: 'date',
-                content: 'Thursday, September 7'
-            },
-            {
-                type: 'received',
-                sender: 'Food Service',
-                content: 'Your order has been confirmed.',
-                time: '11:30 AM',
-                avatar: 'F'
-            }
-        ],
-        3: [
-            {
-                type: 'date',
-                content: 'Friday, September 8'
-            },
-            {
-                type: 'received',
-                sender: 'Garrett Watson',
-                content: 'Thank you for your help!',
-                time: '12:04 AM',
-                avatar: 'G'
-            },
-            {
-                type: 'sent',
-                content: 'You\'re welcome!',
-                time: '12:05 AM'
-            }
-        ]
-    };
-    
-    return sampleMessages[conversationId] || [];
+    loadChatMessages(currentThreadId);
 }
 
 // 메시지 렌더링
-function renderMessages(messages) {
-    const messagesContainer = document.querySelector('.chat-messages');
-    if (!messagesContainer) return;
-    
-    let html = '';
-    
-    messages.forEach(message => {
-        if (message.type === 'date') {
-            html += `<div class="message-date">${message.content}</div>`;
-        } else {
-            html += createMessageElement(message);
-        }
-    });
-    
-    messagesContainer.innerHTML = html;
-    
-    // 스크롤을 맨 아래로
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+asyn function loadChatMessages(threadId) {
+    try {
+        const res = await fetch(`/api/chat/messages/${threadId}?page=1&size=50`);
+        if (!res.ok) throw new Error('messages fail');
+        const page = await res.json();
+
+        // 서버는 보통 최신순(내림차순)
+        // UI는 과거 > 현재 순으로 보여줌 reverse()
+        const list = (page.content || []).slice().reverse();
+
+        // DTO > UI모델 매핑
+        const uiMessages = list.map(m => {
+
+            const isMine = (m.senderRole === window.SENDER_ROLE) && (
+                (window.SENDER_ROLE === 'SOCIAL' && m.senderUserId === window.CURRENT_USER_ID) ||
+                (window.SENDER_ROLE === 'COMPANY' && m.senderCompanyId === window.CURRENT_USER_ID)
+            );
+
+            return {
+                type: isMine ? 'sent' : 'received',
+                sender: isMine ? null : (m.senderRole || 'USER'),
+                content: m.body || (m.attachmentMime ? `[첨부파일: ${m.attachmentMime}]` : ''),
+                time: fmt(m.createdAt),
+                avatar: isMine ? 'Me' : (m.senderRole ? m.senderRole.charAt(0) : 'U')
+            };
+        });
+
+        renderMessages(uiMessages);
+    }   catch (e) {
+        console.error('메시지 로드 실패: ', e);
+    }
 }
 
 // 메시지 요소 생성
-function createMessageElement(message) {
+function renderMessages(message) {
+    const messageContainer = document.querySelectory('.chat-messages');
+
+    if(!messagesContainer) return;
+
+    const html = messages.map(createMessageElement).join('');
+    messagesContainer.innerHTML = html;
+
+    // 맨 아래로 스크롤
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+// 메시지 DOM 생성
+function createMessageElement(message){
+
     const messageClass = message.type === 'sent' ? 'sent' : 'received';
     const avatar = message.avatar || message.sender?.charAt(0) || 'U';
-    
+
     return `
         <div class="message ${messageClass}">
             <div class="message-avatar">${avatar}</div>
             <div class="message-content">
-                ${message.content}
+                ${escapeHtml(message.content)}
                 <div class="message-time">${message.time}</div>
             </div>
         </div>
     `;
 }
 
-// 메시지 입력 설정
+// XSS 최소 방어
+function escapeHtml(str = '') {
+    return str.replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+}
+
+// 메시지를 입력 전송
 function setupMessageInput() {
-    const messageInput = document.querySelector('.message-input');
-    const sendBtn = document.querySelector('.send-btn');
-    
-    if (messageInput && sendBtn) {
-        // 엔터키로 메시지 전송
-        messageInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        });
-        
-        // 전송 버튼 클릭
-        sendBtn.addEventListener('click', sendMessage);
-        
-        // 입력창 자동 높이 조절
-        messageInput.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = this.scrollHeight + 'px';
-        });
+  const messageInput = document.querySelector('.message-input');
+  const sendBtn = document.querySelector('.send-btn');
+
+  if (!messageInput || !sendBtn) return;
+
+  // 엔터(Shift+Enter는 줄바꿈)
+  messageInput.addEventListener('keypress', function (e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
     }
+  });
+
+  // 버튼 클릭
+  sendBtn.addEventListener('click', sendMessage);
+
+  // 자동 높이
+  messageInput.addEventListener('input', function () {
+    this.style.height = 'auto';
+    this.style.height = this.scrollHeight + 'px';
+  });
 }
 
-// 메시지 전송
-function sendMessage() {
-    const messageInput = document.querySelector('.message-input');
-    const content = messageInput.value.trim();
-    
-    if (content) {
-        const message = {
-            type: 'sent',
-            content: content,
-            time: getCurrentTime()
-        };
-        
-        // 메시지 추가
-        addMessageToChat(message);
-        
-        // 입력창 초기화
-        messageInput.value = '';
-        messageInput.style.height = 'auto';
-        
-        // 자동 응답 (시뮬레이션)
-        setTimeout(() => {
-            const autoReply = {
-                type: 'received',
-                sender: 'Bot',
-                content: '메시지를 받았습니다. 곧 답변드리겠습니다.',
-                time: getCurrentTime(),
-                avatar: 'B'
-            };
-            addMessageToChat(autoReply);
-        }, 1000);
-    }
+async function sendMessage() {
+  const input = document.querySelector('.message-input');
+  const content = input?.value?.trim();
+  if (!content || !currentThreadId) return;
+
+  // 낙관적 UI 추가
+  addMessageToChat({ type: 'sent', content, time: getCurrentTime(), avatar: 'Me' });
+
+  // 서버 전송
+  const fd = new FormData();
+  fd.append('threadId', currentThreadId);
+  fd.append('senderRole', window.SENDER_ROLE); // 'SOCIAL' (고객화면)
+  if (window.SENDER_ROLE === 'SOCIAL')  fd.append('senderUserId', window.CURRENT_USER_ID);
+  if (window.SENDER_ROLE === 'COMPANY') fd.append('senderCompanyId', window.CURRENT_USER_ID);
+  fd.append('body', content);
+  // 파일 있으면: fd.append('file', fileInput.files[0]);
+
+  try {
+    const headers = {};
+    if (CSRF_HEADER && CSRF_TOKEN) headers[CSRF_HEADER] = CSRF_TOKEN;
+
+    const res = await fetch('/api/chat/message', { method: 'POST', body: fd, headers });
+    if (!res.ok) throw new Error('send fail');
+
+    // 서버 시간/정합 반영을 위해 재조회(또는 응답 DTO로 보강)
+    await loadChatMessages(currentThreadId);
+  } catch (e) {
+    console.error('전송 실패:', e);
+  } finally {
+    input.value = '';
+    input.style.height = 'auto';
+  }
 }
 
-// 메시지를 채팅에 추가
+// 메시지 추가(낙관적 UI)
 function addMessageToChat(message) {
-    const messagesContainer = document.querySelector('.chat-messages');
-    if (!messagesContainer) return;
-    
-    const messageElement = createMessageElement(message);
-    messagesContainer.insertAdjacentHTML('beforeend', messageElement);
-    
-    // 스크롤을 맨 아래로
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  const messagesContainer = document.querySelector('.chat-messages');
+  if (!messagesContainer) return;
+
+  const html = createMessageElement(message);
+  messagesContainer.insertAdjacentHTML('beforeend', html);
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
-// 현재 시간 가져오기
+// 현재 시간(클라이언트 표시용)
 function getCurrentTime() {
-    const now = new Date();
-    const hours = now.getHours();
-    const minutes = now.getMinutes();
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    const displayHours = hours % 12 || 12;
-    const displayMinutes = minutes.toString().padStart(2, '0');
-    
-    return `${displayHours}:${displayMinutes} ${ampm}`;
+  const now = new Date();
+  const h = now.getHours();
+  const m = now.getMinutes().toString().padStart(2, '0');
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const displayH = h % 12 || 12;
+  return `${displayH}:${m} ${ampm}`;
 }
 
-// 상세 정보 토글
+// 상세 정보 토글 (필요 시 유지)
 function setupDetailsToggle() {
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('detail-section-title')) {
-            const section = e.target.closest('.detail-section');
-            const content = section.querySelector('.detail-section-content');
-            
-            if (content) {
-                content.style.display = content.style.display === 'none' ? 'block' : 'none';
-            }
-        }
-    });
+  document.addEventListener('click', function (e) {
+    if (!e.target.classList.contains('detail-section-title')) return;
+    const section = e.target.closest('.detail-section');
+    const content = section?.querySelector('.detail-section-content');
+    if (content) content.style.display = content.style.display === 'none' ? 'block' : 'none';
+  });
 }
 
-// 첨부 파일 버튼
-function attachFile() {
-    alert('파일 첨부 기능은 준비 중입니다.');
+// 첨부/링크/멘션/이모지 (추후 구현)
+function attachFile(){ alert('파일 첨부 기능은 준비 중입니다.'); }
+function shareLink(){
+  const link = prompt('공유할 링크를 입력하세요:');
+  if (!link) return;
+  addMessageToChat({ type: 'sent', content: link, time: getCurrentTime(), avatar: 'Me' });
 }
-
-// 링크 버튼
-function shareLink() {
-    const link = prompt('공유할 링크를 입력하세요:');
-    if (link) {
-        const message = {
-            type: 'sent',
-            content: link,
-            time: getCurrentTime()
-        };
-        addMessageToChat(message);
-    }
-}
-
-// 멘션 버튼
-function mentionUser() {
-    alert('멘션 기능은 준비 중입니다.');
-}
-
-// 이모티콘 버튼
-function insertEmoji() {
-    alert('이모티콘 기능은 준비 중입니다.');
-}
+function mentionUser(){ alert('멘션 기능은 준비 중입니다.'); }
+function insertEmoji(){ alert('이모티콘 기능은 준비 중입니다.'); }
