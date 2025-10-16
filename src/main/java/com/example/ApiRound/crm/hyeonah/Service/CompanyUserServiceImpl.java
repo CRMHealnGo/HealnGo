@@ -52,7 +52,7 @@ public class CompanyUserServiceImpl implements CompanyUserService {
                 .companyIntroduction(dto.getCompanyIntroduction())
                 .website(dto.getWebsite())
                 .isActive(true)
-                .approvalStatus("APPROVED")  // 테스트를 위해 자동 승인
+                .approvalStatus("PENDING")  // 테스트를 위해 자동 승인
                 .build();
         
         return repository.save(company);

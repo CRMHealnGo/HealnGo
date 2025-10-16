@@ -1,45 +1,47 @@
 package com.example.ApiRound.Service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.ApiRound.crm.hyeonah.Repository.SocialUsersRepository;
+import com.example.ApiRound.crm.hyeonah.entity.SocialUsers;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.ApiRound.entity.SocialUser;
-import com.example.ApiRound.repository.SocialUserRepository;
+import java.time.LocalDateTime;
 
-// @Service  // 임시 비활성화 - 기존 구조 사용 안 함
-@Transactional
-public class GoogleSocialUserServiceImpl implements GoogleSocialUserService {
-    
-    @Autowired
-    private SocialUserRepository socialUserRepository;
-    
-    @Override
-    public SocialUser findOrCreateUser(String email, String name, String providerId, String profileImage, String accessToken, String refreshToken) {
-        SocialUser existingUser = socialUserRepository.findByEmailAndProvider(email, "google");
-        
-        if (existingUser != null) {
-            // 기존 사용자 정보 업데이트
-            existingUser.setName(name);
-            existingUser.setProfileImage(profileImage);
-            existingUser.setAccessToken(accessToken);
-            existingUser.setRefreshToken(refreshToken);
-            return socialUserRepository.save(existingUser);
-        } else {
-            // 새 사용자 생성
-            SocialUser newUser = new SocialUser();
-            newUser.setEmail(email);
-            newUser.setName(name);
-            newUser.setProvider("google");
-            newUser.setProviderId(providerId);
-            newUser.setProfileImage(profileImage);
-            newUser.setAccessToken(accessToken);
-            newUser.setRefreshToken(refreshToken);
-            return socialUserRepository.save(newUser);
+@Service
+@RequiredArgsConstructor
+public class GoogleSocialUserServiceImpl {
+
+    private final SocialUsersRepository socialUsersRepository;
+
+    /**
+     * 구글 로그인 결과로 사용자 upsert
+     * - 스키마에 존재하는 컬럼만 사용 (email, name, last_login_at, updated_at 등)
+     * - provider/providerId 없이 이메일 기준으로 upsert
+     */
+    @Transactional
+    public SocialUsers upsertFromGoogle(String email, String name) {
+        SocialUsers user = socialUsersRepository.findByEmail(email)
+                .orElseGet(() -> {
+                    SocialUsers u = new SocialUsers();
+                    u.setEmail(email);
+                    u.setIsDeleted(false);
+                    LocalDateTime now = LocalDateTime.now();
+                    u.setCreatedAt(now);
+                    u.setUpdatedAt(now);
+                    u.setLastLoginAt(now);
+                    return u;
+                });
+
+        // 이름 갱신(빈 문자열이면 기존 유지)
+        if (name != null && !name.isBlank()) {
+            user.setName(name);
         }
-    }
-    
-    @Override
-    public SocialUser findByEmailAndProvider(String email, String provider) {
-        return socialUserRepository.findByEmailAndProvider(email, provider);
+
+        // 로그인/업데이트 시간 갱신
+        user.setLastLoginAt(LocalDateTime.now());
+        user.setUpdatedAt(LocalDateTime.now());
+
+        return socialUsersRepository.save(user);
     }
 }
