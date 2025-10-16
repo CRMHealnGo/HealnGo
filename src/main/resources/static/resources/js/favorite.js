@@ -1,5 +1,7 @@
 // favorite.js
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('Favorite 페이지 로드 완료');
+    
     // 모달 관련 이벤트 리스너
     const modal = document.getElementById('detailModal');
     const closeBtn = document.querySelector('.close');
@@ -17,113 +19,98 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // 즐겨찾기 삭제 이벤트 리스너
-    document.addEventListener('click', function(event) {
-        if (event.target.closest('.btn-remove')) {
-            const favoriteItem = event.target.closest('.favorite-item');
-            const favoriteId = favoriteItem.dataset.id;
-            const hospitalName = favoriteItem.dataset.hospital;
-            
-            if (confirm(`"${hospitalName}"을(를) 즐겨찾기에서 삭제하시겠습니까?`)) {
-                removeFavorite(favoriteId);
-            }
-        }
-    });
+    // 즐겨찾기 데이터 로드
+    await loadFavorites();
 });
 
-// 즐겨찾기 삭제 함수
-async function removeFavorite(favoriteId) {
+// 즐겨찾기 데이터 로드
+async function loadFavorites() {
+    console.log('loadFavorites 호출됨');
+    
+    const container = document.getElementById('favorites-content');
+    
+    if (!container) {
+        console.error('favorites-content 컨테이너를 찾을 수 없습니다');
+        return;
+    }
+    
     try {
-        const response = await fetch(`/api/favorites/${favoriteId}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
+        // API로 즐겨찾기 목록 가져오기
+        const response = await fetch('/favorite/list');
         
-        if (response.ok) {
-            // 성공적으로 삭제된 경우 UI에서 제거
-            const favoriteItem = document.querySelector(`[data-id="${favoriteId}"]`);
-            if (favoriteItem) {
-                favoriteItem.remove();
-                
-                // 즐겨찾기가 모두 삭제된 경우 빈 상태 표시
-                const favoriteList = document.querySelector('.favorite-list');
-                const remainingItems = favoriteList.querySelectorAll('.favorite-item');
-                if (remainingItems.length === 0) {
-                    renderEmptyFavorites();
-                }
+        if (!response.ok) {
+            if (response.status === 401) {
+                console.log('로그인하지 않은 사용자');
+                container.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">로그인 후 이용해주세요.</p>';
+                return;
             }
-            
-            // 성공 메시지 표시 (선택사항)
-            showNotification('즐겨찾기에서 삭제되었습니다.', 'success');
+            console.error('즐겨찾기 목록 조회 실패:', response.status);
+            renderEmptyFavorites();
+            return;
+        }
+        
+        const favorites = await response.json();
+        console.log('즐겨찾기 데이터:', favorites);
+        
+        if (favorites && favorites.length > 0) {
+            console.log('찜한 병원 수:', favorites.length);
+            renderFavorites(favorites);
         } else {
-            throw new Error('삭제에 실패했습니다.');
+            console.log('찜한 병원이 없음');
+            renderEmptyFavorites();
         }
     } catch (error) {
-        console.error('즐겨찾기 삭제 중 오류:', error);
-        showNotification('삭제 중 오류가 발생했습니다.', 'error');
+        console.error('즐겨찾기 로드 중 오류:', error);
+        renderEmptyFavorites();
     }
 }
 
-// 상세보기 함수
-async function showDetail(hospitalId) {
-    try {
-        const response = await fetch(`/api/list/${hospitalId}`);
-        if (response.ok) {
-            const hospitalData = await response.json();
-            showDetailModal(hospitalData);
-        } else {
-            throw new Error('병원 정보를 가져올 수 없습니다.');
-        }
-    } catch (error) {
-        console.error('병원 상세 정보 로드 중 오류:', error);
-        showNotification('병원 정보를 불러올 수 없습니다.', 'error');
+// 즐겨찾기 목록 렌더링
+function renderFavorites(favorites) {
+    const container = document.getElementById('favorites-content');
+    
+    if (!favorites || favorites.length === 0) {
+        renderEmptyFavorites();
+        return;
     }
-}
-
-// 상세보기 모달 표시
-function showDetailModal(hospitalData) {
-    const modal = document.getElementById('detailModal');
-    const modalBody = document.getElementById('modalBody');
     
-    modalBody.innerHTML = `
-        <div class="modal-header">
-            <h2>${hospitalData.name}</h2>
-        </div>
-        <div class="modal-body">
-            <div class="hospital-info">
-                <div class="info-row">
-                    <strong>주소:</strong> ${hospitalData.address}
-                </div>
-                <div class="info-row">
-                    <strong>전화번호:</strong> ${hospitalData.phone || '정보 없음'}
-                </div>
-                <div class="info-row">
-                    <strong>홈페이지:</strong> 
-                    ${hospitalData.homepage ? `<a href="${hospitalData.homepage}" target="_blank">${hospitalData.homepage}</a>` : '정보 없음'}
-                </div>
-                <div class="info-row">
-                    <strong>카테고리:</strong> ${hospitalData.category || '정보 없음'}
-                </div>
-                <div class="info-row">
-                    <strong>지역:</strong> ${hospitalData.region || '정보 없음'} ${hospitalData.subregion ? `- ${hospitalData.subregion}` : ''}
+    container.innerHTML = favorites.map((favorite, index) => `
+        <div class="favorite-item" data-id="${favorite.id}" data-hospital="${favorite.name}">
+            <div class="item-banner">
+                <span class="day-number">${index + 1}</span>
+            </div>
+            <div class="item-content">
+                <div class="item-info">
+                    <h3 class="hospital-name">${favorite.name || '병원명'}</h3>
+                    <div class="hospital-details">
+                        <p class="hospital-address">
+                            <i class="fas fa-map-marker-alt"></i>
+                            ${favorite.address || '주소 정보 없음'}
+                        </p>
+                        <p class="hospital-phone">
+                            <i class="fas fa-phone"></i>
+                            ${favorite.phone || '전화번호 정보 없음'}
+                        </p>
+                        <p class="hospital-category">
+                            <i class="fas fa-hospital"></i>
+                            ${favorite.category || '카테고리 정보 없음'}
+                        </p>
+                    </div>
+                    <div class="hospital-tags">
+                        ${favorite.region ? `<span class="tag">${favorite.region}</span>` : ''}
+                        ${favorite.subregion ? `<span class="tag">${favorite.subregion}</span>` : ''}
+                        ${favorite.category ? `<span class="tag">${favorite.category}</span>` : ''}
+                    </div>
                 </div>
             </div>
-            <div class="modal-actions">
-                <button class="btn-primary" onclick="window.location.href='/list/${hospitalData.id}'">상세 페이지 보기</button>
-                <button class="btn-secondary" onclick="closeModal()">닫기</button>
+            <div class="item-actions">
+                <button class="btn-detail" onclick="goToList(${favorite.id})">상세보기</button>
+                <button class="btn-remove" onclick="removeFavorite(${favorite.id})" title="삭제">
+                    <i class="fas fa-trash"></i>
+                </button>
             </div>
         </div>
-    `;
-    
-    modal.style.display = 'block';
-}
-
-// 모달 닫기 함수
-function closeModal() {
-    const modal = document.getElementById('detailModal');
-    modal.style.display = 'none';
+    `).join('');
 }
 
 // 빈 즐겨찾기 상태 렌더링
@@ -140,28 +127,75 @@ function renderEmptyFavorites() {
                 <p class="empty-description">마음에 드는 병원을 찾아서 즐겨찾기에 추가해보세요!</p>
             </div>
             <div class="empty-actions">
-                <a href="/main" class="btn-primary">병원 찾아보기</a>
+                <a href="/list" class="btn-primary">병원 찾아보기</a>
             </div>
         </div>
     `;
 }
 
+// 즐겨찾기 삭제 함수
+async function removeFavorite(itemId) {
+    if (!confirm('즐겨찾기에서 삭제하시겠습니까?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/favorite/remove/${itemId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            console.log('찜하기 제거 완료');
+            showNotification('즐겨찾기에서 삭제되었습니다.', 'success');
+            
+            // 1초 후 페이지 새로고침
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else if (response.status === 401) {
+            alert('로그인이 필요한 서비스입니다.');
+            window.location.href = '/login';
+        } else {
+            showNotification('삭제에 실패했습니다.', 'error');
+        }
+    } catch (error) {
+        console.error('즐겨찾기 삭제 중 오류:', error);
+        showNotification('삭제 중 오류가 발생했습니다.', 'error');
+    }
+}
+
+// list 페이지로 이동 (병원 상세보기)
+function goToList(itemId) {
+    window.location.href = `/list?Id=${itemId}`;
+}
+
 // 알림 메시지 표시 함수
-function showNotification(message, type = 'info') {
-    // 간단한 알림 구현 (실제 프로젝트에서는 더 정교한 알림 시스템 사용)
+function showNotification(message, type = 'success') {
     const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.textContent = message;
+    notification.className = 'notification';
     notification.style.cssText = `
         position: fixed;
         top: 20px;
         right: 20px;
-        background: ${type === 'success' ? '#27ae60' : type === 'error' ? '#e74c3c' : '#3498db'};
+        background: ${type === 'success' ? '#28a745' : '#dc3545'};
         color: white;
-        padding: 12px 20px;
-        border-radius: 4px;
+        padding: 16px 24px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         z-index: 10000;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        font-size: 15px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    `;
+    
+    notification.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+        <span>${message}</span>
     `;
     
     document.body.appendChild(notification);
@@ -174,73 +208,7 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
-// 즐겨찾기 목록 렌더링 (서버 데이터 우선)
-function renderFavorites(favorites) {
-    const container = document.getElementById('favorites-content');
-    
-    if (!favorites || favorites.length === 0) {
-        renderEmptyFavorites();
-        return;
-    }
-    
-    container.innerHTML = favorites.map((favorite, index) => `
-        <div class="favorite-item" data-id="${favorite.id}" data-hospital="${favorite.name}">
-            <div class="item-banner">
-                <span class="day-number">${index + 1}</span>
-            </div>
-            <div class="item-content">
-                <div class="item-info">
-                    <h3 class="hospital-name">${favorite.name}</h3>
-                    <div class="hospital-details">
-                        <p class="hospital-address">
-                            <i class="fas fa-map-marker-alt"></i>
-                            ${favorite.address || '주소 정보 없음'}
-                        </p>
-                        <p class="hospital-phone">
-                            <i class="fas fa-phone"></i>
-                            ${favorite.phone || '전화번호 정보 없음'}
-                        </p>
-                        <p class="hospital-hours">
-                            <i class="fas fa-clock"></i>
-                            운영시간 정보 없음
-                        </p>
-                    </div>
-                    <div class="hospital-tags">
-                        <span class="tag">${favorite.region || ''}</span>
-                        <span class="tag">${favorite.subregion || ''}</span>
-                        ${favorite.category ? `<span class="tag">${favorite.category}</span>` : ''}
-                    </div>
-                </div>
-            </div>
-            <div class="item-actions">
-                <button class="btn-detail" onclick="showDetail(${favorite.id})">상세보기</button>
-                <button class="btn-remove" title="삭제">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        </div>
-    `).join('');
-}
-
-// 즐겨찾기 데이터 로드 (서버 데이터 우선)
-async function loadFavorites() {
-    try {
-        // 서버 데이터가 있으면 우선 사용
-        if (window.serverData && window.serverData.favorites && window.serverData.favorites.length > 0) {
-            renderFavorites(window.serverData.favorites);
-            return;
-        }
-        
-        // 서버 데이터가 없으면 API 호출
-        const response = await fetch('/api/favorites');
-        if (response.ok) {
-            const favorites = await response.json();
-            renderFavorites(favorites);
-        } else {
-            renderEmptyFavorites();
-        }
-    } catch (error) {
-        console.error('즐겨찾기 데이터 로드 중 오류:', error);
-        renderEmptyFavorites();
-    }
-}
+// 전역 함수 노출
+window.removeFavorite = removeFavorite;
+window.goToList = goToList;
+window.showNotification = showNotification;

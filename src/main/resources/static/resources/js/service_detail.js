@@ -46,6 +46,11 @@ async function loadServiceDetail(serviceId) {
             await loadRelatedServices(data.itemId, serviceId);
         }
         
+        // 찜 상태 확인
+        if (data.itemId) {
+            await checkFavoriteStatus(data.itemId);
+        }
+        
     } catch (error) {
         console.error('서비스 상세 정보 로드 중 오류:', error);
         showError(error.message);
@@ -293,6 +298,31 @@ function switchTab(tabName) {
     }
 }
 
+// 찜 상태 확인
+async function checkFavoriteStatus(itemId) {
+    try {
+        const response = await fetch(`/favorite/check/${itemId}`);
+        
+        if (response.ok) {
+            const isFavorite = await response.json();
+            const btn = document.querySelector('.btn-favorite');
+            const icon = btn.querySelector('i');
+            
+            if (isFavorite) {
+                icon.classList.remove('far');
+                icon.classList.add('fas');
+                btn.classList.add('active');
+            } else {
+                icon.classList.remove('fas');
+                icon.classList.add('far');
+                btn.classList.remove('active');
+            }
+        }
+    } catch (error) {
+        console.error('찜 상태 확인 중 오류:', error);
+    }
+}
+
 // 찜하기 토글
 function toggleServiceFavorite() {
     const btn = document.querySelector('.btn-favorite');
@@ -304,7 +334,7 @@ function toggleServiceFavorite() {
         icon.classList.add('fas');
         btn.classList.add('active');
         
-        // 서버에 찜하기 추가 요청 (필요시)
+        // 서버에 찜하기 추가 요청
         if (currentItemId) {
             addToFavorite(currentItemId);
         }
@@ -314,7 +344,7 @@ function toggleServiceFavorite() {
         icon.classList.add('far');
         btn.classList.remove('active');
         
-        // 서버에 찜하기 제거 요청 (필요시)
+        // 서버에 찜하기 제거 요청
         if (currentItemId) {
             removeFromFavorite(currentItemId);
         }
@@ -333,14 +363,39 @@ async function addToFavorite(itemId) {
         
         if (response.ok) {
             console.log('찜하기 추가 완료');
+            
+            // 성공 메시지 표시
+            showNotification('찜하기에 추가되었습니다. 찜 목록에서 확인하세요!');
         } else if (response.status === 401) {
             alert('로그인이 필요한 서비스입니다.');
+            
+            // 찜 상태 원복
+            const btn = document.querySelector('.btn-favorite');
+            const icon = btn.querySelector('i');
+            icon.classList.remove('fas');
+            icon.classList.add('far');
+            btn.classList.remove('active');
+            
             window.location.href = '/login';
         } else {
             alert('찜하기 추가에 실패했습니다.');
+            
+            // 찜 상태 원복
+            const btn = document.querySelector('.btn-favorite');
+            const icon = btn.querySelector('i');
+            icon.classList.remove('fas');
+            icon.classList.add('far');
+            btn.classList.remove('active');
         }
     } catch (error) {
         console.error('찜하기 추가 중 오류:', error);
+        
+        // 찜 상태 원복
+        const btn = document.querySelector('.btn-favorite');
+        const icon = btn.querySelector('i');
+        icon.classList.remove('fas');
+        icon.classList.add('far');
+        btn.classList.remove('active');
     }
 }
 
@@ -356,11 +411,26 @@ async function removeFromFavorite(itemId) {
         
         if (response.ok) {
             console.log('찜하기 제거 완료');
+            showNotification('찜하기에서 제거되었습니다.');
         } else {
             alert('찜하기 제거에 실패했습니다.');
+            
+            // 찜 상태 원복
+            const btn = document.querySelector('.btn-favorite');
+            const icon = btn.querySelector('i');
+            icon.classList.remove('far');
+            icon.classList.add('fas');
+            btn.classList.add('active');
         }
     } catch (error) {
         console.error('찜하기 제거 중 오류:', error);
+        
+        // 찜 상태 원복
+        const btn = document.querySelector('.btn-favorite');
+        const icon = btn.querySelector('i');
+        icon.classList.remove('far');
+        icon.classList.add('fas');
+        btn.classList.add('active');
     }
 }
 
@@ -404,6 +474,46 @@ function showError(message) {
             </div>
         `;
     }
+}
+
+// 알림 메시지 표시
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = 'notification';
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? '#28a745' : '#dc3545'};
+        color: white;
+        padding: 16px 24px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 10000;
+        font-size: 15px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        animation: slideInRight 0.3s ease-out;
+    `;
+    
+    notification.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+        <span>${message}</span>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // 3초 후 자동 제거
+    setTimeout(() => {
+        notification.style.animation = 'slideOutRight 0.3s ease-out';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 3000);
 }
 
 // 전역 함수로 노출
