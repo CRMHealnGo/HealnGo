@@ -123,7 +123,9 @@ document.querySelector('.event-approval-btn').addEventListener('click', async fu
         serviceCategory: procedureTags.join(','),
         price: parseFloat(document.querySelector('input[name="price"]')?.value || '0'),
         vatIncluded: document.querySelector('input[name="vatIncluded"]:checked')?.value === 'true',
-        isRefundable: document.querySelector('input[name="isRefundable"]:checked')?.value === 'true',
+        anesthesia: document.querySelector('input[name="anesthesia"]:checked')?.value === 'true',
+        postCare: document.querySelector('input[name="postCare"]:checked')?.value === 'true',
+        isRefundable: true,
         currency: 'KRW',
         description: ''
     };
@@ -145,8 +147,8 @@ document.querySelector('.event-approval-btn').addEventListener('click', async fu
     }
 
     try {
-        // fetch로 JSON 데이터 전송
-        const response = await fetch('/api/medical-services/item/1', {
+        // fetch로 JSON 데이터 전송 - 세션에서 companyId를 사용하여 해당 회사의 item 찾기
+        const response = await fetch('/api/medical-services', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -157,7 +159,9 @@ document.querySelector('.event-approval-btn').addEventListener('click', async fu
         if (response.ok) {
             alert('의료 서비스 등록이 완료되었습니다.');
         } else {
-            alert('의료 서비스 등록에 실패했습니다.');
+            const errorText = await response.text();
+            console.error('서버 응답:', response.status, errorText);
+            alert(`의료 서비스 등록에 실패했습니다.\n상태: ${response.status}\n오류: ${errorText}`);
         }
     } catch (error) {
         console.error('Error:', error);

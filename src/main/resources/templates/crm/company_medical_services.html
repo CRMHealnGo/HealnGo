@@ -36,6 +36,84 @@
                         의료 서비스 추가
                     </button>
                 </div>
+
+                <!-- 의료 서비스 목록 섹션 -->
+                <div class="medical-services-section">
+                    <div class="section-header">
+                        <h3>등록된 의료 서비스</h3>
+                        <span class="service-count" th:text="${#lists.size(medicalServices)} + '개 서비스'">0개 서비스</span>
+                    </div>
+
+                    <!-- 서비스 목록 -->
+                    <div class="services-grid" th:if="${#lists.size(medicalServices) > 0}">
+                        <div class="service-card" th:each="service : ${medicalServices}">
+                            <div class="service-header">
+                                <h4 class="service-name" th:text="${service.name}">서비스명</h4>
+                                <div class="service-status">
+                                    <span class="status-badge" 
+                                          th:classappend="${service.startDate != null and service.endDate != null and service.endDate.isAfter(T(java.time.LocalDate).now())} ? 'active' : 'inactive'"
+                                          th:text="${service.startDate != null and service.endDate != null and service.endDate.isAfter(T(java.time.LocalDate).now())} ? '진행중' : '종료'">상태</span>
+                                </div>
+                            </div>
+                            
+                            <div class="service-content">
+                                <p class="service-description" th:text="${service.description}">서비스 설명</p>
+                                
+                                <div class="service-details">
+                                    <div class="detail-row" th:if="${service.startDate != null}">
+                                        <i class="fas fa-calendar-alt"></i>
+                                        <span th:text="${#temporals.format(service.startDate, 'yyyy-MM-dd')} + ' ~ ' + ${#temporals.format(service.endDate, 'yyyy-MM-dd')}">기간</span>
+                                    </div>
+                                    
+                                    <div class="detail-row" th:if="${service.genderTarget != null}">
+                                        <i class="fas fa-users"></i>
+                                        <span th:text="${service.genderTarget}">성별 대상</span>
+                                    </div>
+                                    
+                                    <div class="detail-row" th:if="${service.serviceCategory != null}">
+                                        <i class="fas fa-tags"></i>
+                                        <span th:text="${service.serviceCategory}">카테고리</span>
+                                    </div>
+                                    
+                                    <div class="detail-row" th:if="${service.price != null}">
+                                        <i class="fas fa-won-sign"></i>
+                                        <span th:text="${#numbers.formatDecimal(service.price, 0, 'COMMA', 0, 'POINT')} + ' ' + ${service.currency}">가격</span>
+                                    </div>
+                                    
+                                    <div class="detail-row" th:if="${service.discountRate != null and service.discountRate > 0}">
+                                        <i class="fas fa-percentage"></i>
+                                        <span th:text="${service.discountRate} + '% 할인'">할인율</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="service-tags" th:if="${service.tags != null and !#strings.isEmpty(service.tags)}">
+                                    <span class="tag" th:each="tag : ${#strings.arraySplit(service.tags, ',')}" th:text="${#strings.trim(tag)}">태그</span>
+                                </div>
+                            </div>
+                            
+                            <div class="service-actions">
+                                <button class="btn-edit" onclick="editService([[${service.serviceId}]])">
+                                    <i class="fas fa-edit"></i> 수정
+                                </button>
+                                <button class="btn-delete" onclick="deleteService([[${service.serviceId}]])">
+                                    <i class="fas fa-trash"></i> 삭제
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 서비스가 없을 때 -->
+                    <div class="empty-state" th:if="${#lists.size(medicalServices) == 0}">
+                        <div class="empty-icon">
+                            <i class="fas fa-stethoscope"></i>
+                        </div>
+                        <h4>등록된 의료 서비스가 없습니다</h4>
+                        <p>새로운 의료 서비스를 등록해보세요.</p>
+                        <button class="btn-primary" onclick="window.location.href='/company/event-registration'">
+                            <i class="fas fa-plus"></i> 서비스 등록하기
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

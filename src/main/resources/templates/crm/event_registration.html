@@ -35,7 +35,7 @@
                     <!-- 이벤트 제목 -->
                     <div class="event-form-group">
                         <label class="event-form-label">서비스 제목</label>
-                        <input type="text" class="event-form-input" placeholder="예: 사각턱보톡스 리즈톡스 50유닛 / 자연유착 쌍꺼풀" maxlength="100">
+                        <input type="text" class="event-form-input" name="name" placeholder="예: 사각턱보톡스 리즈톡스 50유닛 / 자연유착 쌍꺼풀" maxlength="100">
                         <div class="event-form-note">비용을 입력하지 마세요. & - , . _ 를 제외한 다른 특수문자는 입력하지 마세요.</div>
                         <div class="event-char-counter">0 / 100</div>
                     </div>
@@ -45,12 +45,12 @@
                         <label class="event-form-label">서비스 기간</label>
                         <div class="event-date-group">
                             <div class="event-date-input">
-                                <input type="date" class="event-form-input">
+                                <input type="date" class="event-form-input" name="startDate">
                                 <i class="fas fa-calendar event-date-icon"></i>
                             </div>
                             <span>~</span>
                             <div class="event-date-input">
-                                <input type="date" class="event-form-input">
+                                <input type="date" class="event-form-input" name="endDate">
                                 <i class="fas fa-calendar event-date-icon"></i>
                             </div>
                             <div class="event-checkbox-group">
@@ -65,15 +65,15 @@
                         <label class="event-form-label">대상 성별</label>
                         <div class="event-radio-group">
                             <div class="event-radio-item">
-                                <input type="radio" class="event-radio" name="targetGender" value="unisex" checked>
+                                <input type="radio" class="event-radio" name="genderTarget" value="unisex" checked>
                                 <label class="event-radio-label">남녀공용</label>
                             </div>
                             <div class="event-radio-item">
-                                <input type="radio" class="event-radio" name="targetGender" value="female">
+                                <input type="radio" class="event-radio" name="genderTarget" value="female">
                                 <label class="event-radio-label">여성</label>
                             </div>
                             <div class="event-radio-item">
-                                <input type="radio" class="event-radio" name="targetGender" value="male">
+                                <input type="radio" class="event-radio" name="genderTarget" value="male">
                                 <label class="event-radio-label">남성</label>
                             </div>
                         </div>
@@ -142,7 +142,7 @@
                     <div class="event-form-group">
                         <label class="event-form-label">서비스 가격</label>
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <input type="number" class="event-form-input" placeholder="가격을 입력하세요" id="eventPrice" style="flex: 1;">
+                            <input type="number" class="event-form-input" name="price" placeholder="가격을 입력하세요" id="eventPrice" style="flex: 1;">
                             <span style="font-size: 16px; color: #2c3e50; font-weight: 600;">원</span>
                         </div>
                         <div class="event-form-note">서비스 가격을 숫자로만 입력해주세요. (예: 290000)</div>
@@ -153,11 +153,11 @@
                         <label class="event-form-label">VAT</label>
                         <div class="event-radio-group">
                             <div class="event-radio-item">
-                                <input type="radio" class="event-radio" name="vat" value="included" checked>
+                                <input type="radio" class="event-radio" name="vatIncluded" value="true" checked>
                                 <label class="event-radio-label">포함</label>
                             </div>
                             <div class="event-radio-item">
-                                <input type="radio" class="event-radio" name="vat" value="notApplicable">
+                                <input type="radio" class="event-radio" name="vatIncluded" value="false">
                                 <label class="event-radio-label">비대상</label>
                             </div>
                         </div>
@@ -169,11 +169,11 @@
                         <label class="event-form-label">마취비</label>
                         <div class="event-radio-group">
                             <div class="event-radio-item">
-                                <input type="radio" class="event-radio" name="anesthesia" value="included" checked>
+                                <input type="radio" class="event-radio" name="anesthesia" value="true" checked>
                                 <label class="event-radio-label">포함</label>
                             </div>
                             <div class="event-radio-item">
-                                <input type="radio" class="event-radio" name="anesthesia" value="none">
+                                <input type="radio" class="event-radio" name="anesthesia" value="false">
                                 <label class="event-radio-label">없음</label>
                             </div>
                         </div>
@@ -185,11 +185,11 @@
                         <label class="event-form-label">사후관리비</label>
                         <div class="event-radio-group">
                             <div class="event-radio-item">
-                                <input type="radio" class="event-radio" name="postCare" value="included" checked>
+                                <input type="radio" class="event-radio" name="postCare" value="true" checked>
                                 <label class="event-radio-label">포함</label>
                             </div>
                             <div class="event-radio-item">
-                                <input type="radio" class="event-radio" name="postCare" value="none">
+                                <input type="radio" class="event-radio" name="postCare" value="false">
                                 <label class="event-radio-label">없음</label>
                             </div>
                         </div>
