@@ -139,7 +139,11 @@ function clearError(field) {
 
 // 폼 제출
 function submitForm(form) {
-    const submitBtn = form.querySelector('.signup-btn');
+    const submitBtn = form.querySelector('.user-signup-btn');
+    if (!submitBtn) {
+        console.error('제출 버튼을 찾을 수 없습니다.');
+        return;
+    }
     const originalText = submitBtn.textContent;
     
     // 로딩 상태 표시

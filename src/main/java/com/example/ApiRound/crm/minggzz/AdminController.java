@@ -1,22 +1,39 @@
 package com.example.ApiRound.crm.minggzz;
 
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.example.ApiRound.crm.hyeonah.Repository.SocialUsersRepository;
+import com.example.ApiRound.crm.hyeonah.entity.SocialUsers;
 
 import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
 
 @Controller
 @RequestMapping("/admin")
+@RequiredArgsConstructor
 public class AdminController {
+
+    private final SocialUsersRepository usersRepo;
 
     /**
      * 관리자 대시보드 메인 페이지
@@ -57,28 +74,81 @@ public class AdminController {
 
     /**
      * 사용자 관리 페이지
+     * DB연동, 검색, 정렬, 페이지네이션
      */
     @GetMapping("/users")
     public String users(
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestParam(value = "search", required = false) String search,
+            @RequestParam(value = "status", required = false) String statusFilter,
+            @RequestParam(required = false, defaultValue = "createdAt") String sort,
+            @RequestParam(required = false, defaultValue = "desc") String dir,
             Model model, HttpSession session) {
 
         model.addAttribute("managerName", session.getAttribute("managerName"));
 
-        // 사용자 목록 데이터 (실제로는 서비스에서 가져와야 함)
-        List<Map<String, Object>> users = getUsers(page, size, search);
+        // 페이지(0based), 사이즈(안전 범위) 보정
+        int pageIdx = Math.max(page, 1) - 1;
+        int pageSize = Math.min(Math.max(size, 1), 100);
+
+        // UI 정렬 키 > 엔티티 필드 매핑
+        String sortProp = switch (sort) {
+            case "name" -> "name";
+            case "email" -> "email";
+            case "joinDate" -> "createdAt";
+            default -> "createdAt";
+        };
+
+        // Sort 생성
+        Sort sortOrder = "asc".equalsIgnoreCase(dir) 
+            ? Sort.by(sortProp).ascending() 
+            : Sort.by(sortProp).descending();
+        
+        Pageable pageable = PageRequest.of(pageIdx, pageSize, sortOrder);
+
+        // DB에서 사용자 조회 (검색 + 상태 필터)
+        Page<SocialUsers> userPage;
+        
+        if (search != null && !search.trim().isEmpty() && statusFilter != null && !statusFilter.isEmpty()) {
+            // 검색 + 상태 필터
+            userPage = usersRepo.searchActiveByStatus(search.trim(), statusFilter, pageable);
+        } else if (search != null && !search.trim().isEmpty()) {
+            // 검색만
+            userPage = usersRepo.searchActive(search.trim(), pageable);
+        } else if (statusFilter != null && !statusFilter.isEmpty()) {
+            // 상태 필터만
+            userPage = usersRepo.findByStatusAndIsDeletedFalse(statusFilter, pageable);
+        } else {
+            // 전체 조회
+            userPage = usersRepo.findByIsDeletedFalse(pageable);
+        }
+
+        // SocialUsers를 Map으로 변환 (HTML에서 사용하기 쉽게)
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        List<Map<String, Object>> users = userPage.getContent().stream()
+            .map(user -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("id", user.getUserId());
+                map.put("name", user.getName() != null ? user.getName() : "-");
+                map.put("email", user.getEmail());
+                map.put("phone", user.getPhone());
+                map.put("joinDate", user.getCreatedAt() != null ? user.getCreatedAt().format(formatter) : "-");
+                map.put("status", getStatusLabel(user.getStatus(), user.getIsDeleted()));
+                return map;
+            })
+            .toList();
+
         model.addAttribute("users", users);
 
         // 페이지네이션 정보
-        int totalUsers = 1250; // 실제로는 DB에서 조회
-        int totalPages = (int) Math.ceil((double) totalUsers / size);
-
         model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", totalPages);
-        model.addAttribute("totalUsers", totalUsers);
+        model.addAttribute("totalPages", userPage.getTotalPages());
+        model.addAttribute("totalUsers", userPage.getTotalElements());
         model.addAttribute("search", search);
+        model.addAttribute("statusFilter", statusFilter);
+        model.addAttribute("sortBy", sort);
+        model.addAttribute("sortDir", dir);
 
         return "admin/users";
     }
@@ -199,43 +269,16 @@ public class AdminController {
         
         return chartData;
     }
-
-    private List<Map<String, Object>> getUsers(int page, int size, String search) {
-        List<Map<String, Object>> users = new ArrayList<>();
-        
-        // 임시 사용자 데이터
-        for (int i = 1; i <= size; i++) {
-            Map<String, Object> user = new HashMap<>();
-            user.put("id", (page - 1) * size + i);
-            user.put("name", "사용자" + ((page - 1) * size + i));
-            user.put("email", "user" + ((page - 1) * size + i) + "@example.com");
-            user.put("joinDate", "2024-01-" + String.format("%02d", i % 28 + 1));
-            user.put("status", i % 3 == 0 ? "비활성" : "활성");
-            user.put("reportCount", i % 5);
-            users.add(user);
+    
+    // 상태 레이블 헬퍼 메서드
+    private String getStatusLabel(String status, Boolean isDeleted) {
+        if (isDeleted != null && isDeleted) {
+            return "비활성화";
         }
-        
-        return users;
-    }
-
-    private List<Map<String, Object>> getCompanies(int page, int size, String search) {
-        List<Map<String, Object>> companies = new ArrayList<>();
-        
-        // 임시 업체 데이터
-        String[] companyTypes = {"병원", "미용실", "마사지", "치과", "한의원"};
-        
-        for (int i = 1; i <= size; i++) {
-            Map<String, Object> company = new HashMap<>();
-            company.put("id", (page - 1) * size + i);
-            company.put("name", companyTypes[i % companyTypes.length] + " " + i);
-            company.put("owner", "사업자" + i);
-            company.put("phone", "010-1234-" + String.format("%04d", i));
-            company.put("status", i % 4 == 0 ? "승인대기" : "승인완료");
-            company.put("joinDate", "2024-01-" + String.format("%02d", i % 28 + 1));
-            companies.add(company);
+        if ("SUSPENDED".equals(status)) {
+            return "정지";
         }
-        
-        return companies;
+        return "활성";
     }
 
     private List<Map<String, Object>> getReservations(int page, int size, String search) {
@@ -420,5 +463,149 @@ public class AdminController {
         notifications.add(notify1);
         
         return notifications;
+    }
+
+    // ===== REST API 엔드포인트 =====
+    
+    /**
+     * 사용자 상세 조회
+     */
+    @GetMapping("/api/users/{userId}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getUserDetail(@PathVariable Integer userId) {
+        return usersRepo.findById(userId)
+            .map(user -> {
+                Map<String, Object> response = new HashMap<>();
+                response.put("id", user.getUserId());
+                response.put("name", user.getName() != null ? user.getName() : "-");
+                response.put("email", user.getEmail());
+                response.put("phone", user.getPhone() != null ? user.getPhone() : "");
+                response.put("joinDate", user.getCreatedAt() != null ? 
+                    user.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) : "-");
+                response.put("lastLogin", user.getLastLoginAt() != null ?
+                    user.getLastLoginAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) : "정보 없음");
+                response.put("status", getStatusLabel(user.getStatus(), user.getIsDeleted()));
+                response.put("totalReservations", 0); // TODO: 예약 테이블과 연동
+                response.put("totalSpent", 0); // TODO: 결제 테이블과 연동
+                response.put("notes", ""); // TODO: 관리자 메모 기능
+                
+                return ResponseEntity.ok(response);
+            })
+            .orElse(ResponseEntity.notFound().build());
+    }
+    
+    /**
+     * 사용자 정보 수정
+     */
+    @PutMapping("/api/users/{userId}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> updateUser(
+            @PathVariable Integer userId,
+            @RequestBody Map<String, String> updateData) {
+        
+        return usersRepo.findByUserIdAndIsDeletedFalse(userId)
+            .map(user -> {
+                // 수정 가능한 필드 업데이트
+                if (updateData.containsKey("name")) {
+                    user.setName(updateData.get("name"));
+                }
+                if (updateData.containsKey("phone")) {
+                    user.setPhone(updateData.get("phone"));
+                }
+                if (updateData.containsKey("status")) {
+                    String status = updateData.get("status");
+                    user.setIsDeleted(!"active".equals(status));
+                }
+                
+                usersRepo.save(user);
+                
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", true);
+                response.put("message", "사용자 정보가 수정되었습니다.");
+                return ResponseEntity.ok(response);
+            })
+            .orElseGet(() -> {
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("message", "사용자를 찾을 수 없습니다.");
+                return ResponseEntity.notFound().build();
+            });
+    }
+    
+    /**
+     * 사용자 상태 토글 (활성 → 정지 → 비활성화)
+     */
+    @PostMapping("/api/users/{userId}/toggle-status")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> toggleUserStatus(@PathVariable Integer userId) {
+        return usersRepo.findById(userId)
+            .map(user -> {
+                String currentStatus = user.getStatus() != null ? user.getStatus() : "ACTIVE";
+                boolean isDeleted = Boolean.TRUE.equals(user.getIsDeleted());
+                
+                String newStatusLabel;
+                
+                // 상태 토글: 활성 → 정지 → 비활성화 → 활성 (순환)
+                if (isDeleted) {
+                    // 비활성화 → 활성
+                    user.setIsDeleted(false);
+                    user.setStatus("ACTIVE");
+                    newStatusLabel = "활성";
+                } else if ("SUSPENDED".equals(currentStatus)) {
+                    // 정지 → 비활성화
+                    user.setIsDeleted(true);
+                    user.setStatus("INACTIVE");
+                    newStatusLabel = "비활성화";
+                } else {
+                    // 활성 → 정지
+                    user.setStatus("SUSPENDED");
+                    newStatusLabel = "정지";
+                }
+                
+                usersRepo.save(user);
+                
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", true);
+                response.put("message", "사용자 상태가 " + newStatusLabel + "(으)로 변경되었습니다.");
+                response.put("newStatus", newStatusLabel);
+                return ResponseEntity.ok(response);
+            })
+            .orElseGet(() -> {
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("message", "사용자를 찾을 수 없습니다.");
+                return ResponseEntity.notFound().build();
+            });
+    }
+    
+    /**
+     * 일괄 정지 처리
+     */
+    @PostMapping("/api/users/bulk-suspend")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> bulkSuspend(@RequestBody Map<String, List<Integer>> request) {
+        List<Integer> userIds = request.get("userIds");
+        
+        if (userIds == null || userIds.isEmpty()) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "선택된 사용자가 없습니다.");
+            return ResponseEntity.badRequest().body(response);
+        }
+        
+        int count = 0;
+        for (Integer userId : userIds) {
+            usersRepo.findById(userId).ifPresent(user -> {
+                user.setStatus("SUSPENDED");
+                user.setIsDeleted(false);
+                usersRepo.save(user);
+            });
+            count++;
+        }
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", count + "명의 사용자가 정지되었습니다.");
+        return ResponseEntity.ok(response);
     }
 }
