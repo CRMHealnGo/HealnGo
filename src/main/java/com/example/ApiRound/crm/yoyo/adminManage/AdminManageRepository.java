@@ -11,51 +11,51 @@ import java.util.List;
 
 @Repository
 public interface AdminManageRepository extends JpaRepository<ItemList, Long> {
-    
+
     // 전체 업체 수 조회 (승인된 업체만)
     @Query("SELECT COUNT(i) FROM ItemList i " +
-           "JOIN i.ownerCompany c " +
-           "WHERE c.approvalStatus = 'APPROVED'")
+            "JOIN i.ownerCompany c " +
+            "WHERE c.approvalStatus = 'APPROVED'")
     long countApprovedCompanies();
-    
+
     // 이번 달 신규 업체 수 조회
     @Query("SELECT COUNT(i) FROM ItemList i " +
-           "JOIN i.ownerCompany c " +
-           "WHERE c.approvalStatus = 'APPROVED' " +
-           "AND c.createdAt >= :startOfMonth")
+            "JOIN i.ownerCompany c " +
+            "WHERE c.approvalStatus = 'APPROVED' " +
+            "AND c.createdAt >= :startOfMonth")
     long countNewCompaniesThisMonth(@Param("startOfMonth") LocalDateTime startOfMonth);
-    
+
     // 신고 접수 수 조회 (임시로 0 반환, 실제 신고 테이블이 있으면 수정)
     @Query("SELECT COUNT(i) FROM ItemList i " +
-           "JOIN i.ownerCompany c " +
-           "WHERE c.approvalStatus = 'REPORTED'")
+            "JOIN i.ownerCompany c " +
+            "WHERE c.approvalStatus = 'REPORTED'")
     long countReportedCompanies();
-    
+
     // 제재 중인 업체 수 조회
     @Query("SELECT COUNT(i) FROM ItemList i " +
-           "JOIN i.ownerCompany c " +
-           "WHERE c.approvalStatus = 'SUSPENDED'")
+            "JOIN i.ownerCompany c " +
+            "WHERE c.approvalStatus = 'SUSPENDED'")
     long countSuspendedCompanies();
-    
+
     // 승인된 업체 목록 조회 (페이징 지원)
     @Query("SELECT i FROM ItemList i " +
-           "JOIN FETCH i.ownerCompany c " +
-           "WHERE c.approvalStatus = 'APPROVED' " +
-           "ORDER BY i.createdAt DESC")
+            "JOIN FETCH i.ownerCompany c " +
+            "WHERE c.approvalStatus = 'APPROVED' " +
+            "ORDER BY i.createdAt DESC")
     List<ItemList> findApprovedCompanies();
-    
+
     // 업체명으로 검색
     @Query("SELECT i FROM ItemList i " +
-           "JOIN FETCH i.ownerCompany c " +
-           "WHERE c.approvalStatus = 'APPROVED' " +
-           "AND (i.name LIKE CONCAT('%', :search, '%') OR c.companyName LIKE CONCAT('%', :search, '%')) " +
-           "ORDER BY i.createdAt DESC")
+            "JOIN FETCH i.ownerCompany c " +
+            "WHERE c.approvalStatus = 'APPROVED' " +
+            "AND (i.name LIKE CONCAT('%', :search, '%') OR c.companyName LIKE CONCAT('%', :search, '%')) " +
+            "ORDER BY i.createdAt DESC")
     List<ItemList> searchCompaniesByName(@Param("search") String search);
-    
+
     // 상태별 업체 조회
     @Query("SELECT i FROM ItemList i " +
-           "JOIN FETCH i.ownerCompany c " +
-           "WHERE c.approvalStatus = :status " +
-           "ORDER BY i.createdAt DESC")
+            "JOIN FETCH i.ownerCompany c " +
+            "WHERE c.approvalStatus = :status " +
+            "ORDER BY i.createdAt DESC")
     List<ItemList> findCompaniesByStatus(@Param("status") String status);
 }

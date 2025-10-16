@@ -16,11 +16,17 @@ public interface MediServiceRepository extends JpaRepository<MediServiceEntity, 
             "JOIN FETCH i.ownerCompany c " +
             "WHERE c.companyId = :companyId AND m.deletedAt IS NULL")
     List<MediServiceEntity> findActiveByCompanyIdWithFetch(@Param("companyId") Integer companyId);
-    
+
     // 회사별 의료 서비스 조회 (삭제된 것 포함 - 관리자용)
     @Query("SELECT m FROM MediServiceEntity m " +
             "JOIN FETCH m.item i " +
             "JOIN FETCH i.ownerCompany c " +
             "WHERE c.companyId = :companyId")
     List<MediServiceEntity> findAllByCompanyIdWithFetch(@Param("companyId") Integer companyId);
+
+    // Item ID로 의료 서비스 조회 (삭제되지 않은 것만, 내림차순)
+    @Query("SELECT m FROM MediServiceEntity m " +
+            "WHERE m.item.id = :itemId AND m.deletedAt IS NULL " +
+            "ORDER BY m.serviceId DESC")
+    List<MediServiceEntity> findAllByItem_IdOrderByServiceIdDesc(@Param("itemId") Long itemId);
 }
