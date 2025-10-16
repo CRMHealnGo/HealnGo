@@ -131,4 +131,79 @@ public class MediServiceService {
         log.info("의료 서비스 등록 완료: ID={}, 이름={}", savedEntity.getServiceId(), savedEntity.getName());
         return savedEntity;
     }
+
+    @Transactional
+    public MediServiceEntity updateService(Integer serviceId, MediServiceEntity updateData, Integer companyId) {
+        try {
+            log.info("====== MediServiceService.updateService 호출 ======");
+            log.info("서비스 ID: {}, 회사 ID: {}", serviceId, companyId);
+            
+            // 기존 서비스 조회
+            log.info("서비스 조회 시도 - ID: {}", serviceId.longValue());
+            MediServiceEntity existingService = mediServiceRepository.findById(serviceId.longValue())
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 서비스 ID: " + serviceId));
+            
+            log.info("기존 서비스 조회 성공 - 이름: {}", existingService.getName());
+            log.info("기존 서비스의 item: {}", existingService.getItem());
+            log.info("기존 서비스의 item의 ownerCompany: {}", existingService.getItem().getOwnerCompany());
+            
+            // 권한 확인 - 해당 회사의 서비스인지 체크
+            Integer ownerCompanyId = existingService.getItem().getOwnerCompany().getCompanyId();
+            log.info("소유 회사 ID: {}, 요청 회사 ID: {}", ownerCompanyId, companyId);
+            
+            if (!ownerCompanyId.equals(companyId)) {
+                throw new SecurityException("해당 서비스를 수정할 권한이 없습니다.");
+            }
+            
+            log.info("권한 확인 완료");
+            
+            // 데이터 업데이트
+            if (updateData.getName() != null && !updateData.getName().isEmpty()) {
+                log.info("이름 업데이트: {} -> {}", existingService.getName(), updateData.getName());
+                existingService.setName(updateData.getName());
+            }
+            if (updateData.getStartDate() != null) {
+                log.info("시작일 업데이트: {} -> {}", existingService.getStartDate(), updateData.getStartDate());
+                existingService.setStartDate(updateData.getStartDate());
+            }
+            if (updateData.getEndDate() != null) {
+                log.info("종료일 업데이트: {} -> {}", existingService.getEndDate(), updateData.getEndDate());
+                existingService.setEndDate(updateData.getEndDate());
+            }
+            if (updateData.getPrice() != null) {
+                log.info("가격 업데이트: {} -> {}", existingService.getPrice(), updateData.getPrice());
+                existingService.setPrice(updateData.getPrice());
+            }
+            if (updateData.getGenderTarget() != null) {
+                log.info("성별 타겟 업데이트: {} -> {}", existingService.getGenderTarget(), updateData.getGenderTarget());
+                existingService.setGenderTarget(updateData.getGenderTarget());
+            }
+            if (updateData.getTargetCountry() != null) {
+                log.info("대상 국가 업데이트: {} -> {}", existingService.getTargetCountry(), updateData.getTargetCountry());
+                existingService.setTargetCountry(updateData.getTargetCountry());
+            }
+            if (updateData.getVatIncluded() != null) {
+                log.info("VAT 포함 업데이트: {} -> {}", existingService.getVatIncluded(), updateData.getVatIncluded());
+                existingService.setVatIncluded(updateData.getVatIncluded());
+            }
+            if (updateData.getIsRefundable() != null) {
+                log.info("환불 가능 업데이트: {} -> {}", existingService.getIsRefundable(), updateData.getIsRefundable());
+                existingService.setIsRefundable(updateData.getIsRefundable());
+            }
+            if (updateData.getTags() != null) {
+                log.info("태그 업데이트: {} -> {}", existingService.getTags(), updateData.getTags());
+                existingService.setTags(updateData.getTags());
+            }
+            
+            log.info("저장 시도 중...");
+            MediServiceEntity savedEntity = mediServiceRepository.save(existingService);
+            
+            log.info("의료 서비스 수정 완료: ID={}, 이름={}", savedEntity.getServiceId(), savedEntity.getName());
+            return savedEntity;
+            
+        } catch (Exception e) {
+            log.error("updateService에서 예외 발생: ", e);
+            throw e;
+        }
+    }
 }
