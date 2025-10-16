@@ -196,8 +196,54 @@ public class MediServiceController {
     }
 
 
-    /** 삭제 */
-    @DeleteMapping("/api/medical-services/{id}")
+    /** Soft-Delete */
+    @DeleteMapping("/api/medical-services/{serviceId}")
+    public ResponseEntity<Map<String, Object>> softDeleteService(
+            @PathVariable Integer serviceId,
+            HttpSession session
+    ) {
+        try {
+            log.info("========== 의료 서비스 삭제 요청 시작 ==========");
+            log.info("서비스 ID: {}", serviceId);
+            
+            Integer companyId = (Integer) session.getAttribute("companyId");
+            log.info("세션에서 가져온 companyId: {}", companyId);
+            
+            if (companyId == null) {
+                log.warn("세션에 companyId가 없습니다!");
+                return ResponseEntity.status(401).body(null);
+            }
+            
+            mediServiceService.softDeleteService(serviceId.longValue(), companyId);
+            
+            // 간단한 응답 객체 생성
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("serviceId", serviceId);
+            response.put("message", "의료 서비스가 성공적으로 삭제되었습니다.");
+            
+            log.info("의료 서비스 삭제 성공: {}", serviceId);
+            return ResponseEntity.ok(response);
+            
+        } catch (SecurityException e) {
+            log.error("권한 오류: ", e);
+            return ResponseEntity.status(403).body(null);
+        } catch (IllegalArgumentException e) {
+            log.error("잘못된 요청: ", e);
+            return ResponseEntity.status(404).body(null);
+        } catch (Exception e) {
+            log.error("의료 서비스 삭제 중 오류 발생: ", e);
+            log.error("오류 타입: {}", e.getClass().getName());
+            log.error("오류 메시지: {}", e.getMessage());
+            if (e.getCause() != null) {
+                log.error("원인: {}", e.getCause().getMessage());
+            }
+            return ResponseEntity.status(500).body(null);
+        }
+    }
+
+    /** 기존 삭제 (물리적 삭제) - 호환성을 위해 유지 */
+    @DeleteMapping("/api/medical-services/{id}/hard")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         mediServiceService.delete(id);
         return ResponseEntity.noContent().build();

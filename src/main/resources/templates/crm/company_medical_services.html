@@ -106,7 +106,9 @@
                                     onclick="openEditModalFromButton(this)">
                                     <i class="fas fa-edit"></i> 수정
                                 </button>
-                                <button class="btn-delete" onclick="deleteService([[${service.serviceId}]])">
+                                <button class="btn-delete" 
+                                    th:data-service-id="${service.serviceId}"
+                                    onclick="deleteServiceFromButton(this)">
                                     <i class="fas fa-trash"></i> 삭제
                                 </button>
                             </div>

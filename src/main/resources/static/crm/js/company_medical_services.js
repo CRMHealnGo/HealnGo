@@ -240,3 +240,44 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
+// 버튼에서 서비스 ID 읽어서 삭제하기
+function deleteServiceFromButton(button) {
+    const serviceId = button.dataset.serviceId;
+    deleteService(serviceId);
+}
+
+// 서비스 삭제
+function deleteService(serviceId) {
+    if (!serviceId) {
+        alert('서비스 ID를 찾을 수 없습니다.');
+        return;
+    }
+    
+    if (confirm('정말로 이 서비스를 삭제하시겠습니까?\n삭제된 서비스는 복원할 수 없습니다.')) {
+        console.log('삭제 요청 - 서비스 ID:', serviceId);
+        
+        fetch(`/company/api/medical-services/${serviceId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(async response => {
+            const text = await response.text();
+            console.log('서버 응답 상태:', response.status);
+            console.log('서버 응답 내용:', text);
+            
+            if (response.ok) {
+                alert('서비스가 성공적으로 삭제되었습니다.');
+                location.reload(); // 페이지 새로고침으로 삭제된 항목 제거
+            } else {
+                throw new Error(`서비스 삭제 실패 (${response.status}): ${text}`);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('서비스 삭제 중 오류가 발생했습니다: ' + error.message);
+        });
+    }
+}
+

@@ -14,6 +14,6 @@ public interface MediServiceRepository extends JpaRepository<MediServiceEntity, 
     @Query("SELECT m FROM MediServiceEntity m " +
             "JOIN FETCH m.item i " +
             "JOIN FETCH i.ownerCompany c " +
-            "WHERE c.companyId = :companyId")
-    List<MediServiceEntity> findAllByCompanyIdWithFetch(@Param("companyId") Integer companyId);
+            "WHERE c.companyId = :companyId AND m.deletedAt IS NULL")
+    List<MediServiceEntity> findActiveByCompanyIdWithFetch(@Param("companyId") Integer companyId);
 }

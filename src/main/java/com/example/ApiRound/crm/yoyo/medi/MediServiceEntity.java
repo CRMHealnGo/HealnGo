@@ -72,6 +72,9 @@ public class MediServiceEntity {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
     /** 생성 및 수정 시점 자동 세팅 */
     @PrePersist
     protected void onCreate() {

@@ -69,7 +69,7 @@ public class MediServiceService {
         log.info("====== MediServiceService.findByCompanyId 호출 ======");
         log.info("조회할 companyId: {}", companyId);
         
-        List<MediServiceEntity> result = mediServiceRepository.findAllByCompanyIdWithFetch(companyId);
+        List<MediServiceEntity> result = mediServiceRepository.findActiveByCompanyIdWithFetch(companyId);
         
         log.info("Repository에서 조회된 결과 개수: {}", result.size());
         if (result.isEmpty()) {
@@ -203,6 +203,45 @@ public class MediServiceService {
             
         } catch (Exception e) {
             log.error("updateService에서 예외 발생: ", e);
+            throw e;
+        }
+    }
+
+    @Transactional
+    public void softDeleteService(Long serviceId, Integer companyId) {
+        log.info("====== MediServiceService.softDeleteService 호출 ======");
+        log.info("서비스 ID: {}, 회사 ID: {}", serviceId, companyId);
+        
+        try {
+            // 기존 서비스 조회
+            MediServiceEntity existingService = mediServiceRepository.findById(serviceId)
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 서비스 ID: " + serviceId));
+            
+            log.info("기존 서비스 조회 성공 - 이름: {}", existingService.getName());
+            
+            // 권한 확인 - 해당 회사의 서비스인지 체크
+            Integer ownerCompanyId = existingService.getItem().getOwnerCompany().getCompanyId();
+            log.info("소유 회사 ID: {}, 요청 회사 ID: {}", ownerCompanyId, companyId);
+            
+            if (!ownerCompanyId.equals(companyId)) {
+                throw new SecurityException("해당 서비스를 삭제할 권한이 없습니다.");
+            }
+            
+            // 이미 삭제된 서비스인지 확인
+            if (existingService.getDeletedAt() != null) {
+                throw new IllegalArgumentException("이미 삭제된 서비스입니다.");
+            }
+            
+            log.info("권한 확인 완료");
+            
+            // Soft-delete 처리
+            existingService.setDeletedAt(java.time.LocalDateTime.now());
+            mediServiceRepository.save(existingService);
+            
+            log.info("의료 서비스 soft-delete 완료: ID={}, 이름={}", existingService.getServiceId(), existingService.getName());
+            
+        } catch (Exception e) {
+            log.error("softDeleteService에서 예외 발생: ", e);
             throw e;
         }
     }
