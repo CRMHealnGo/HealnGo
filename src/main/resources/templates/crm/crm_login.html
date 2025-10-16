@@ -109,6 +109,24 @@
         </div>
     </div>
 
+    <!-- 승인 상태 모달 -->
+    <div id="approvalModal" class="approval-modal" style="display: none;">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeApprovalModal()">&times;</span>
+            <div id="modalIcon" class="modal-icon status-pending">
+                <i class="fas fa-clock"></i>
+            </div>
+            <h2 id="modalTitle" class="modal-title">승인 대기중입니다</h2>
+            <p id="modalMessage" class="modal-message">
+                관리자의 승인을 기다리고 있습니다.<br>
+                승인 완료 후 로그인이 가능합니다.
+            </p>
+            <button onclick="closeApprovalModal()" class="modal-btn">
+                확인
+            </button>
+        </div>
+    </div>
+
     <script th:src="@{/crm/js/crm_login.js}"></script>
 </body>
 </html>

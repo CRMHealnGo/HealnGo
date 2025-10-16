@@ -1,6 +1,7 @@
 package com.example.ApiRound.crm.yoyo.medi;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -13,6 +14,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.example.ApiRound.crm.hyeonah.Service.CompanyUserService;
+import com.example.ApiRound.crm.hyeonah.entity.CompanyUser;
+
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 public class MediServiceController {
 
     private final MediServiceService mediServiceService;
+    private final CompanyUserService companyUserService;
 
     /**
      * 의료 서비스 관리 페이지
@@ -56,14 +61,31 @@ public class MediServiceController {
         }
         
         model.addAttribute("medicalServices", medicalServices);
+        model.addAttribute("companyId", companyId);
         model.addAttribute("companyName", session.getAttribute("companyName"));
         model.addAttribute("companyAddress", session.getAttribute("companyAddress"));
         model.addAttribute("sidebarType", "company");
+        addAvatarInfo(model, companyId);
         
         log.info("모델에 추가된 medicalServices 크기: {}", medicalServices.size());
         log.info("========== 의료 서비스 페이지 요청 완료 ==========");
         
         return "crm/company_medical_services";
+    }
+    
+    /**
+     * 아바타 정보 추가 헬퍼 메서드
+     */
+    private void addAvatarInfo(Model model, Integer companyId) {
+        if (companyId != null) {
+            Optional<CompanyUser> companyOpt = companyUserService.findById(companyId);
+            boolean hasAvatar = companyOpt.isPresent() && 
+                               companyOpt.get().getAvatarBlob() != null && 
+                               companyOpt.get().getAvatarBlob().length > 0;
+            model.addAttribute("hasAvatar", hasAvatar);
+        } else {
+            model.addAttribute("hasAvatar", false);
+        }
     }
 
     /** 전체 조회 API */

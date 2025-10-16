@@ -96,7 +96,7 @@ public class CompanyController {
         model.addAttribute("companyId", companyId);
         model.addAttribute("sidebarType", "company");
         addAvatarInfo(model, companyId);
-        return "crm/inquiry_chat";
+        return "crm/company_inquiry_chat";
     }
 
     /**

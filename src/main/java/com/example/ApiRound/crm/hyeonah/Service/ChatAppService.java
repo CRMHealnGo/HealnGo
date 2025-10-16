@@ -1,5 +1,12 @@
 package com.example.ApiRound.crm.hyeonah.Service;
 
+import java.time.LocalDateTime;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.example.ApiRound.crm.hyeonah.Repository.ChatMessageRepository;
 import com.example.ApiRound.crm.hyeonah.Repository.ChatThreadRepository;
 import com.example.ApiRound.crm.hyeonah.dto.ChatMessageDto;
@@ -7,13 +14,8 @@ import com.example.ApiRound.crm.hyeonah.dto.ChatThreadDto;
 import com.example.ApiRound.crm.hyeonah.dto.SenderRole;
 import com.example.ApiRound.crm.hyeonah.entity.ChatMessage;
 import com.example.ApiRound.crm.hyeonah.entity.ChatThread;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +35,7 @@ public class ChatAppService {
                         .itemId(itemId)
                         .title(title)
                         .muted(false)
+                        .status("NEW")
                         .lastMsgAt(LocalDateTime.now())
                         .build()
                 ).getThreadId());
@@ -49,6 +52,36 @@ public class ChatAppService {
                 .itemId(t.getItemId())
                 .title(t.getTitle())
                 .muted(t.isMuted())
+                .status(t.getStatus())
+                .lastMsgAt(t.getLastMsgAt())
+                .createdAt(t.getCreatedAt())
+                .updatedAt(t.getUpdatedAt())
+                .build());
+    }
+
+    // 회사용 스레드 목록
+    @Transactional(readOnly = true)
+    public Page<ChatThreadDto> listThreadsForCompany(Integer companyId, int page, int size, String status) {
+        Page<ChatThread> p;
+        
+        if (status != null && !status.isEmpty()) {
+            // status 필터링이 있는 경우
+            p = threadRepo.findByCompanyIdAndStatusOrderByLastMsgAtDescThreadIdDesc(
+                companyId, status, PageRequest.of(page - 1, size));
+        } else {
+            // 전체 조회
+            p = threadRepo.findByCompanyIdOrderByLastMsgAtDescThreadIdDesc(
+                companyId, PageRequest.of(page - 1, size));
+        }
+        
+        return p.map(t -> ChatThreadDto.builder()
+                .threadId(t.getThreadId())
+                .userId(t.getUserId())
+                .companyId(t.getCompanyId())
+                .itemId(t.getItemId())
+                .title(t.getTitle())
+                .muted(t.isMuted())
+                .status(t.getStatus())
                 .lastMsgAt(t.getLastMsgAt())
                 .createdAt(t.getCreatedAt())
                 .updatedAt(t.getUpdatedAt())
@@ -92,6 +125,11 @@ public class ChatAppService {
 
         // 마지막 메시지 시각 갱신
         thread.setLastMsgAt(LocalDateTime.now());
+        
+        // 첫 메시지 전송 시 상태를 IN_PROGRESS로 변경
+        if ("NEW".equals(thread.getStatus())) {
+            thread.setStatus("IN_PROGRESS");
+        }
 
         return ChatMessageDto.builder()
                 .messageId(saved.getMessageId())
@@ -104,5 +142,13 @@ public class ChatAppService {
                 .attachmentMime(saved.getAttachmentMime())
                 .createdAt(saved.getCreatedAt())
                 .build();
+    }
+
+    // 스레드 상태 업데이트
+    @Transactional
+    public void updateThreadStatus(Long threadId, String status) {
+        var thread = threadRepo.findById(threadId).orElseThrow();
+        thread.setStatus(status);
+        thread.setUpdatedAt(LocalDateTime.now());
     }
 }
