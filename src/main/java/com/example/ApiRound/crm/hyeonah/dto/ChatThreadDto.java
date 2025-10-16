@@ -17,8 +17,8 @@ public class ChatThreadDto {
     private Integer companyId;
     private Long itemId;
     private String title;
-    private boolean isMuted;
+    private boolean muted;
     private LocalDateTime lastMsgAt;
-    private LocalDateTime createAt;
+    private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
