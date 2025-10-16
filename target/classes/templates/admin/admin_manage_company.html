@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>업체 관리 - HealnGo</title>
     <link rel="stylesheet" href="/crm/css/admin_manage_company.css">
+    <link rel="stylesheet" href="/crm/css/admin_manage_company_detail.css">
     <link rel="stylesheet" href="/crm/css/admin_sidebar.css">
     <link rel="stylesheet" href="/crm/css/admin_header.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -31,22 +32,22 @@
                     <!-- 통계 카드 -->
                     <div class="stats-cards">
                         <div class="stat-card">
-                            <div class="stat-number">326</div>
+                            <div class="stat-number" th:text="${totalCompanies}">0</div>
                             <div class="stat-change positive">+12</div>
                             <div class="stat-label">전체 업체</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-number">13</div>
+                            <div class="stat-number" th:text="${newThisMonth}">0</div>
                             <div class="stat-change positive">+3</div>
                             <div class="stat-label">이번달 신규</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-number">6</div>
+                            <div class="stat-number" th:text="${reportsReceived}">0</div>
                             <div class="stat-change positive">+1</div>
                             <div class="stat-label">신고 접수</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-number">2</div>
+                            <div class="stat-number" th:text="${underSanction}">0</div>
                             <div class="stat-change neutral">0</div>
                             <div class="stat-label">제재 중</div>
                         </div>
@@ -81,25 +82,39 @@
                         
                         <!-- 업체 리스트 -->
                         <div class="company-list">
-                            <!-- 업체 1 -->
-                            <div class="company-item">
+                            <!-- 실제 DB 데이터 반복 -->
+                            <div th:each="company : ${companies}" 
+                                 class="company-item"
+                                 th:data-company-id="${company.ownerCompany.companyId}"
+                                 th:data-company-name="${company.name}"
+                                 th:data-item-id="${company.id}"
+                                 th:data-approval-status="${company.ownerCompany.approvalStatus}"
+                                 th:data-created-at="${company.ownerCompany.createdAt}"
+                                 onclick="selectCompany(this)"
+                                 style="cursor: pointer;">
                                 <div class="company-info">
                                     <div class="company-icon">
                                         <i class="fas fa-building"></i>
                                     </div>
                                     <div class="company-details">
-                                        <div class="company-id">PN0001265</div>
-                                        <div class="company-name">123성형외과</div>
-                                        <div class="company-status normal">정상</div>
+                                        <div class="company-id" th:text="'PN' + ${company.id}">PN0000000</div>
+                                        <div class="company-name" th:text="${company.name}">업체명</div>
+                                        <div class="company-status" 
+                                             th:classappend="${company.ownerCompany.approvalStatus == 'APPROVED'} ? 'normal' : 
+                                                           (${company.ownerCompany.approvalStatus == 'REPORTED'} ? 'report' : 'normal')"
+                                             th:text="${company.ownerCompany.approvalStatus == 'APPROVED'} ? '정상' : 
+                                                     (${company.ownerCompany.approvalStatus == 'REPORTED'} ? '신고 접수' : 
+                                                      (${company.ownerCompany.approvalStatus == 'SUSPENDED'} ? '제재중' : '대기'))">상태</div>
                                     </div>
                                 </div>
                                 <div class="company-metrics">
-                                    <div class="contract-date">계약일 Sep 12, 2021</div>
+                                    <div class="contract-date" 
+                                         th:text="${company.ownerCompany.createdAt != null} ? '등록일 ' + ${#temporals.format(company.ownerCompany.createdAt, 'MMM dd, yyyy')} : '등록일 미정'">등록일</div>
                                     <div class="rating-info">
                                         <i class="fas fa-arrow-up"></i>
-                                        <span class="rating">4.8</span>
+                                        <span class="rating">4.5</span>
                                         <i class="fas fa-star"></i>
-                                        <span class="review-count">(288)</span>
+                                        <span class="review-count">(0)</span>
                                     </div>
                                 </div>
                                 <div class="company-data">
@@ -107,140 +122,28 @@
                                     <div class="data-items">
                                         <div class="data-item">
                                             <span class="data-label">상품</span>
-                                            <span class="data-value">947</span>
+                                            <span class="data-value">0</span>
                                         </div>
                                         <div class="data-item">
                                             <span class="data-label">리뷰</span>
-                                            <span class="data-value">13</span>
+                                            <span class="data-value">0</span>
                                         </div>
                                     </div>
                                     <div class="sales-info">
-                                        <span class="sales-amount">926 만원</span>
+                                        <span class="sales-amount">0 만원</span>
                                         <span class="sales-label">이번달 매출</span>
                                     </div>
                                 </div>
                             </div>
                             
-                            <!-- 업체 2 -->
-                            <div class="company-item">
-                                <div class="company-info">
-                                    <div class="company-icon">
-                                        <i class="fas fa-building"></i>
-                                    </div>
-                                    <div class="company-details">
-                                        <div class="company-id">PN0001221</div>
-                                        <div class="company-name">하나한의원</div>
-                                        <div class="company-status normal">정상</div>
-                                    </div>
+                            <!-- 업체가 없을 때 -->
+                            <div th:if="${#lists.isEmpty(companies)}" class="no-companies">
+                                <div class="no-companies-icon">
+                                    <i class="fas fa-building"></i>
                                 </div>
-                                <div class="company-metrics">
-                                    <div class="contract-date">계약일 Sep 10, 2020</div>
-                                    <div class="rating-info">
-                                        <i class="fas fa-arrow-up"></i>
-                                        <span class="rating">4.7</span>
-                                        <i class="fas fa-star"></i>
-                                        <span class="review-count">(312)</span>
-                                    </div>
-                                </div>
-                                <div class="company-data">
-                                    <div class="data-header">이 업체의 Data</div>
-                                    <div class="data-items">
-                                        <div class="data-item">
-                                            <span class="data-label">상품</span>
-                                            <span class="data-value">1075</span>
-                                        </div>
-                                        <div class="data-item">
-                                            <span class="data-label">리뷰</span>
-                                            <span class="data-value">4</span>
-                                        </div>
-                                    </div>
-                                    <div class="sales-info">
-                                        <span class="sales-amount">1,057 만원</span>
-                                        <span class="sales-label">이번달 매출</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- 업체 3 -->
-                            <div class="company-item">
-                                <div class="company-info">
-                                    <div class="company-icon">
-                                        <i class="fas fa-building"></i>
-                                    </div>
-                                    <div class="company-details">
-                                        <div class="company-id">PN0001290</div>
-                                        <div class="company-name">새하얀피부과</div>
-                                        <div class="company-status report">
-                                            <span>신고 접수</span>
-                                            <span class="report-count">2건 신고</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="company-metrics">
-                                    <div class="contract-date">계약일 May 28, 2024</div>
-                                    <div class="rating-info">
-                                        <i class="fas fa-arrow-down"></i>
-                                        <span class="rating">4.2</span>
-                                        <i class="fas fa-star"></i>
-                                        <span class="review-count">(162)</span>
-                                    </div>
-                                </div>
-                                <div class="company-data">
-                                    <div class="data-header">이 업체의 Data</div>
-                                    <div class="data-items">
-                                        <div class="data-item">
-                                            <span class="data-label">상품</span>
-                                            <span class="data-value">966</span>
-                                        </div>
-                                        <div class="data-item">
-                                            <span class="data-label">리뷰</span>
-                                            <span class="data-value">20</span>
-                                        </div>
-                                    </div>
-                                    <div class="sales-info">
-                                        <span class="sales-amount">560 만원</span>
-                                        <span class="sales-label">이번달 매출</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- 업체 4 -->
-                            <div class="company-item">
-                                <div class="company-info">
-                                    <div class="company-icon">
-                                        <i class="fas fa-building"></i>
-                                    </div>
-                                    <div class="company-details">
-                                        <div class="company-id">PN0001221</div>
-                                        <div class="company-name">Yoyo의원</div>
-                                        <div class="company-status normal">정상</div>
-                                    </div>
-                                </div>
-                                <div class="company-metrics">
-                                    <div class="contract-date">계약일 Sep 10, 2020</div>
-                                    <div class="rating-info">
-                                        <i class="fas fa-arrow-up"></i>
-                                        <span class="rating">4.7</span>
-                                        <i class="fas fa-star"></i>
-                                        <span class="review-count">(312)</span>
-                                    </div>
-                                </div>
-                                <div class="company-data">
-                                    <div class="data-header">이 업체의 Data</div>
-                                    <div class="data-items">
-                                        <div class="data-item">
-                                            <span class="data-label">상품</span>
-                                            <span class="data-value">605</span>
-                                        </div>
-                                        <div class="data-item">
-                                            <span class="data-label">리뷰</span>
-                                            <span class="data-value">4</span>
-                                        </div>
-                                    </div>
-                                    <div class="sales-info">
-                                        <span class="sales-amount">1,324만원</span>
-                                        <span class="sales-label">이번달 매출</span>
-                                    </div>
+                                <div class="no-companies-text">
+                                    <h3>등록된 업체가 없습니다</h3>
+                                    <p>아직 승인된 업체가 없습니다.</p>
                                 </div>
                             </div>
                         </div>
@@ -257,34 +160,36 @@
                                 <div class="logo-shape"></div>
                             </div>
                             <div class="company-basic-info">
-                                <div class="company-id">PN0001221</div>
-                                <div class="company-name">Yoyo의원</div>
+                                <div class="company-id" id="sidebarCompanyId">업체를 선택해주세요</div>
+                                <div class="company-name" id="sidebarCompanyName">-</div>
                             </div>
                         </div>
                         <div class="company-details-table">
                             <div class="detail-row">
                                 <span class="detail-label">담당자</span>
-                                <span class="detail-value">YoyoKang</span>
+                                <span class="detail-value" id="sidebarManager">-</span>
                             </div>
                             <div class="detail-row">
                                 <span class="detail-label">연락처</span>
-                                <span class="detail-value">010-0000-0000</span>
+                                <span class="detail-value" id="sidebarPhone">-</span>
                             </div>
                             <div class="detail-row">
                                 <span class="detail-label">주소</span>
-                                <span class="detail-value">서울시 강남구</span>
+                                <span class="detail-value" id="sidebarAddress">-</span>
                             </div>
                             <div class="detail-row">
-                                <span class="detail-label">계약일</span>
-                                <span class="detail-value">Sep 10, 2020</span>
+                                <span class="detail-label">등록일</span>
+                                <span class="detail-value" id="sidebarCreatedDate">-</span>
                             </div>
                             <div class="detail-row">
                                 <span class="detail-label">상태</span>
-                                <span class="detail-value status-normal">정상</span>
+                                <span class="detail-value status-normal" id="sidebarStatus">-</span>
                             </div>
                         </div>
                         <div class="action-buttons">
-                            <button class="action-btn">상품 목록</button>
+                            <button class="action-btn" id="productListBtn" onclick="openMedicalServiceModalFromSidebar()">
+                                <i class="fas fa-list"></i> 상품 목록
+                            </button>
                             <button class="action-btn">상세 페이지</button>
                         </div>
                     </div>
@@ -338,6 +243,107 @@
         </div>
     </div>
     
+    <!-- 의료 서비스 상세 모달 -->
+    <div id="medicalServiceModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <div class="modal-title-section">
+                    <h2 class="modal-title">의료 서비스 목록</h2>
+                    <p class="modal-subtitle" id="modalCompanyName">업체명</p>
+                </div>
+                <button class="modal-close" onclick="closeMedicalServiceModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <!-- 로딩 스피너 -->
+                <div id="modalLoading" class="modal-loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>데이터를 불러오는 중...</p>
+                </div>
+                
+                <!-- 서비스 목록 -->
+                <div id="serviceListContainer" class="service-list-container" style="display: none;">
+                    <!-- 통계 카드 -->
+                    <div class="service-stats">
+                        <div class="stat-item">
+                            <div class="stat-icon">
+                                <i class="fas fa-briefcase-medical"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-number" id="totalServices">0</span>
+                                <span class="stat-label">총 서비스</span>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-icon active">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-number" id="activeServices">0</span>
+                                <span class="stat-label">활성 서비스</span>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-icon inactive">
+                                <i class="fas fa-pause-circle"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-number" id="inactiveServices">0</span>
+                                <span class="stat-label">비활성 서비스</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 필터 및 검색 -->
+                    <div class="service-filters">
+                        <div class="filter-tabs">
+                            <button class="filter-tab active" onclick="filterServices('all')">전체</button>
+                            <button class="filter-tab" onclick="filterServices('active')">활성</button>
+                            <button class="filter-tab" onclick="filterServices('inactive')">비활성</button>
+                        </div>
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="serviceSearch" placeholder="서비스 검색..." onkeyup="searchServices()">
+                        </div>
+                    </div>
+                    
+                    <!-- 서비스 테이블 -->
+                    <div class="service-table-wrapper">
+                        <table class="service-table">
+                            <thead>
+                                <tr>
+                                    <th>서비스 ID</th>
+                                    <th>서비스명</th>
+                                    <th>카테고리</th>
+                                    <th>가격</th>
+                                    <th>기간</th>
+                                    <th>상태</th>
+                                    <th>등록일</th>
+                                </tr>
+                            </thead>
+                            <tbody id="serviceTableBody">
+                                <!-- JavaScript로 동적 생성 -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- 서비스가 없을 때 -->
+                    <div id="noServices" class="no-services" style="display: none;">
+                        <i class="fas fa-inbox"></i>
+                        <p>등록된 의료 서비스가 없습니다.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeMedicalServiceModal()">닫기</button>
+            </div>
+        </div>
+    </div>
+    
     <script src="/crm/js/admin_manage_company.js"></script>
+    <script src="/crm/js/admin_manage_company_detail.js"></script>
 </body>
 </html>
