@@ -58,6 +58,10 @@ public class SocialUsers {
     @Builder.Default
     private Boolean isDeleted = false;
     
+    @Column(name = "status", length = 20)
+    @Builder.Default
+    private String status = "ACTIVE"; // ACTIVE, SUSPENDED, INACTIVE
+    
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
     

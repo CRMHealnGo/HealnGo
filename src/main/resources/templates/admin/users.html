@@ -31,14 +31,6 @@
             <div class="page-header">
                 <h1 class="page-title">사용자 관리</h1>
                 <div class="page-actions">
-                    <button class="btn btn-secondary">
-                        <i class="fas fa-download"></i>
-                        엑셀 다운로드
-                    </button>
-                    <button class="btn btn-primary">
-                        <i class="fas fa-plus"></i>
-                        사용자 추가
-                    </button>
                 </div>
             </div>
 
@@ -58,20 +50,29 @@
                 <div class="filter-controls">
                     <select class="filter-select" id="statusFilter">
                         <option value="">전체 상태</option>
-                        <option value="active">활성</option>
-                        <option value="inactive">비활성</option>
-                        <option value="suspended">정지</option>
+                        <option value="ACTIVE" th:selected="${statusFilter == 'ACTIVE'}">활성</option>
+                        <option value="SUSPENDED" th:selected="${statusFilter == 'SUSPENDED'}">정지</option>
+                        <option value="INACTIVE" th:selected="${statusFilter == 'INACTIVE'}">비활성</option>
                     </select>
                     
                     <select class="filter-select" id="sortBy">
-                        <option value="joinDate">가입일순</option>
-                        <option value="name">이름순</option>
-                        <option value="email">이메일순</option>
+                        <option value="createdAt" th:selected="${sortBy == 'createdAt' || sortBy == null}">가입일순</option>
+                        <option value="name" th:selected="${sortBy == 'name'}">이름순</option>
+                        <option value="email" th:selected="${sortBy == 'email'}">이메일순</option>
+                    </select>
+                    
+                    <select class="filter-select" id="sortDir">
+                        <option value="desc" th:selected="${sortDir == 'desc' || sortDir == null}">내림차순</option>
+                        <option value="asc" th:selected="${sortDir == 'asc'}">오름차순</option>
                     </select>
                     
                     <button class="btn btn-filter" onclick="applyFilters()">
                         <i class="fas fa-filter"></i>
                         필터 적용
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearFilters()">
+                        <i class="fas fa-times"></i>
+                        초기화
                     </button>
                 </div>
             </div>
@@ -102,9 +103,9 @@
                                 <th>사용자 ID</th>
                                 <th>이름</th>
                                 <th>이메일</th>
+                                <th>전화번호</th>
                                 <th>가입일</th>
                                 <th>상태</th>
-                                <th>신고 횟수</th>
                                 <th>액션</th>
                             </tr>
                         </thead>
@@ -116,27 +117,23 @@
                                 <td class="user-id" th:text="${user.id}">1</td>
                                 <td class="user-name" th:text="${user.name}">김철수</td>
                                 <td class="user-email" th:text="${user.email}">kim@example.com</td>
+                                <td class="user-phone" th:text="${user.phone != null ? user.phone : '-'}">010-1234-5678</td>
                                 <td class="join-date" th:text="${user.joinDate}">2024-01-15</td>
                                 <td class="user-status">
                                     <span class="status-badge" 
-                                          th:classappend="${user.status == '활성'} ? 'status-active' : 'status-inactive'"
+                                          th:classappend="${user.status == '활성'} ? 'status-active' : (${user.status == '정지'} ? 'status-suspended' : 'status-inactive')"
                                           th:text="${user.status}">활성</span>
-                                </td>
-                                <td class="report-count">
-                                    <span class="report-badge" 
-                                          th:classappend="${user.reportCount >= 3} ? 'report-high' : (${user.reportCount >= 1} ? 'report-medium' : 'report-low')"
-                                          th:text="${user.reportCount}">0</span>
                                 </td>
                                 <td class="actions">
                                     <div class="action-buttons">
-                                        <button class="btn btn-sm btn-info" th:onclick="|viewUser(${user.id})|">
+                                        <button class="btn btn-sm btn-info" th:onclick="|viewUser(${user.id})|" title="상세보기">
                                             <i class="fas fa-eye"></i>
                                         </button>
-                                        <button class="btn btn-sm btn-warning" th:onclick="|editUser(${user.id})|">
+                                        <button class="btn btn-sm btn-warning" th:onclick="|editUser(${user.id})|" title="수정">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <button class="btn btn-sm btn-danger" th:onclick="|suspendUser(${user.id})|">
-                                            <i class="fas fa-ban"></i>
+                                        <button class="btn btn-sm btn-danger" th:onclick="|suspendUser(${user.id})|" title="상태 변경 (활성↔정지↔비활성화)">
+                                            <i class="fas fa-user-slash"></i>
                                         </button>
                                     </div>
                                 </td>

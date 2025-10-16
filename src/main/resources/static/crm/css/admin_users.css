@@ -61,23 +61,6 @@ body {
     text-decoration: none;
 }
 
-.btn-primary {
-    background-color: #007bff;
-    color: white;
-}
-
-.btn-primary:hover {
-    background-color: #0056b3;
-}
-
-.btn-secondary {
-    background-color: #6c757d;
-    color: white;
-}
-
-.btn-secondary:hover {
-    background-color: #545b62;
-}
 
 .btn-info {
     background-color: #17a2b8;
@@ -209,6 +192,24 @@ body {
     background-color: #545b62;
 }
 
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background-color 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background-color: #545b62;
+}
+
 /* 테이블 컨테이너 */
 .users-table-container {
     background: white;
@@ -303,6 +304,11 @@ body {
 .status-active {
     background-color: #d4edda;
     color: #155724;
+}
+
+.status-suspended {
+    background-color: #fff3cd;
+    color: #856404;
 }
 
 .status-inactive {
