@@ -10,53 +10,57 @@ import java.time.LocalDateTime;
 @Table(name = "item_list")
 @Data
 public class ItemList {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
+    /** 병원/업체 표시명 */
     @Column(name = "name", nullable = false)
     private String name;
-    
+
+    /** 광역(시/도) */
     @Column(name = "region")
     private String region;
-    
+
+    /** 기초(시/군/구) */
     @Column(name = "subregion")
     private String subregion;
-    
+
     @Column(name = "address")
     private String address;
-    
+
     @Column(name = "phone")
     private String phone;
-    
+
     @Column(name = "homepage")
     private String homepage;
-    
+
     @Column(name = "coord_x")
     private Double coordX;
-    
+
     @Column(name = "coord_y")
     private Double coordY;
-    
+
+    /** 카테고리(성형외과/피부과/약국/… 또는 tourism/package 등) */
     @Column(name = "category")
     private String category;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_company_id", referencedColumnName = "company_id")
     private CompanyUser ownerCompany;
-    
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
-    
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-    
-    // Constructors
+
     public ItemList() {}
-    
-    public ItemList(String name, String region, String subregion, String address, 
-                   String phone, String homepage, Double coordX, Double coordY, String category, CompanyUser ownerCompany) {
+
+    public ItemList(String name, String region, String subregion, String address,
+                    String phone, String homepage, Double coordX, Double coordY,
+                    String category, CompanyUser ownerCompany) {
         this.name = name;
         this.region = region;
         this.subregion = subregion;
@@ -70,5 +74,4 @@ public class ItemList {
         this.updatedAt = LocalDateTime.now();
         this.ownerCompany = ownerCompany;
     }
-   
 }

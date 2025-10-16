@@ -13,11 +13,11 @@ import com.example.ApiRound.crm.hyeonah.entity.SocialUsers;
 
 @Repository
 public interface SocialUsersRepository extends JpaRepository<SocialUsers, Integer> {
-    
+
     Optional<SocialUsers> findByEmail(String email);
-    
+
     boolean existsByEmail(String email);
-    
+
     Optional<SocialUsers> findByEmailAndIsDeleted(String email, Boolean isDeleted);
 
     // admin 사용자 관리 메서드
@@ -54,4 +54,3 @@ public interface SocialUsersRepository extends JpaRepository<SocialUsers, Intege
     Optional<SocialUsers> findByUserIdAndIsDeletedFalse(Integer userId);
 
 }
-

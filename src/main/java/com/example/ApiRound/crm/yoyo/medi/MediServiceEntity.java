@@ -20,7 +20,7 @@ public class MediServiceEntity {
     @Column(name = "service_id")
     private Long serviceId;
 
-    /** ✅ 외래키 (item_id → item_list.id) */
+    /** 외래키 (item_id → item_list.id) */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_id", referencedColumnName = "id", nullable = false)
     private ItemList item;
@@ -37,6 +37,7 @@ public class MediServiceEntity {
     @Column(name = "end_date")
     private LocalDate endDate;
 
+    /** DB enum: ALL/FEMALE/MALE */
     @Enumerated(EnumType.STRING)
     @Column(name = "gender_target", length = 10)
     private GenderTarget genderTarget;
@@ -44,6 +45,7 @@ public class MediServiceEntity {
     @Column(length = 255)
     private String tags;
 
+    /** DB enum: JPN/KOR/OTHER */
     @Enumerated(EnumType.STRING)
     @Column(name = "target_country", length = 10)
     private TargetCountry targetCountry;
@@ -72,7 +74,6 @@ public class MediServiceEntity {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    /** 생성 및 수정 시점 자동 세팅 */
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
@@ -84,7 +85,6 @@ public class MediServiceEntity {
         this.updatedAt = LocalDateTime.now();
     }
 
-    /** Enum 타입 정의 */
     public enum GenderTarget {
         ALL, MALE, FEMALE
     }
