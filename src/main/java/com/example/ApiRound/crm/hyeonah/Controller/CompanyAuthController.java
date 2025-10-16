@@ -23,7 +23,9 @@ import com.example.ApiRound.crm.hyeonah.entity.CompanyUser;
 import com.example.ApiRound.crm.hyeonah.entity.ManagerUser;
 
 import jakarta.servlet.http.HttpSession;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Controller
 @RequestMapping("/crm")
 public class CompanyAuthController {
@@ -223,12 +225,22 @@ public class CompanyAuthController {
         if (companyOpt.isPresent()) {
             CompanyUser company = companyOpt.get();
             
+            log.info("====== 업체 로그인 성공 ======");
+            log.info("업체 ID: {}", company.getCompanyId());
+            log.info("업체 이름: {}", company.getCompanyName());
+            log.info("업체 주소: {}", company.getAddress());
+            log.info("승인 상태: {}", company.getApprovalStatus());
+            
             // 세션에 업체 정보 저장
             session.setAttribute("companyId", company.getCompanyId());
             session.setAttribute("companyEmail", company.getEmail());
             session.setAttribute("companyName", company.getCompanyName());
             session.setAttribute("companyAddress", company.getAddress());
             session.setAttribute("userType", "company");
+            
+            log.info("세션에 저장된 companyId: {}", session.getAttribute("companyId"));
+            log.info("세션에 저장된 companyName: {}", session.getAttribute("companyName"));
+            log.info("세션에 저장된 userType: {}", session.getAttribute("userType"));
             
             response.put("success", true);
             response.put("message", "로그인 성공");

@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ItemListRepository extends JpaRepository<ItemList, Long> {
@@ -47,4 +48,7 @@ public interface ItemListRepository extends JpaRepository<ItemList, Long> {
     // 모든 카테고리 조회
     @Query("SELECT DISTINCT i.category FROM ItemList i WHERE i.category IS NOT NULL")
     List<String> findAllCategories();
+    
+    // 회사 ID로 item 찾기
+    Optional<ItemList> findByOwnerCompany_CompanyId(Integer companyId);
 }

@@ -15,7 +15,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Controller
 @RequestMapping("/company")
 @RequiredArgsConstructor
@@ -28,19 +30,38 @@ public class MediServiceController {
      */
     @GetMapping("/medical-services")
     public String medicalServices(HttpSession session, Model model) {
+        log.info("========== 의료 서비스 페이지 요청 시작 ==========");
+        
         // 세션에서 companyId 가져오기
         Integer companyId = (Integer) session.getAttribute("companyId");
+        log.info("세션에서 가져온 companyId: {}", companyId);
+        log.info("세션의 companyName: {}", session.getAttribute("companyName"));
+        log.info("세션의 companyAddress: {}", session.getAttribute("companyAddress"));
         
         // 회사별 의료 서비스 조회
         List<MediServiceEntity> medicalServices = List.of();
         if (companyId != null) {
+            log.info("companyId가 존재함. 서비스 조회 시작...");
             medicalServices = mediServiceService.findByCompanyId(companyId);
+            log.info("서비스 조회 완료. 조회된 서비스 개수: {}", medicalServices.size());
+            
+            // 각 서비스 상세 로그
+            for (int i = 0; i < medicalServices.size(); i++) {
+                MediServiceEntity service = medicalServices.get(i);
+                log.info("서비스[{}]: ID={}, 이름={}, 가격={}, 카테고리={}", 
+                    i, service.getServiceId(), service.getName(), service.getPrice(), service.getServiceCategory());
+            }
+        } else {
+            log.warn("세션에 companyId가 없습니다! 서비스를 조회할 수 없습니다.");
         }
         
         model.addAttribute("medicalServices", medicalServices);
         model.addAttribute("companyName", session.getAttribute("companyName"));
         model.addAttribute("companyAddress", session.getAttribute("companyAddress"));
         model.addAttribute("sidebarType", "company");
+        
+        log.info("모델에 추가된 medicalServices 크기: {}", medicalServices.size());
+        log.info("========== 의료 서비스 페이지 요청 완료 ==========");
         
         return "crm/company_medical_services";
     }
@@ -64,6 +85,21 @@ public class MediServiceController {
             @RequestBody MediServiceEntity entity
     ) {
         return ResponseEntity.ok(mediServiceService.create(itemId, entity));
+    }
+
+    /** 등록 (세션에서 companyId를 가져와서 해당 회사의 item 찾기) */
+    @PostMapping("/api/medical-services")
+    public ResponseEntity<MediServiceEntity> createWithSession(
+            @RequestBody MediServiceEntity entity,
+            HttpSession session
+    ) {
+        Integer companyId = (Integer) session.getAttribute("companyId");
+        if (companyId == null) {
+            return ResponseEntity.status(401).body(null);
+        }
+        
+        log.info("세션에서 가져온 companyId: {}", companyId);
+        return ResponseEntity.ok(mediServiceService.createByCompanyId(companyId, entity));
     }
 
     /** 수정 */
