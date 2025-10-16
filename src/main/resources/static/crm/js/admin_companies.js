@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeTable();
 });
 
-// 이벤트 리스너 초기화
+/** ========== 초기화 ========== */
 function initializeEventListeners() {
     // 검색 입력 엔터키 이벤트
     const searchInput = document.getElementById('searchInput');
@@ -18,17 +18,15 @@ function initializeEventListeners() {
     }
 }
 
-// 테이블 초기화
 function initializeTable() {
-    // 체크박스 이벤트 설정
     setupCheckboxEvents();
 }
 
-// 체크박스 이벤트 설정
+/** ========== 체크박스/일괄 처리 ========== */
 function setupCheckboxEvents() {
     const selectAllCheckbox = document.getElementById('selectAllCheckbox');
     const companyCheckboxes = document.querySelectorAll('.company-checkbox');
-    
+
     if (selectAllCheckbox) {
         selectAllCheckbox.addEventListener('change', function() {
             companyCheckboxes.forEach(checkbox => {
@@ -37,7 +35,7 @@ function setupCheckboxEvents() {
             updateBulkActions();
         });
     }
-    
+
     companyCheckboxes.forEach(checkbox => {
         checkbox.addEventListener('change', function() {
             updateSelectAllCheckbox();
@@ -46,91 +44,78 @@ function setupCheckboxEvents() {
     });
 }
 
-// 전체 선택 체크박스 업데이트
 function updateSelectAllCheckbox() {
     const selectAllCheckbox = document.getElementById('selectAllCheckbox');
     const companyCheckboxes = document.querySelectorAll('.company-checkbox');
     const checkedCount = document.querySelectorAll('.company-checkbox:checked').length;
-    
+
     if (selectAllCheckbox) {
-        selectAllCheckbox.checked = checkedCount === companyCheckboxes.length;
+        selectAllCheckbox.checked = checkedCount === companyCheckboxes.length && checkedCount > 0;
         selectAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < companyCheckboxes.length;
     }
 }
 
-// 일괄 작업 버튼 상태 업데이트
 function updateBulkActions() {
     const checkedCount = document.querySelectorAll('.company-checkbox:checked').length;
     const bulkButtons = document.querySelectorAll('.table-actions .btn:not(.btn-secondary)');
-    
+
     bulkButtons.forEach(button => {
         button.disabled = checkedCount === 0;
         button.style.opacity = checkedCount === 0 ? '0.5' : '1';
+        button.style.pointerEvents = checkedCount === 0 ? 'none' : 'auto';
     });
 }
 
-// 검색 수행
+/** ========== 검색/필터/페이지네이션 ========== */
 function performSearch() {
     const searchInput = document.getElementById('searchInput');
     const searchTerm = searchInput ? searchInput.value.trim() : '';
-    
-    // URL 파라미터 업데이트
+
     const url = new URL(window.location);
     if (searchTerm) {
         url.searchParams.set('search', searchTerm);
     } else {
         url.searchParams.delete('search');
     }
-    url.searchParams.set('page', '1'); // 검색 시 첫 페이지로 이동
-    
+    url.searchParams.set('page', '1'); // 검색 시 첫 페이지
+
     window.location.href = url.toString();
 }
 
-// 필터 적용
 function applyFilters() {
     const statusFilter = document.getElementById('statusFilter');
     const categoryFilter = document.getElementById('categoryFilter');
     const searchInput = document.getElementById('searchInput');
-    
+
     const url = new URL(window.location);
-    
+
     // 검색어
     const searchTerm = searchInput ? searchInput.value.trim() : '';
-    if (searchTerm) {
-        url.searchParams.set('search', searchTerm);
-    } else {
-        url.searchParams.delete('search');
-    }
-    
-    // 상태 필터
+    if (searchTerm) url.searchParams.set('search', searchTerm);
+    else url.searchParams.delete('search');
+
+    // 상태
     const status = statusFilter ? statusFilter.value : '';
-    if (status) {
-        url.searchParams.set('status', status);
-    } else {
-        url.searchParams.delete('status');
-    }
-    
-    // 카테고리 필터
+    if (status) url.searchParams.set('status', status);
+    else url.searchParams.delete('status');
+
+    // 카테고리
     const category = categoryFilter ? categoryFilter.value : '';
-    if (category) {
-        url.searchParams.set('category', category);
-    } else {
-        url.searchParams.delete('category');
-    }
-    
-    url.searchParams.set('page', '1'); // 필터 적용 시 첫 페이지로 이동
-    
+    if (category) url.searchParams.set('category', category);
+    else url.searchParams.delete('category');
+
+    url.searchParams.set('page', '1'); // 첫 페이지
+
     window.location.href = url.toString();
 }
 
-// 페이지 이동
 function goToPage(page) {
     const url = new URL(window.location);
     url.searchParams.set('page', page);
     window.location.href = url.toString();
 }
 
-// 전체 선택
+/** ========== 전체 선택/일괄 작업 ========== */
 function selectAll() {
     const selectAllCheckbox = document.getElementById('selectAllCheckbox');
     if (selectAllCheckbox) {
@@ -139,18 +124,41 @@ function selectAll() {
     }
 }
 
-// 일괄 작업
-function bulkAction(action) {
+/** ✅ 서버 호출 유틸 */
+async function apiApproveCompany(companyId) {
+    const res = await fetch(`/api/admin/companies/${companyId}/approve`, {
+        method: 'POST'
+    });
+    if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || '승인 실패');
+    }
+}
+
+async function apiRejectCompany(companyId, reason) {
+    const params = new URLSearchParams();
+    if (reason) params.set('reason', reason);
+    const res = await fetch(`/api/admin/companies/${companyId}/reject?${params.toString()}`, {
+        method: 'POST'
+    });
+    if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || '거부 실패');
+    }
+}
+
+/** 일괄 작업 */
+async function bulkAction(action) {
     const checkedBoxes = document.querySelectorAll('.company-checkbox:checked');
     const companyIds = Array.from(checkedBoxes).map(checkbox => checkbox.value);
-    
+
     if (companyIds.length === 0) {
         showNotification('선택된 업체가 없습니다.', 'warning');
         return;
     }
-    
+
     let message = '';
-    switch(action) {
+    switch (action) {
         case 'approve':
             message = `선택된 ${companyIds.length}개 업체를 승인하시겠습니까?`;
             break;
@@ -160,43 +168,80 @@ function bulkAction(action) {
         case 'suspend':
             message = `선택된 ${companyIds.length}개 업체를 정지하시겠습니까?`;
             break;
+        default:
+            showNotification('알 수 없는 작업입니다.', 'warning');
+            return;
     }
-    
-    if (confirm(message)) {
-        // 실제로는 서버에 요청을 보내야 함
-        console.log(`${action} action for companies:`, companyIds);
-        showNotification(`${companyIds.length}개 업체에 대한 작업이 완료되었습니다.`, 'success');
-        
+
+    if (!confirm(message)) return;
+
+    let rejectReason = '';
+    if (action === 'reject') {
+        rejectReason = prompt('거부 사유를 입력해주세요 (선택 사항):') || '';
+    }
+
+    // 버튼 비활성화(연속 클릭 방지)
+    toggleGlobalActions(true);
+
+    try {
+        const results = await Promise.allSettled(companyIds.map(async (id) => {
+            if (action === 'approve') {
+                await apiApproveCompany(id);
+                updateCompanyStatus(id, '승인완료');
+            } else if (action === 'reject') {
+                await apiRejectCompany(id, rejectReason);
+                updateCompanyStatus(id, '승인거부');
+            } else if (action === 'suspend') {
+                // 서버 API 없으므로 클라이언트 표시만
+                updateCompanyStatus(id, '정지');
+            }
+        }));
+
+        const fulfilled = results.filter(r => r.status === 'fulfilled').length;
+        const rejected = results.length - fulfilled;
+
+        if (fulfilled > 0) {
+            showNotification(`${fulfilled}개 업체에 대해 작업이 완료되었습니다.`, 'success');
+        }
+        if (rejected > 0) {
+            showNotification(`${rejected}개 업체 작업 중 오류가 발생했습니다.`, 'warning');
+            console.warn('일괄 작업 오류:', results.filter(r => r.status === 'rejected'));
+        }
+
         // 체크박스 초기화
-        checkedBoxes.forEach(checkbox => {
-            checkbox.checked = false;
-        });
+        checkedBoxes.forEach(cb => (cb.checked = false));
         updateSelectAllCheckbox();
         updateBulkActions();
+    } catch (e) {
+        console.error(e);
+        showNotification('일괄 작업 중 오류가 발생했습니다.', 'warning');
+    } finally {
+        toggleGlobalActions(false);
     }
 }
 
-// 업체 상세 보기
+function toggleGlobalActions(disabled) {
+    const actionable = document.querySelectorAll('.table-actions .btn');
+    actionable.forEach(btn => {
+        btn.disabled = disabled;
+        btn.style.opacity = disabled ? '0.5' : '1';
+        btn.style.pointerEvents = disabled ? 'none' : 'auto';
+    });
+}
+
+/** ========== 단건 보기/승인/거부 ========== */
 function viewCompany(companyId) {
-    // 실제로는 서버에서 업체 상세 정보를 가져와야 함
     console.log('View company:', companyId);
-    
-    // 모달에 업체 정보 로드
     loadCompanyDetail(companyId);
-    
-    // 모달 표시
     const modal = document.getElementById('companyDetailModal');
-    if (modal) {
-        modal.style.display = 'block';
-    }
+    if (modal) modal.style.display = 'block';
 }
 
-// 업체 상세 정보 로드
 function loadCompanyDetail(companyId) {
     const content = document.getElementById('companyDetailContent');
     if (!content) return;
-    
-    // 임시 업체 정보 (실제로는 서버에서 가져와야 함)
+
+    // TODO: 실제 API 연동 필요
     const companyInfo = {
         id: companyId,
         name: '서울병원',
@@ -212,127 +257,91 @@ function loadCompanyDetail(companyId) {
         totalReservations: 150,
         totalRevenue: 5000000
     };
-    
+
     content.innerHTML = `
         <div class="company-detail">
-            <div class="detail-row">
-                <label>업체 ID:</label>
-                <span>${companyInfo.id}</span>
-            </div>
-            <div class="detail-row">
-                <label>업체명:</label>
-                <span>${companyInfo.name}</span>
-            </div>
-            <div class="detail-row">
-                <label>사업자명:</label>
-                <span>${companyInfo.owner}</span>
-            </div>
-            <div class="detail-row">
-                <label>연락처:</label>
-                <span>${companyInfo.phone}</span>
-            </div>
-            <div class="detail-row">
-                <label>이메일:</label>
-                <span>${companyInfo.email}</span>
-            </div>
-            <div class="detail-row">
-                <label>주소:</label>
-                <span>${companyInfo.address}</span>
-            </div>
-            <div class="detail-row">
-                <label>카테고리:</label>
-                <span class="category-badge">${companyInfo.category}</span>
-            </div>
-            <div class="detail-row">
-                <label>사업자등록번호:</label>
-                <span>${companyInfo.businessNumber}</span>
-            </div>
-            <div class="detail-row">
-                <label>등록일:</label>
-                <span>${companyInfo.joinDate}</span>
-            </div>
-            <div class="detail-row">
-                <label>상태:</label>
-                <span class="status-badge status-${companyInfo.status === '승인완료' ? 'approved' : companyInfo.status === '승인대기' ? 'pending' : 'rejected'}">${companyInfo.status}</span>
-            </div>
-            <div class="detail-row">
-                <label>설명:</label>
-                <span>${companyInfo.description}</span>
-            </div>
-            <div class="detail-row">
-                <label>총 예약 수:</label>
-                <span>${companyInfo.totalReservations}건</span>
-            </div>
-            <div class="detail-row">
-                <label>총 매출:</label>
-                <span>${companyInfo.totalRevenue.toLocaleString()}원</span>
-            </div>
+            <div class="detail-row"><label>업체 ID:</label><span>${companyInfo.id}</span></div>
+            <div class="detail-row"><label>업체명:</label><span>${companyInfo.name}</span></div>
+            <div class="detail-row"><label>사업자명:</label><span>${companyInfo.owner}</span></div>
+            <div class="detail-row"><label>연락처:</label><span>${companyInfo.phone}</span></div>
+            <div class="detail-row"><label>이메일:</label><span>${companyInfo.email}</span></div>
+            <div class="detail-row"><label>주소:</label><span>${companyInfo.address}</span></div>
+            <div class="detail-row"><label>카테고리:</label><span class="category-badge">${companyInfo.category}</span></div>
+            <div class="detail-row"><label>사업자등록번호:</label><span>${companyInfo.businessNumber}</span></div>
+            <div class="detail-row"><label>등록일:</label><span>${companyInfo.joinDate}</span></div>
+            <div class="detail-row"><label>상태:</label><span class="status-badge status-${companyInfo.status === '승인완료' ? 'approved' : (companyInfo.status === '승인대기' ? 'pending' : (companyInfo.status === '승인거부' ? 'rejected' : 'suspended'))}">${companyInfo.status}</span></div>
+            <div class="detail-row"><label>설명:</label><span>${companyInfo.description}</span></div>
+            <div class="detail-row"><label>총 예약 수:</label><span>${companyInfo.totalReservations}건</span></div>
+            <div class="detail-row"><label>총 매출:</label><span>${companyInfo.totalRevenue.toLocaleString()}원</span></div>
         </div>
     `;
 }
 
-// 업체 수정
-function editCompany(companyId) {
-    console.log('Edit company:', companyId);
-    // 실제로는 업체 수정 페이지로 이동하거나 모달을 표시해야 함
-    showNotification('업체 수정 기능은 준비 중입니다.', 'info');
-}
+async function approveCompany(companyId) {
+    if (!confirm('이 업체를 승인하시겠습니까?')) return;
 
-// 업체 승인
-function approveCompany(companyId) {
-    if (confirm('이 업체를 승인하시겠습니까?')) {
-        // 실제로는 서버에 요청을 보내야 함
-        console.log('Approve company:', companyId);
-        showNotification('업체가 승인되었습니다.', 'success');
-        
-        // 테이블에서 상태 업데이트
+    try {
+        await apiApproveCompany(companyId);
+        showNotification('업체가 승인되었습니다. (대표 지점 자동 생성 보장)', 'success');
         updateCompanyStatus(companyId, '승인완료');
+    } catch (e) {
+        console.error(e);
+        showNotification('승인 중 오류가 발생했습니다.', 'warning');
     }
 }
 
-// 업체 거부
-function rejectCompany(companyId) {
-    if (confirm('이 업체를 거부하시겠습니까?')) {
-        // 실제로는 서버에 요청을 보내야 함
-        console.log('Reject company:', companyId);
+async function rejectCompany(companyId) {
+    if (!confirm('이 업체를 거부하시겠습니까?')) return;
+
+    const reason = prompt('거부 사유를 입력해주세요 (선택 사항):') || '';
+    try {
+        await apiRejectCompany(companyId, reason);
         showNotification('업체가 거부되었습니다.', 'success');
-        
-        // 테이블에서 상태 업데이트
         updateCompanyStatus(companyId, '승인거부');
+    } catch (e) {
+        console.error(e);
+        showNotification('거부 처리 중 오류가 발생했습니다.', 'warning');
     }
 }
 
-// 업체 상태 업데이트
+/** DOM 상태 갱신 */
 function updateCompanyStatus(companyId, status) {
-    const companyRow = document.querySelector(`tr[data-company-id="${companyId}"]`);
-    if (companyRow) {
-        const statusBadge = companyRow.querySelector('.status-badge');
-        if (statusBadge) {
-            statusBadge.textContent = status;
-            statusBadge.className = `status-badge status-${status === '승인완료' ? 'approved' : status === '승인대기' ? 'pending' : 'rejected'}`;
-        }
-        
-        // 액션 버튼 업데이트
-        const actionButtons = companyRow.querySelector('.action-buttons');
-        if (actionButtons && status === '승인완료') {
-            // 승인/거부 버튼 제거
-            const approveBtn = actionButtons.querySelector('.btn-success');
-            const rejectBtn = actionButtons.querySelector('.btn-danger');
-            if (approveBtn) approveBtn.remove();
-            if (rejectBtn) rejectBtn.remove();
-        }
+    // 행 찾기: data-company-id 속성이 있으면 우선 사용
+    let companyRow = document.querySelector(`tr[data-company-id="${companyId}"]`);
+    // 없으면 테이블 셀 텍스트로 fallback
+    if (!companyRow) {
+        const candidates = Array.from(document.querySelectorAll('tr'));
+        companyRow = candidates.find(tr => tr.querySelector('.company-id') && tr.querySelector('.company-id').textContent.trim() === String(companyId));
+    }
+    if (!companyRow) return;
+
+    const statusCell = companyRow.querySelector('.company-status .status-badge') || companyRow.querySelector('.status-badge');
+    if (statusCell) {
+        statusCell.textContent = status;
+        let cls = 'status-badge ';
+        if (status === '승인완료') cls += 'status-approved';
+        else if (status === '승인대기') cls += 'status-pending';
+        else if (status === '승인거부') cls += 'status-rejected';
+        else cls += 'status-suspended';
+        statusCell.className = cls;
+    }
+
+    // 승인 완료 시 승인/거부 버튼 숨김
+    const actionButtons = companyRow.querySelector('.action-buttons');
+    if (actionButtons && status === '승인완료') {
+        const approveBtn = actionButtons.querySelector('.btn-success');
+        const rejectBtn = actionButtons.querySelector('.btn-danger');
+        if (approveBtn) approveBtn.remove();
+        if (rejectBtn) rejectBtn.remove();
     }
 }
 
-// 모달 닫기
+/** ========== 모달/알림 ========== */
 function closeModal(modalId) {
     const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.style.display = 'none';
-    }
+    if (modal) modal.style.display = 'none';
 }
 
-// 모달 외부 클릭 시 닫기
 window.addEventListener('click', function(event) {
     const modals = document.querySelectorAll('.modal');
     modals.forEach(modal => {
@@ -342,9 +351,7 @@ window.addEventListener('click', function(event) {
     });
 });
 
-// 알림 표시
 function showNotification(message, type = 'info') {
-    // 알림 요소 생성
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;
     notification.innerHTML = `
@@ -356,11 +363,10 @@ function showNotification(message, type = 'info') {
             <i class="fas fa-times"></i>
         </button>
     `;
-    
-    // 스타일 추가
+
     const bgColor = type === 'success' ? '#d4edda' : type === 'warning' ? '#fff3cd' : '#d1ecf1';
     const textColor = type === 'success' ? '#155724' : type === 'warning' ? '#856404' : '#0c5460';
-    
+
     notification.style.cssText = `
         position: fixed;
         top: 20px;
@@ -377,8 +383,7 @@ function showNotification(message, type = 'info') {
         min-width: 300px;
         animation: slideIn 0.3s ease;
     `;
-    
-    // 알림 내용 스타일
+
     const content = notification.querySelector('.notification-content');
     content.style.cssText = `
         display: flex;
@@ -386,8 +391,7 @@ function showNotification(message, type = 'info') {
         gap: 8px;
         flex: 1;
     `;
-    
-    // 닫기 버튼 스타일
+
     const closeBtn = notification.querySelector('.notification-close');
     closeBtn.style.cssText = `
         background: none;
@@ -397,34 +401,19 @@ function showNotification(message, type = 'info') {
         padding: 0;
         margin-left: 10px;
     `;
-    
-    // 애니메이션 스타일 추가
+
     if (!document.querySelector('#notification-styles')) {
         const style = document.createElement('style');
         style.id = 'notification-styles';
         style.textContent = `
             @keyframes slideIn {
-                from {
-                    transform: translateX(100%);
-                    opacity: 0;
-                }
-                to {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
             }
         `;
         document.head.appendChild(style);
     }
-    
-    // 알림 추가
-    document.body.appendChild(notification);
-    
-    // 3초 후 자동 제거
-    setTimeout(() => {
-        if (notification.parentElement) {
-            notification.remove();
-        }
-    }, 3000);
-}
 
+    document.body.appendChild(notification);
+    setTimeout(() => { if (notification.parentElement) notification.remove(); }, 3000);
+}

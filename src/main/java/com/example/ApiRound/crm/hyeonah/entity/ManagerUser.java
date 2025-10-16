@@ -1,6 +1,5 @@
 package com.example.ApiRound.crm.hyeonah.entity;
 
-
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -12,10 +11,11 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class ManagerUser {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "manager_id")
-    private Long managerId;
+    @Column(name = "manager_id")         // DB: INT AI PK
+    private Integer managerId;           // ✅ Long → Integer 로 변경
 
     @Column(name = "email", unique = true, nullable = false, length = 190)
     private String email;
