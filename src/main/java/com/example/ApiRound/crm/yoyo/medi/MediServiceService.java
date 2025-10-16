@@ -106,7 +106,7 @@ public class MediServiceService {
         log.info("회사명: {}", company.getCompanyName());
         
         // 해당 회사의 item 찾기
-        Optional<ItemList> itemOpt = itemListRepository.findByOwnerCompany_CompanyId(companyId);
+        Optional<ItemList> itemOpt = itemListRepository.findFirstByOwnerCompany_CompanyIdOrderByIdAsc(companyId);
         
         ItemList item;
         if (itemOpt.isPresent()) {

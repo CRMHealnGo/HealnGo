@@ -41,7 +41,7 @@ public class AdminController {
     @GetMapping("/dashboard")
     public String dashboard(HttpSession session, Model model) {
         // 세션 체크: 관리자로 로그인한 사용자만 접근 가능
-        Long managerId = (Long) session.getAttribute("managerId");
+        Integer managerId = (Integer) session.getAttribute("managerId");
         String userType = (String) session.getAttribute("userType");
         
         if (managerId == null || !"manager".equals(userType)) {
