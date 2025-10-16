@@ -1,13 +1,16 @@
 package com.example.ApiRound.Service;
 
-import com.example.ApiRound.entity.ItemList;
-import com.example.ApiRound.repository.ItemListRepository;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import com.example.ApiRound.entity.ItemList;
+import com.example.ApiRound.repository.ItemListRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -47,6 +50,11 @@ public class ItemListServiceImpl implements ItemListService {
     @Override
     public ItemList getListById(Long id) {
         return itemListRepository.findById(id).orElse(null);
+    }
+    
+    @Override
+    public Optional<ItemList> findById(Long id) {
+        return itemListRepository.findById(id);
     }
 
     @Override
