@@ -117,14 +117,16 @@ document.querySelector('.event-approval-btn').addEventListener('click', async fu
         name: document.querySelector('input[name="name"]')?.value || '',
         startDate: document.querySelector('input[name="startDate"]')?.value || '',
         endDate: document.querySelector('input[name="endDate"]')?.value || '',
-        genderTarget: document.querySelector('input[name="genderTarget"]:checked')?.value || 'ALL',
-        targetCountry: document.querySelector('input[name="targetCountry"]:checked')?.value || 'KOR',
+        genderTarget: document.querySelector('input[name="genderTarget"]:checked')?.value === 'unisex' ? 'ALL' : 
+                     document.querySelector('input[name="genderTarget"]:checked')?.value === 'female' ? 'FEMALE' : 
+                     document.querySelector('input[name="genderTarget"]:checked')?.value === 'male' ? 'MALE' : 'ALL',
+        targetCountry: document.querySelector('input[name="targetCountry"]:checked')?.value === 'korea' ? 'KOR' : 
+                      document.querySelector('input[name="targetCountry"]:checked')?.value === 'japan' ? 'JPN' : 
+                      document.querySelector('input[name="targetCountry"]:checked')?.value === 'other' ? 'OTHER' : 'KOR',
         tags: freeTags.join(','),
         serviceCategory: procedureTags.join(','),
         price: parseFloat(document.querySelector('input[name="price"]')?.value || '0'),
         vatIncluded: document.querySelector('input[name="vatIncluded"]:checked')?.value === 'true',
-        anesthesia: document.querySelector('input[name="anesthesia"]:checked')?.value === 'true',
-        postCare: document.querySelector('input[name="postCare"]:checked')?.value === 'true',
         isRefundable: true,
         currency: 'KRW',
         description: ''
@@ -148,7 +150,7 @@ document.querySelector('.event-approval-btn').addEventListener('click', async fu
 
     try {
         // fetch로 JSON 데이터 전송 - 세션에서 companyId를 사용하여 해당 회사의 item 찾기
-        const response = await fetch('/api/medical-services', {
+        const response = await fetch('/company/api/medical-services', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

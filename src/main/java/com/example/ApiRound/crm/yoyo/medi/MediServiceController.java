@@ -93,13 +93,26 @@ public class MediServiceController {
             @RequestBody MediServiceEntity entity,
             HttpSession session
     ) {
-        Integer companyId = (Integer) session.getAttribute("companyId");
-        if (companyId == null) {
-            return ResponseEntity.status(401).body(null);
+        try {
+            log.info("========== 의료 서비스 등록 요청 시작 ==========");
+            log.info("받은 데이터: {}", entity);
+            
+            Integer companyId = (Integer) session.getAttribute("companyId");
+            log.info("세션에서 가져온 companyId: {}", companyId);
+            
+            if (companyId == null) {
+                log.warn("세션에 companyId가 없습니다!");
+                return ResponseEntity.status(401).body(null);
+            }
+            
+            MediServiceEntity result = mediServiceService.createByCompanyId(companyId, entity);
+            log.info("의료 서비스 등록 성공: {}", result.getServiceId());
+            return ResponseEntity.ok(result);
+            
+        } catch (Exception e) {
+            log.error("의료 서비스 등록 중 오류 발생: ", e);
+            return ResponseEntity.status(400).body(null);
         }
-        
-        log.info("세션에서 가져온 companyId: {}", companyId);
-        return ResponseEntity.ok(mediServiceService.createByCompanyId(companyId, entity));
     }
 
     /** 수정 */
