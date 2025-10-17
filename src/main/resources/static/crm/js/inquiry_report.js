@@ -1,5 +1,8 @@
 // 문의/신고 접수 페이지 JavaScript
 
+// 전역 변수: 현재 선택된 reporter type
+let currentReporterType = 'ALL';
+
 // 페이지 로드 시 초기화
 document.addEventListener('DOMContentLoaded', function() {
     // 사이드바 활성 상태 설정
@@ -17,13 +20,37 @@ document.addEventListener('DOMContentLoaded', function() {
     loadAdminInquiries();
 });
 
+// Reporter Type 필터 함수
+function filterByReporterType(type) {
+    currentReporterType = type;
+    
+    // 버튼 활성화 상태 변경
+    document.querySelectorAll('.reporter-type-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelector(`.reporter-type-btn[data-type="${type}"]`).classList.add('active');
+    
+    // 목록 다시 로드
+    loadAdminInquiries();
+}
+
 // 관리자용 - 모든 문의/신고 내역 로드
 function loadAdminInquiries() {
     const statusFilter = document.getElementById('statusFilter')?.value || '';
     
     let url = '/admin/api/inquiry-reports';
+    const params = new URLSearchParams();
+    
     if (statusFilter) {
-        url += '?status=' + statusFilter;
+        params.append('status', statusFilter);
+    }
+    
+    if (currentReporterType && currentReporterType !== 'ALL') {
+        params.append('reporterType', currentReporterType);
+    }
+    
+    if (params.toString()) {
+        url += '?' + params.toString();
     }
     
     fetch(url)
@@ -60,13 +87,21 @@ function displayReports(reports) {
         const statusText = getStatusText(report.status);
         const statusClass = getStatusClass(report.status);
         
+        const reporterTypeText = report.reporterType === 'COMPANY' ? '업체' : '사용자';
+        const reporterTypeBadge = report.reporterType === 'COMPANY' ? 
+            '<span style="background:#f39c12; color:white; padding:4px 8px; border-radius:4px; font-size:12px; margin-right:8px;"><i class="fas fa-building"></i> 업체</span>' : 
+            '<span style="background:#3498db; color:white; padding:4px 8px; border-radius:4px; font-size:12px; margin-right:8px;"><i class="fas fa-user"></i> 사용자</span>';
+        
         html += `
-            <div class="report-item" data-id="${report.inquiryId}" data-status="${report.status}">
+            <div class="report-item" data-id="${report.inquiryId}" data-status="${report.status}" data-reporter-type="${report.reporterType}">
                 <div class="report-item-header">
                     <div class="report-item-info">
-                        <div class="report-item-title">${escapeHtml(report.subject || '제목 없음')}</div>
+                        <div class="report-item-title">
+                            ${reporterTypeBadge}
+                            ${escapeHtml(report.subject || '제목 없음')}
+                        </div>
                         <div class="report-item-meta">
-                            <span>사용자 ID: ${report.userId || '-'}</span>
+                            <span>${reporterTypeText} ID: ${report.reporterType === 'COMPANY' ? report.reporterCompanyId || '-' : report.reporterSocialId || '-'}</span>
                             ${report.orderId ? `<span>주문번호: ${report.orderId}</span>` : ''}
                         </div>
                     </div>

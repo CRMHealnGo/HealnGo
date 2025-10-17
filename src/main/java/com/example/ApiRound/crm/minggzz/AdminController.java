@@ -318,9 +318,10 @@ public class AdminController {
     @GetMapping("/api/inquiry-reports")
     @ResponseBody
     public ResponseEntity<List<UserInquiry>> getAllInquiryReports(
-            @RequestParam(value = "status", required = false) String status) {
+            @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "reporterType", required = false) String reporterType) {
         try {
-            List<UserInquiry> inquiries = userInquiryService.getAdminPagedList(1, 100, status).getContent();
+            List<UserInquiry> inquiries = userInquiryService.getAdminPagedList(1, 100, status, reporterType).getContent();
             return ResponseEntity.ok(inquiries);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
@@ -674,7 +675,7 @@ public class AdminController {
      */
     @PostMapping("/notice-notify/update")
     @ResponseBody
-    public String updateNotice(
+    public Map<String, Object> updateNotice(
             @RequestParam Integer noticeId,
             @RequestParam String title,
             @RequestParam String content,
@@ -682,29 +683,12 @@ public class AdminController {
             @RequestParam(defaultValue = "false") Boolean topFixed,
             HttpSession session) {
 
-        Map<String, Object> notice1 = new HashMap<>();
-        notice1.put("id", 1);
-        notice1.put("title", "시스템 점검 안내");
-        notice1.put("content", "2024년 10월 15일 새벽 2시~4시 시스템 점검이 예정되어 있습니다.");
-        notice1.put("type", "important");
-        notice1.put("status", "active");
-        notice1.put("author", "관리자");
-        notice1.put("date", "2024-10-09 14:30");
-        notice1.put("views", 1234);
-        notices.add(notice1);
-
-        Map<String, Object> notice2 = new HashMap<>();
-        notice2.put("id", 2);
-        notice2.put("title", "신규 서비스 출시 안내");
-        notice2.put("content", "새로운 예약 시스템이 출시되었습니다. 더욱 편리한 예약 관리를 경험해보세요.");
-        notice2.put("type", "general");
-        notice2.put("status", "active");
-        notice2.put("author", "관리자");
-        notice2.put("date", "2024-10-08 10:00");
-        notice2.put("views", 856);
-        notices.add(notice2);
-
-        return notices;
+        // TODO: 실제 DB 업데이트 로직 구현
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "공지사항이 수정되었습니다.");
+        
+        return response;
     }
 
     /**

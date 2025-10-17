@@ -1,6 +1,7 @@
 package com.example.ApiRound.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 
 import org.springframework.data.domain.Example;
@@ -55,6 +56,75 @@ public class UserInquiryService {
         
         return saved.getInquiryId();
     }
+    
+    /** 업체 요청 접수 */
+    @Transactional
+    public Integer submitCompanyRequest(InquirySubmitRequest req, Integer companyId) {
+        System.out.println("===== UserInquiryService.submitCompanyRequest 시작 =====");
+        System.out.println("companyId: " + companyId);
+        System.out.println("subject: " + req.getSubject());
+        System.out.println("content: " + req.getContent());
+        System.out.println("requestType: " + req.getRequestType());
+        System.out.println("priority: " + req.getPriority());
+        
+        // requestType 문자열을 enum으로 변환
+        UserInquiry.RequestType requestType = null;
+        if (req.getRequestType() != null) {
+            try {
+                requestType = UserInquiry.RequestType.valueOf(req.getRequestType().toUpperCase());
+            } catch (Exception e) {
+                requestType = UserInquiry.RequestType.OTHER;
+            }
+        }
+        
+        // priority 문자열을 enum으로 변환
+        UserInquiry.Priority priority = UserInquiry.Priority.NORMAL;
+        if (req.getPriority() != null) {
+            try {
+                priority = UserInquiry.Priority.valueOf(req.getPriority().toUpperCase());
+            } catch (Exception e) {
+                priority = UserInquiry.Priority.NORMAL;
+            }
+        }
+        
+        UserInquiry entity = UserInquiry.builder()
+                .reporterId(companyId)
+                .reporterCompanyId(companyId)  // company_user의 company_id
+                .reporterType(UserInquiry.ReporterType.COMPANY)
+                .target(UserInquiry.Target.ADMIN)
+                .subject(req.getSubject())
+                .content(req.getContent())
+                .targetUrl(req.getTargetUrl())
+                .requestType(requestType)
+                .priority(priority)
+                .status(Status.OPEN)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        System.out.println("Entity 생성 완료, DB 저장 시작...");
+
+        UserInquiry saved = userInquiryRepository.save(entity);
+        
+        System.out.println("DB 저장 완료! inquiry_id: " + saved.getInquiryId());
+        
+        return saved.getInquiryId();
+    }
+    
+    /** (업체) 내 요청 조회 */
+    @Transactional(readOnly = true)
+    public List<UserInquiry> getCompanyPagedList(Integer companyId, int page, int size) {
+        Pageable pageable = PageRequest.of(Math.max(page - 1, 0), Math.max(size, 1),
+                Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        Example<UserInquiry> example = Example.of(
+                UserInquiry.builder()
+                    .reporterCompanyId(companyId)
+                    .reporterType(UserInquiry.ReporterType.COMPANY)
+                    .build(),
+                ExampleMatcher.matching().withIgnoreNullValues()
+        );
+        return userInquiryRepository.findAll(example, pageable).getContent();
+    }
 
     /** (사용자) 내 문의 페이징 조회 */
     @Transactional(readOnly = true)
@@ -75,20 +145,51 @@ public class UserInquiryService {
     /** (관리자) 목록 페이징 - 상태 필터 optional */
     @Transactional(readOnly = true)
     public Page<UserInquiry> getAdminPagedList(int page, int size, String statusFilter) {
+        return getAdminPagedList(page, size, statusFilter, null);
+    }
+    
+    /** (관리자) 목록 페이징 - 상태 및 reporter type 필터 optional */
+    @Transactional(readOnly = true)
+    public Page<UserInquiry> getAdminPagedList(int page, int size, String statusFilter, String reporterTypeFilter) {
         Pageable pageable = PageRequest.of(Math.max(page - 1, 0), Math.max(size, 1),
                 Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        if (statusFilter == null || statusFilter.isBlank()) {
+        // 필터가 없으면 전체 조회
+        if ((statusFilter == null || statusFilter.isBlank()) && 
+            (reporterTypeFilter == null || reporterTypeFilter.isBlank())) {
             return userInquiryRepository.findAll(pageable);
         }
 
-        Status st;
+        // 상태 필터만 있는 경우
+        if ((statusFilter != null && !statusFilter.isBlank()) && 
+            (reporterTypeFilter == null || reporterTypeFilter.isBlank())) {
+            try {
+                Status st = Status.valueOf(statusFilter.toUpperCase());
+                return userInquiryRepository.findByStatus(st, pageable);
+            } catch (Exception e) {
+                return userInquiryRepository.findAll(pageable);
+            }
+        }
+        
+        // Reporter Type 필터만 있는 경우
+        if ((reporterTypeFilter != null && !reporterTypeFilter.isBlank()) &&
+            (statusFilter == null || statusFilter.isBlank())) {
+            try {
+                UserInquiry.ReporterType rt = UserInquiry.ReporterType.valueOf(reporterTypeFilter.toUpperCase());
+                return userInquiryRepository.findByReporterType(rt, pageable);
+            } catch (Exception e) {
+                return userInquiryRepository.findAll(pageable);
+            }
+        }
+        
+        // 둘 다 있는 경우
         try {
-            st = Status.valueOf(statusFilter.toUpperCase());
+            Status st = Status.valueOf(statusFilter.toUpperCase());
+            UserInquiry.ReporterType rt = UserInquiry.ReporterType.valueOf(reporterTypeFilter.toUpperCase());
+            return userInquiryRepository.findByStatusAndReporterType(st, rt, pageable);
         } catch (Exception e) {
             return userInquiryRepository.findAll(pageable);
         }
-        return userInquiryRepository.findByStatus(st, pageable);
     }
 
     /** (관리자) 상태 변경 — (id, status, adminId) */

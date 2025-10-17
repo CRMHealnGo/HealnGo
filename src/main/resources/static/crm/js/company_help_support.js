@@ -158,9 +158,32 @@ document.addEventListener('DOMContentLoaded', function() {
 // 새 요청 제출
 function submitRequest(event) {
     event.preventDefault();
-    alert('요청이 제출되었습니다. 운영팀이 확인 후 답변드리겠습니다.');
-    // 실제로는 AJAX로 서버에 전송
-    switchTab('requests');
+    
+    const form = event.target;
+    const formData = new FormData(form);
+    
+    console.log('요청 제출 시작...');
+    
+    fetch('/company/api/help-support/submit', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('서버 응답:', data);
+        if (data.success) {
+            alert('요청이 제출되었습니다. 운영팀이 확인 후 답변드리겠습니다.');
+            form.reset();
+            // 요청 내역 탭으로 이동하고 페이지 새로고침
+            location.reload();
+        } else {
+            alert('제출 실패: ' + (data.message || '알 수 없는 오류'));
+        }
+    })
+    .catch(error => {
+        console.error('제출 에러:', error);
+        alert('요청 제출에 실패했습니다. 다시 시도해주세요.');
+    });
 }
 
 // 파일 업로드 처리
