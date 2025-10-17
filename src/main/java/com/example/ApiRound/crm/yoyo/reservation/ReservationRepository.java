@@ -88,4 +88,11 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     List<Reservation> findByCompanyAndCreatedAtBetween(@Param("company") CompanyUser company, 
                                                         @Param("startDateTime") LocalDateTime startDateTime, 
                                                         @Param("endDateTime") LocalDateTime endDateTime);
+    
+    // 사용자 ID로 예약 조회 (페이징)
+    @Query("SELECT r FROM Reservation r " +
+           "LEFT JOIN FETCH r.company " +
+           "WHERE r.user.userId = :userId " +
+           "ORDER BY r.createdAt DESC")
+    Page<Reservation> findByUser_UserId(@Param("userId") Integer userId, Pageable pageable);
 }

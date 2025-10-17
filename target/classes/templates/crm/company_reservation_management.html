@@ -67,75 +67,25 @@
             </div>
 
             <div class="page-content-container">
-                <!-- 왼쪽 컬럼: 달력 + 최근 업데이트 + 금일 일정 -->
+                <!-- 왼쪽 컬럼: 최근 업데이트만 -->
                 <div class="left-column">
-                    <!-- 달력 -->
-                    <div class="calendar">
-                        <div class="calendar-header">
-                            <button class="nav-btn" id="prevMonth">
-                                <i class="fas fa-chevron-left"></i>
-                            </button>
-                            <h3 class="month-year" id="currentMonth">2024년 10월</h3>
-                            <button class="nav-btn" id="nextMonth">
-                                <i class="fas fa-chevron-right"></i>
-                            </button>
-                        </div>
-                        
-                        <div class="calendar-grid">
-                            <div class="weekdays">
-                                <div class="weekday">일</div>
-                                <div class="weekday">월</div>
-                                <div class="weekday">화</div>
-                                <div class="weekday">수</div>
-                                <div class="weekday">목</div>
-                                <div class="weekday">금</div>
-                                <div class="weekday">토</div>
-                            </div>
-                            
-                            <div class="days" id="calendarDays">
-                                <!-- 달력 날짜들이 JavaScript로 동적으로 생성됩니다 -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 최근 업데이트와 금일 일정을 나란히 배치 -->
-                    <div class="bottom-sections">
-                        <!-- 최근 업데이트 -->
-                        <div class="recent-updates">
-                            <h3>최근 업데이트</h3>
-                            <div class="update-list">
-                                <div class="update-item">
-                                    <span class="update-text">둥그리둥둥님께서 10월 20일 오전 11시 예약 하셨습니다.</span>
-                                </div>
-                                <div class="update-item">
-                                    <span class="update-text">둥그리둥둥님께서 10월 20일 오전 11시 예약 하셨습니다.</span>
-                                </div>
-                                <div class="update-item">
-                                    <span class="update-text">둥그리둥둥님께서 10월 20일 오전 11시 예약 하셨습니다.</span>
+                    <!-- 최근 업데이트 -->
+                    <div class="recent-updates">
+                        <h3>최근 업데이트</h3>
+                        <div class="update-list">
+                            <!-- 최근 예약이 있을 경우 -->
+                            <div th:if="${recentReservations != null and !recentReservations.isEmpty()}">
+                                <div class="update-item" th:each="reservation : ${recentReservations}">
+                                    <span class="update-text" 
+                                          th:text="${(reservation.customerName != null and reservation.customerName != '고객 정보 없음' ? reservation.customerName : '고객') + '님께서 ' + 
+                                                    (reservation.createdAt != null ? #temporals.format(reservation.createdAt, 'M월 d일 a h시') : '최근') + ' 예약하셨습니다.'}">
+                                        고객님께서 예약하셨습니다.
+                                    </span>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- 금일 일정 -->
-                        <div class="today-schedule">
-                            <h3>금일 일정</h3>
-                            <div class="schedule-date">10월 3일</div>
-                            <div class="schedule-list">
-                                <div class="schedule-item">
-                                    <span class="schedule-text">신규 이벤트 공지</span>
-                                </div>
-                                <div class="schedule-item">
-                                    <span class="schedule-text">계절상품 선정</span>
-                                </div>
-                                <div class="schedule-item">
-                                    <span class="schedule-text">베스트 리뷰러 선정</span>
-                                </div>
-                                <div class="schedule-item reservation">
-                                    <span class="schedule-text">서울깍쟁이 님 오전 12시 울쎄라핌 예약</span>
-                                </div>
-                                <div class="schedule-item reservation">
-                                    <span class="schedule-text">둥그리둥둥님께서 10월 20일 오전 11시 예약 하셨습니다.</span>
-                                </div>
+                            <!-- 최근 예약이 없을 경우 -->
+                            <div th:if="${recentReservations == null or recentReservations.isEmpty()}" class="update-item">
+                                <span class="update-text" style="color: #95a5a6;">최근 예약 내역이 없습니다.</span>
                             </div>
                         </div>
                     </div>
@@ -146,10 +96,6 @@
                     <div class="reservations-list-section">
                         <div class="reservations-header">
                             <h3>예약 목록</h3>
-                            <button class="btn-add-reservation" onclick="openModal()">
-                                <i class="fas fa-plus"></i>
-                                일정 추가
-                            </button>
                         </div>
                         
                         <!-- 선택된 날짜 표시 -->
@@ -317,6 +263,17 @@
 
     <script src="/crm/js/company_sidebar.js"></script>
     <script src="/crm/js/company_header.js"></script>
+    
+    <!-- Thymeleaf에서 예약 데이터를 JavaScript로 전달 -->
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        window.reservationList = [[${reservationList}]];
+        console.log('=== Thymeleaf 예약 데이터 전달 ===');
+        console.log('예약 데이터:', window.reservationList);
+        console.log('=================================');
+        /*]]>*/
+    </script>
+    
     <script src="/crm/js/company_reservation_management.js"></script>
 </body>
 </html>
