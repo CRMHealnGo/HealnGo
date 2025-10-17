@@ -475,28 +475,26 @@ function closeProfileModal() {
 }
 
 // 프로필 저장
-function saveProfile() {
+async function saveProfile() {
     const modal = document.getElementById('profileModal');
     if (!modal) return;
     
     // 폼 데이터 수집
+    const nameInput = modal.querySelector('.profile-form input[type="text"]:not([readonly])');
+    const currentPasswordInput = document.getElementById('currentPassword');
+    const newPasswordInput = document.getElementById('newPassword');
+    const confirmPasswordInput = document.getElementById('confirmPassword');
+    
     const formData = {
-        nickname: modal.querySelector('input[type="text"]').value,
-        email: modal.querySelector('input[type="email"]').value,
-        gender: modal.querySelector('select').value,
-        currentPassword: modal.querySelector('input[placeholder="현재 비밀번호를 입력하세요"]').value,
-        newPassword: modal.querySelector('input[placeholder="새 비밀번호를 입력하세요"]').value,
-        confirmPassword: modal.querySelector('input[placeholder="새 비밀번호를 다시 입력하세요"]').value
+        name: nameInput ? nameInput.value : '',
+        currentPassword: currentPasswordInput ? currentPasswordInput.value : '',
+        newPassword: newPasswordInput ? newPasswordInput.value : '',
+        confirmPassword: confirmPasswordInput ? confirmPasswordInput.value : ''
     };
     
     // 유효성 검사
-    if (!formData.nickname.trim()) {
-        alert('닉네임을 입력해주세요.');
-        return;
-    }
-    
-    if (!formData.email.trim()) {
-        alert('이메일을 입력해주세요.');
+    if (!formData.name.trim()) {
+        alert('이름을 입력해주세요.');
         return;
     }
     
@@ -517,37 +515,59 @@ function saveProfile() {
             return;
         }
         
-        if (formData.newPassword.length < 6) {
-            alert('비밀번호는 6자 이상이어야 합니다.');
+        if (formData.newPassword.length < 8) {
+            alert('비밀번호는 8자 이상이어야 합니다.');
             return;
         }
     }
     
-    // 저장 처리 (실제로는 서버에 전송)
-    console.log('프로필 저장:', formData);
-    
-    // 성공 메시지
-    alert('정보가 성공적으로 저장되었습니다.');
-    
-    // 메인 페이지 정보 업데이트
-    updateMainProfile(formData);
-    
-    // 모달 닫기
-    closeProfileModal();
+    try {
+        // 서버에 데이터 전송
+        const response = await fetch('/api/user/profile', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name: formData.name,
+                currentPassword: formData.currentPassword || null,
+                newPassword: formData.newPassword || null
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok && result.success) {
+            alert('정보가 성공적으로 저장되었습니다.');
+            
+            // 메인 페이지 정보 업데이트
+            updateMainProfile({ name: formData.name });
+            
+            // 비밀번호 필드 초기화
+            if (currentPasswordInput) currentPasswordInput.value = '';
+            if (newPasswordInput) newPasswordInput.value = '';
+            if (confirmPasswordInput) confirmPasswordInput.value = '';
+            
+            // 모달 닫기
+            closeProfileModal();
+            
+            // 페이지 새로고침 (선택사항)
+            // window.location.reload();
+        } else {
+            alert(result.message || '저장에 실패했습니다.');
+        }
+    } catch (error) {
+        console.error('프로필 저장 실패:', error);
+        alert('저장 중 오류가 발생했습니다.');
+    }
 }
 
 // 메인 페이지 프로필 정보 업데이트
 function updateMainProfile(formData) {
     // 사용자 이름 업데이트
-    const userName = document.querySelector('.user-name');
-    if (userName) {
-        userName.textContent = `${formData.nickname} 님`;
-    }
-    
-    // 사용자 ID 업데이트 (닉네임으로)
-    const userId = document.querySelector('.user-id');
-    if (userId) {
-        userId.textContent = formData.nickname;
+    const userName = document.querySelector('.mypage-user-name');
+    if (userName && formData.name) {
+        userName.textContent = `${formData.name} 님`;
     }
 }
 
@@ -580,5 +600,79 @@ function handleProfileImage(input) {
             console.log('프로필 이미지가 업데이트되었습니다.');
         };
         reader.readAsDataURL(file);
+    }
+}
+
+// 비밀번호 보기 토글
+function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    const button = input.nextElementSibling;
+    const icon = button.querySelector('i');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+
+// 비밀번호 강도 체크
+function checkPasswordStrength(password) {
+    const strengthBar = document.querySelector('#passwordStrength .password-strength-bar');
+    const strengthContainer = document.getElementById('passwordStrength');
+    
+    if (!password) {
+        strengthContainer.style.display = 'none';
+        return;
+    }
+    
+    strengthContainer.style.display = 'block';
+    
+    let strength = 0;
+    
+    // 길이 체크
+    if (password.length >= 8) strength++;
+    if (password.length >= 12) strength++;
+    
+    // 복잡도 체크
+    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+    if (/[0-9]/.test(password)) strength++;
+    if (/[^a-zA-Z0-9]/.test(password)) strength++;
+    
+    // 강도 표시
+    strengthBar.className = 'password-strength-bar';
+    if (strength <= 2) {
+        strengthBar.classList.add('password-strength-weak');
+    } else if (strength <= 4) {
+        strengthBar.classList.add('password-strength-medium');
+    } else {
+        strengthBar.classList.add('password-strength-strong');
+    }
+    
+    // 비밀번호 일치 확인도 함께 체크
+    checkPasswordMatch();
+}
+
+// 비밀번호 일치 확인
+function checkPasswordMatch() {
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const messageDiv = document.getElementById('passwordMatchMessage');
+    
+    if (!confirmPassword) {
+        messageDiv.innerHTML = '';
+        return;
+    }
+    
+    if (newPassword === confirmPassword) {
+        messageDiv.className = 'password-match-message success';
+        messageDiv.innerHTML = '<i class="fas fa-check-circle"></i> 비밀번호가 일치합니다';
+    } else {
+        messageDiv.className = 'password-match-message error';
+        messageDiv.innerHTML = '<i class="fas fa-times-circle"></i> 비밀번호가 일치하지 않습니다';
     }
 }

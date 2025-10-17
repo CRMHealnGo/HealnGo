@@ -692,26 +692,168 @@ body {
 }
 
 .password-section {
-    border-top: 1px solid #e9ecef;
-    padding-top: 30px;
-    margin-bottom: 30px;
+    border-top: 2px solid #e9ecef;
+    padding: 30px;
+    margin: 30px 0;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .password-section h4 {
-    font-size: 16px;
-    font-weight: bold;
+    font-size: 18px;
+    font-weight: 700;
     color: #2c3e50;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.password-section h4::before {
+    content: "🔒";
+    font-size: 20px;
 }
 
 .password-form {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-direction: column;
     gap: 20px;
 }
 
 .password-form .form-group {
     margin-bottom: 0;
+    position: relative;
+}
+
+.password-form .form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 8px;
+}
+
+.password-form .form-group input {
+    width: 100%;
+    padding: 12px 40px 12px 16px;
+    font-size: 14px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.password-form .form-group input:focus {
+    outline: none;
+    border-color: #2a7a5b;
+    box-shadow: 0 0 0 3px rgba(42, 122, 91, 0.1);
+}
+
+.password-form .form-group input::placeholder {
+    color: #adb5bd;
+}
+
+/* 비밀번호 강도 표시 */
+.password-strength {
+    height: 4px;
+    background: #e9ecef;
+    border-radius: 2px;
+    margin-top: 8px;
+    overflow: hidden;
+}
+
+.password-strength-bar {
+    height: 100%;
+    transition: all 0.3s ease;
+    border-radius: 2px;
+}
+
+.password-strength-weak {
+    width: 33%;
+    background: #dc3545;
+}
+
+.password-strength-medium {
+    width: 66%;
+    background: #ffc107;
+}
+
+.password-strength-strong {
+    width: 100%;
+    background: #28a745;
+}
+
+/* 비밀번호 확인 메시지 */
+.password-match-message {
+    font-size: 12px;
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.password-match-message.success {
+    color: #28a745;
+}
+
+.password-match-message.error {
+    color: #dc3545;
+}
+
+/* 비밀번호 보기 토글 버튼 */
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 38px;
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 8px;
+    font-size: 16px;
+    transition: color 0.3s ease;
+}
+
+.password-toggle:hover {
+    color: #2a7a5b;
+}
+
+/* 비밀번호 요구사항 안내 */
+.password-requirements {
+    background: #f8f9fa;
+    border-left: 4px solid #2a7a5b;
+    padding: 12px 16px;
+    margin-top: 16px;
+    border-radius: 4px;
+}
+
+.password-requirements p {
+    font-size: 13px;
+    color: #495057;
+    margin: 0 0 8px 0;
+    font-weight: 600;
+}
+
+.password-requirements ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.password-requirements li {
+    font-size: 12px;
+    color: #6c757d;
+    padding: 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.password-requirements li::before {
+    content: "✓";
+    color: #28a745;
+    font-weight: bold;
 }
 
 .profile-modal-actions {
