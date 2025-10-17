@@ -116,29 +116,40 @@
     background: white;
     color: #6c757d;
     border-radius: 6px;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.3s ease;
     font-size: 14px;
     font-weight: 500;
+    text-decoration: none;
 }
 
 .page-btn:hover {
     background: #f8f9fa;
     border-color: #4CAF50;
     color: #4CAF50;
+    text-decoration: none;
 }
 
 .page-btn.active {
     background: #4CAF50;
     color: white;
     border-color: #4CAF50;
+    pointer-events: none;
 }
 
 .page-btn i {
     font-size: 12px;
+}
+
+/* 페이지 정보 */
+.page-info {
+    text-align: center;
+    margin-top: 10px;
+    color: #6c757d;
+    font-size: 14px;
 }
 
 /* 반응형 디자인 */
@@ -318,14 +329,19 @@
     color: #0c5460;
 }
 
-.status.pending {
-    background: #fff3cd;
-    color: #856404;
+.status.cancelled {
+    background: #f8d7da;
+    color: #721c24;
 }
 
 .status.completed {
     background: #d4edda;
     color: #155724;
+}
+
+.status.pending {
+    background: #fff3cd;
+    color: #856404;
 }
 
 .booking-actions {
@@ -431,6 +447,11 @@
 .status-cancelled {
     background: #f8d7da;
     color: #721c24;
+}
+
+.status-completed {
+    background: #cfe2ff;
+    color: #084298;
 }
 
 .status-pending {

@@ -52,27 +52,17 @@
 
             <!-- 알림 및 예약내역 섹션 (가로 배치) -->
             <div class="content-section">
-                <!-- 알림 섹션 -->
+                <!-- 새로운 소식 섹션 -->
                 <section class="notifications-section card">
                     <div class="section-header">
-                        <h3>알림</h3>
+                        <h3>🎉 새로운 소식</h3>
                         <a href="#" class="view-all" onclick="openNotificationModal()">View all ></a>
                     </div>
-                    <ul class="notification-list">
-                        <li>
-                            <span class="notification-icon"><i class="fas fa-bell"></i></span>
-                            <span class="notification-text">새로운 예약이 확정되었습니다.</span>
-                            <span class="notification-time">2시간 전</span>
-                        </li>
-                        <li>
-                            <span class="notification-icon"><i class="fas fa-calendar-alt"></i></span>
-                            <span class="notification-text">예약 일정이 변경되었습니다.</span>
-                            <span class="notification-time">1일 전</span>
-                        </li>
-                        <li>
-                            <span class="notification-icon"><i class="fas fa-comment-dots"></i></span>
-                            <span class="notification-text">새로운 메시지가 도착했습니다.</span>
-                            <span class="notification-time">3일 전</span>
+                    <ul class="notification-list" id="notificationList">
+                        <!-- JavaScript로 동적 생성 -->
+                        <li class="no-notifications" style="text-align: center; padding: 40px; color: #adb5bd;">
+                            <i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>
+                            <p style="margin: 0;">새로운 소식이 없습니다</p>
                         </li>
                     </ul>
                 </section>
@@ -177,53 +167,18 @@
         </div>
     </div>
 
-    <!-- 알림 모달 -->
+    <!-- 새로운 소식 모달 -->
     <div id="notificationModal" class="notification-modal">
         <div class="notification-modal-content">
             <div class="notification-modal-header">
-                <h3>알림</h3>
+                <h3>🎉 새로운 소식</h3>
                 <button class="notification-close-btn" onclick="closeNotificationModal()">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="notification-modal-body">
-                <ul class="notification-modal-list">
-                    <li>
-                        <div class="notification-item">
-                            <div class="notification-line"></div>
-                            <span class="notification-text">문의하기 답변 완료되었습니다.</span>
-                        </div>
-                    </li>
-                    <li>
-                        <div class="notification-item">
-                            <div class="notification-line"></div>
-                            <span class="notification-text">노란리본 업체에게 채팅이 왔습니다.</span>
-                        </div>
-                    </li>
-                    <li>
-                        <div class="notification-item">
-                            <div class="notification-line"></div>
-                            <span class="notification-text">화이트닝 패키지 예약 완료되었습니다.</span>
-                        </div>
-                    </li>
-                    <li>
-                        <div class="notification-item">
-                            <div class="notification-line"></div>
-                            <span class="notification-text">D-3 여름패키지</span>
-                        </div>
-                    </li>
-                    <li>
-                        <div class="notification-item">
-                            <div class="notification-line"></div>
-                            <span class="notification-text">문의하기 답변 완료되었습니다.</span>
-                        </div>
-                    </li>
-                    <li>
-                        <div class="notification-item">
-                            <div class="notification-line"></div>
-                            <span class="notification-text">노란리본 업체에게 채팅이 왔습니다.</span>
-                        </div>
-                    </li>
+                <ul class="notification-modal-list" id="notificationModalList">
+                    <!-- JavaScript로 동적 생성 -->
                 </ul>
             </div>
         </div>

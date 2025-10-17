@@ -162,9 +162,12 @@ public class ListController {
      */
     @GetMapping("/api/review/company-items/{companyId}")
     @ResponseBody
-    public ResponseEntity<List<ItemList>> getItemsByCompany(@PathVariable Integer companyId) {
-        List<ItemList> items = itemListRepository.findByOwnerCompany_CompanyId(companyId);
-        return ResponseEntity.ok(items);
+    public ResponseEntity<List<com.example.ApiRound.dto.ItemListDto>> getItemsByCompany(@PathVariable Integer companyId) {
+        List<com.example.ApiRound.entity.ItemList> items = itemListRepository.findByOwnerCompany_CompanyId(companyId);
+        List<com.example.ApiRound.dto.ItemListDto> itemDtos = items.stream()
+                .map(com.example.ApiRound.dto.ItemListDto::from)
+                .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(itemDtos);
     }
     
     /**
@@ -178,4 +181,17 @@ public class ListController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+    
+    /**
+     * 업체의 모든 리뷰 조회 (아이템 관계 없이)
+     * GET /api/review/company-reviews/{companyId}
+     */
+    @GetMapping("/api/review/company-reviews/{companyId}")
+    @ResponseBody
+    public ResponseEntity<List<Object[]>> getCompanyReviews(@PathVariable Integer companyId) {
+        // 업체의 아이템들에 대한 모든 리뷰를 조회
+        List<Object[]> reviews = itemListRepository.findReviewsByCompanyId(companyId);
+        return ResponseEntity.ok(reviews);
+    }
+    
 }

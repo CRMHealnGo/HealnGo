@@ -86,66 +86,15 @@
             <div class="review-content">
                 <!-- 리뷰 목록 -->
                 <div class="review-list">
-                    <div class="review-item" data-review-id="0015" data-status="completed">
-                        <div class="review-header">
-                            <span class="review-id">#0015</span>
-                            <span class="status-badge completed">답변 완료</span>
-                        </div>
-                        <h4>자연스러운 힙필러 시술</h4>
-                        <p class="customer">고객 : 정**</p>
-                        <p class="review-text">시술 결과가 정말 만족스럽습니다. 자연스럽고 제가 원하던 모습이에요. 의료진 분들도 친절하시고...</p>
-                        <div class="review-footer">
-                            <div class="rating">
-                                <i class="fas fa-star"></i>
-                                <span>4.8</span>
-                            </div>
-                            <span class="date">2025-10-03</span>
-                            <span class="price">150,000 원</span>
-                        </div>
-                    </div>
-
-                    <div class="review-item" data-review-id="0014" data-status="pending">
-                        <div class="review-header">
-                            <span class="review-id">#0014</span>
-                            <span class="status-badge pending">답변 대기</span>
-                        </div>
-                        <h4>완벽한 눈 성형 후기</h4>
-                        <p class="customer">고객 : 정**</p>
-                        <p class="review-text">너무 만족해요! 회복도 빨랐고 결과도 자연스러워서 주변에서 많이 예뻐졌다고 합니다.</p>
-                        <div class="review-footer">
-                            <div class="rating">
-                                <i class="fas fa-star"></i>
-                                <span>5.0</span>
-                            </div>
-                            <span class="date">2025-10-03</span>
-                            <span class="price">700,000 원</span>
-                        </div>
-                    </div>
-
-                    <div class="review-item" data-review-id="0013" data-status="completed">
-                        <div class="review-header">
-                            <span class="review-id">#0013</span>
-                            <span class="status-badge completed">답변 완료</span>
-                        </div>
-                        <h4>보톡스 시술</h4>
-                        <p class="customer">고객 : 정**</p>
-                        <p class="review-text">효과가 좋네요. 통증도 거의 없었고 바로 일상생활 가능했습니다.</p>
-                        <div class="review-footer">
-                            <div class="rating">
-                                <i class="fas fa-star"></i>
-                                <span>4.5</span>
-                            </div>
-                            <span class="date">2025-10-03</span>
-                            <span class="price">150,000 원</span>
-                        </div>
-                    </div>
+                    <!-- 리뷰 목록이 JavaScript로 동적으로 생성됩니다 -->
                 </div>
 
                 <!-- 리뷰 상세 -->
                 <div class="review-detail">
+                    <!-- 리뷰 상세 내용이 JavaScript로 동적으로 생성됩니다 -->
                     <div class="detail-header">
-                        <span class="review-id">#0015</span>
-                        <span class="status-badge completed">답변 완료</span>
+                        <span class="review-id">#0000</span>
+                        <span class="status-badge pending">답변 대기</span>
                     </div>
 
                     <div class="detail-rating">
@@ -156,42 +105,45 @@
                             <i class="fas fa-star"></i>
                             <i class="fas fa-star"></i>
                         </div>
-                        <span class="rating-score">4.8</span>
+                        <span class="rating-score">0</span>
                     </div>
 
                     <div class="detail-info">
-                        <h3>자연스러운 립필러 시술</h3>
-                        <p class="customer">고객 : 정**</p>
+                        <h3>리뷰를 선택해주세요</h3>
+                        <p class="customer">고객 : -</p>
                         <div class="detail-meta">
-                            <span class="date">작성일: 2025-10-03</span>
-                            <span class="price">시술 금액: 150,000 원</span>
+                            <span class="date">작성일: -</span>
+                            <span class="price">시술 금액: -</span>
                         </div>
                     </div>
 
                     <div class="review-content-box">
                         <h4>고객 리뷰</h4>
                         <div class="customer-review">
-                            시술 결과가 정말 만족스럽습니다. 자연스럽고 제가 원하던 모습이에요. 의료진 분들도 친절하시고 사후관리도 좋았습니다.
+                            왼쪽에서 리뷰를 선택해주세요.
                         </div>
                     </div>
 
                     <div class="reply-section">
                         <h4>판매자 답변</h4>
                         <div class="seller-reply">
-                            소중한 후기 감사합니다. 만족하신 결과를 얻으셔서 저희도 기쁩니다. 앞으로도 최선을 다하겠습니다.
+                            <p class="no-reply">아직 답글이 없습니다.</p>
                         </div>
                     </div>
 
                     <div class="reply-edit-section" style="display: none;">
                         <h4>답변 수정</h4>
-                        <textarea class="reply-textarea" placeholder="답변을 입력하세요...">소중한 후기 감사합니다. 만족하신 결과를 얻으셔서 저희도 기쁩니다. 앞으로도 최선을 다하겠습니다.</textarea>
+                        <textarea class="reply-textarea" placeholder="답변을 입력하세요..."></textarea>
                         <div class="reply-buttons">
                             <button class="cancel-btn">취소</button>
                             <button class="save-btn">답변 수정</button>
                         </div>
                     </div>
 
-                    <button class="edit-reply-btn">답변 수정</button>
+                    <div class="reply-actions">
+                        <button class="edit-reply-btn" id="replyWriteBtn" style="display: none;">답글 작성</button>
+                        <button class="edit-reply-btn" id="replyEditBtn" style="display: none;">답글 수정</button>
+                    </div>
                 </div>
             </div>
         </div>

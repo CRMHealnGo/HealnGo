@@ -1,7 +1,7 @@
 // 리뷰 API 유틸리티 함수들
 // 기존 review.js와 company_review.js에서 사용할 공통 API 함수
 
-const ReviewAPI = {
+window.ReviewAPI = {
     // 아이템별 리뷰 목록 조회
     async getReviewsByItem(itemId) {
         try {
@@ -103,11 +103,12 @@ const ReviewAPI = {
     async createReply(reviewId, companyId, body, isPublic = true) {
         try {
             const formData = new URLSearchParams();
+            formData.append('reviewId', reviewId);
             formData.append('companyId', companyId);
             formData.append('body', body);
             formData.append('isPublic', isPublic);
 
-            const response = await fetch(`/review/${reviewId}/reply`, {
+            const response = await fetch('/review/reply', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded'
@@ -272,6 +273,152 @@ const ItemAPI = {
         } catch (error) {
             console.error('Error fetching item:', error);
             return null;
+        }
+    },
+
+    // ========== 답글 API ==========
+    
+    // 답글 작성
+    async createReply(reviewId, companyId, body, isPublic = true) {
+        try {
+            const formData = new FormData();
+            formData.append('reviewId', reviewId);
+            formData.append('companyId', companyId);
+            formData.append('body', body);
+            formData.append('isPublic', isPublic);
+            
+            const response = await fetch('/review/reply', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!response.ok) throw new Error('Failed to create reply');
+            return await response.json();
+        } catch (error) {
+            console.error('Error creating reply:', error);
+            throw error;
+        }
+    },
+    
+    // 답글 수정
+    async updateReply(replyId, body, isPublic = true) {
+        try {
+            const formData = new FormData();
+            formData.append('body', body);
+            formData.append('isPublic', isPublic);
+            
+            const response = await fetch(`/review/reply/${replyId}`, {
+                method: 'PUT',
+                body: formData
+            });
+            
+            if (!response.ok) throw new Error('Failed to update reply');
+            return await response.json();
+        } catch (error) {
+            console.error('Error updating reply:', error);
+            throw error;
+        }
+    },
+    
+    // 답글 삭제
+    async deleteReply(replyId) {
+        try {
+            const response = await fetch(`/review/reply/${replyId}`, {
+                method: 'DELETE'
+            });
+            
+            if (!response.ok) throw new Error('Failed to delete reply');
+            return true;
+        } catch (error) {
+            console.error('Error deleting reply:', error);
+            throw error;
+        }
+    },
+    
+    // 특정 리뷰의 답글 조회
+    async getRepliesByReview(reviewId) {
+        try {
+            const response = await fetch(`/review/reply/review/${reviewId}`);
+            if (!response.ok) throw new Error('Failed to fetch replies');
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching replies:', error);
+            return [];
+        }
+    },
+    
+    // 특정 리뷰의 공개된 답글만 조회
+    async getPublicRepliesByReview(reviewId) {
+        try {
+            const response = await fetch(`/review/reply/review/${reviewId}/public`);
+            if (!response.ok) throw new Error('Failed to fetch public replies');
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching public replies:', error);
+            return [];
+        }
+    },
+    
+    // 특정 업체의 답글 조회
+    async getRepliesByCompany(companyId) {
+        try {
+            const response = await fetch(`/review/reply/company/${companyId}`);
+            if (!response.ok) throw new Error('Failed to fetch company replies');
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching company replies:', error);
+            return [];
+        }
+    },
+    
+    // 답글 상세 조회
+    async getReplyById(replyId) {
+        try {
+            const response = await fetch(`/review/reply/${replyId}`);
+            if (!response.ok) throw new Error('Failed to fetch reply');
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching reply:', error);
+            return null;
+        }
+    },
+    
+    // 답글 공개/비공개 설정
+    async toggleReplyVisibility(replyId) {
+        try {
+            const response = await fetch(`/review/reply/${replyId}/toggle-visibility`, {
+                method: 'PATCH'
+            });
+            
+            if (!response.ok) throw new Error('Failed to toggle reply visibility');
+            return true;
+        } catch (error) {
+            console.error('Error toggling reply visibility:', error);
+            throw error;
+        }
+    },
+    
+    // 업체가 특정 리뷰에 답글을 달았는지 확인
+    async hasCompanyReplied(reviewId, companyId) {
+        try {
+            const response = await fetch(`/review/reply/check/${reviewId}/${companyId}`);
+            if (!response.ok) throw new Error('Failed to check reply status');
+            return await response.json();
+        } catch (error) {
+            console.error('Error checking reply status:', error);
+            return false;
+        }
+    },
+    
+    // 특정 리뷰의 답글 개수
+    async getReplyCount(reviewId) {
+        try {
+            const response = await fetch(`/review/reply/count/${reviewId}`);
+            if (!response.ok) throw new Error('Failed to fetch reply count');
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching reply count:', error);
+            return 0;
         }
     }
 };

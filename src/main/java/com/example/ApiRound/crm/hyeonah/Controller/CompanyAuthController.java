@@ -392,16 +392,17 @@ public class CompanyAuthController {
     public ResponseEntity<Map<String, Object>> getCurrentCompany(HttpSession session) {
         Map<String, Object> response = new HashMap<>();
         
-        CompanyUser companyUser = (CompanyUser) session.getAttribute("companyUser");
+        Integer companyId = (Integer) session.getAttribute("companyId");
+        String userType = (String) session.getAttribute("userType");
         
-        if (companyUser == null) {
+        if (companyId == null || !"company".equals(userType)) {
             response.put("error", "로그인이 필요합니다.");
             return ResponseEntity.status(401).body(response);
         }
         
-        response.put("companyId", companyUser.getCompanyId());
-        response.put("companyName", companyUser.getCompanyName());
-        response.put("email", companyUser.getEmail());
+        response.put("companyId", companyId);
+        response.put("companyName", session.getAttribute("companyName"));
+        response.put("email", session.getAttribute("companyEmail"));
         
         return ResponseEntity.ok(response);
     }

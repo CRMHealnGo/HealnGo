@@ -25,13 +25,18 @@ public class UserReviewServiceImpl implements UserReviewService {
     
     @Override
     public UserReview createReview(UserReview review, MultipartFile image) {
+        // bookingId가 설정되어 있는지 확인
+        if (review.getBookingId() == null) {
+            throw new RuntimeException("예약 정보가 없습니다.");
+        }
+        
         // 이미 리뷰가 작성되었는지 확인
         if (userReviewRepository.existsByBookingId(review.getBookingId())) {
             throw new RuntimeException("이미 해당 예약에 대한 리뷰가 작성되었습니다.");
         }
         
         // 아이템이 존재하는지 확인
-        if (!itemListRepository.existsById(review.getItemId())) {
+        if (review.getItemId() != null && !itemListRepository.existsById(review.getItemId())) {
             throw new RuntimeException("해당 아이템을 찾을 수 없습니다.");
         }
         
@@ -108,14 +113,14 @@ public class UserReviewServiceImpl implements UserReviewService {
     
     @Override
     @Transactional(readOnly = true)
-    public UserReview getReviewByBookingId(Integer bookingId) {
-        return userReviewRepository.findByBookingId(bookingId);
+    public UserReview getReviewByReservationId(Long reservationId) {
+        return userReviewRepository.findByBookingId(reservationId);
     }
     
     @Override
     @Transactional(readOnly = true)
-    public boolean canWriteReview(Integer bookingId) {
-        return !userReviewRepository.existsByBookingId(bookingId);
+    public boolean canWriteReview(Long reservationId) {
+        return !userReviewRepository.existsByBookingId(reservationId);
     }
     
     @Override
@@ -179,7 +184,7 @@ public class UserReviewServiceImpl implements UserReviewService {
         }
         
         // 답글 조회
-        List<UserReviewReply> replies = userReviewReplyRepository.findByReviewIdAndIsPublicTrueOrderByCreatedAtAsc(review.getReviewId());
+        List<UserReviewReply> replies = userReviewReplyRepository.findByReview_ReviewIdAndIsPublicTrueOrderByCreatedAtAsc(review.getReviewId());
         dto.setReplies(replies.stream()
                 .map(this::convertReplyToDto)
                 .collect(Collectors.toList()));
@@ -191,7 +196,7 @@ public class UserReviewServiceImpl implements UserReviewService {
     private UserReviewReplyDto convertReplyToDto(UserReviewReply reply) {
         UserReviewReplyDto dto = new UserReviewReplyDto();
         dto.setReplyId(reply.getReplyId());
-        dto.setReviewId(reply.getReviewId());
+        dto.setReviewId(reply.getReview().getReviewId());
         dto.setCompanyId(reply.getCompanyId());
         dto.setBody(reply.getBody());
         dto.setIsPublic(reply.getIsPublic());

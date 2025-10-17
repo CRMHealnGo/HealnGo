@@ -96,10 +96,10 @@ public class ChatRestController {
     public ChatMessageDto sendSimple(@RequestBody java.util.Map<String, Object> payload) {
         Long threadId = Long.valueOf(payload.get("threadId").toString());
         String senderRoleStr = (String) payload.get("senderRole");
-        Integer senderUserId = payload.containsKey("senderUserId") ? 
-            (Integer) payload.get("senderUserId") : null;
-        Integer senderCompanyId = payload.containsKey("senderCompanyId") ? 
-            (Integer) payload.get("senderCompanyId") : null;
+        Integer senderUserId = payload.containsKey("senderUserId") ?
+                (Integer) payload.get("senderUserId") : null;
+        Integer senderCompanyId = payload.containsKey("senderCompanyId") ?
+                (Integer) payload.get("senderCompanyId") : null;
         String body = (String) payload.get("body");
 
         SenderRole role;
@@ -123,7 +123,7 @@ public class ChatRestController {
 
             // 스레드 상태 업데이트
             boolean updated = chatAppService.updateThreadStatus(threadId, status);
-            
+
             if (updated) {
                 return ResponseEntity.ok(Map.of("message", "Thread status updated successfully"));
             } else {
@@ -142,20 +142,20 @@ public class ChatRestController {
             Integer companyId = (Integer) request.get("companyId");
             String title = (String) request.get("title");
             Integer userId = (Integer) request.get("userId");
-            
+
             if (companyId == null || title == null || userId == null) {
                 Map<String, Object> error = new HashMap<>();
                 error.put("error", "필수 파라미터가 누락되었습니다.");
                 return ResponseEntity.badRequest().body(error);
             }
-            
+
             ChatThreadDto thread = chatAppService.createThread(companyId, title, userId);
-            
+
             Map<String, Object> response = new HashMap<>();
             response.put("threadId", thread.getThreadId());
             response.put("title", thread.getTitle());
             response.put("status", thread.getStatus());
-            
+
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             Map<String, Object> error = new HashMap<>();
@@ -163,23 +163,23 @@ public class ChatRestController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
-    
+
     /**
      * 업체 정보 조회 (ID로)
      */
     @GetMapping("/company/{companyId}")
     public ResponseEntity<?> getCompanyById(@PathVariable Integer companyId) {
         return companyUserRepository.findById(companyId)
-            .map(company -> {
-                Map<String, Object> response = new HashMap<>();
-                response.put("companyId", company.getCompanyId());
-                response.put("companyName", company.getCompanyName());
-                response.put("address", company.getAddress());
-                response.put("phone", company.getPhone());
-                response.put("email", company.getEmail());
-                return ResponseEntity.ok(response);
-            })
-            .orElse(ResponseEntity.notFound().build());
+                .map(company -> {
+                    Map<String, Object> response = new HashMap<>();
+                    response.put("companyId", company.getCompanyId());
+                    response.put("companyName", company.getCompanyName());
+                    response.put("address", company.getAddress());
+                    response.put("phone", company.getPhone());
+                    response.put("email", company.getEmail());
+                    return ResponseEntity.ok(response);
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
 }

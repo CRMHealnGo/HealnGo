@@ -24,15 +24,26 @@ function openBookingDetail(reservationId) {
 
 // 예약 상세 모달 표시
 function showBookingModal(reservation) {
-    // 상태 표시 텍스트
+    // 상태 표시 텍스트 및 클래스
     let statusText = '대기';
     let statusClass = 'pending';
-    if (reservation.status === 'CONFIRMED') {
-        statusText = '확정';
-        statusClass = 'confirmed';
-    } else if (reservation.status === 'CANCELLED') {
-        statusText = '취소';
-        statusClass = 'cancelled';
+    
+    switch(reservation.status) {
+        case 'CONFIRMED':
+            statusText = '확정';
+            statusClass = 'confirmed';
+            break;
+        case 'CANCELLED':
+            statusText = '취소';
+            statusClass = 'cancelled';
+            break;
+        case 'COMPLETED':
+            statusText = '완료';
+            statusClass = 'completed';
+            break;
+        default:
+            statusText = '대기';
+            statusClass = 'pending';
     }
     
     // 금액 포맷
@@ -93,7 +104,7 @@ function showBookingModal(reservation) {
                     </div>
                     <div class="booking-actions">
                         <button class="booking-btn cancel" onclick="closeBookingModal()">닫기</button>
-                        ${reservation.status !== 'CANCELLED' ? 
+                        ${reservation.status === 'CONFIRMED' ? 
                             '<button class="booking-btn booking-btn-cancel" onclick="cancelBooking()">예약 취소</button>' : 
                             '<button class="booking-btn booking-btn-cancel" disabled style="opacity: 0.5; cursor: not-allowed;">예약 취소</button>'}
                     </div>

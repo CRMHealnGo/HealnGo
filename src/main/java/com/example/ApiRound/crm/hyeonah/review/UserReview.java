@@ -1,13 +1,17 @@
 package com.example.ApiRound.crm.hyeonah.review;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -29,8 +33,9 @@ public class UserReview {
     @Column(name = "item_id")
     private Long itemId;
     
+    // booking_id 직접 매핑 (FK 연결 문제 해결용)
     @Column(name = "booking_id")
-    private Integer bookingId;
+    private Long bookingId;
     
     @Column(name = "rating")
     private Byte rating;
@@ -56,6 +61,10 @@ public class UserReview {
     
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+    
+    // 답글 관계
+    @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<UserReviewReply> replies;
     
     @PrePersist
     protected void onCreate() {

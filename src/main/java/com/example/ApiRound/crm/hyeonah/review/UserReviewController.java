@@ -28,7 +28,6 @@ import lombok.RequiredArgsConstructor;
 public class UserReviewController {
     
     private final UserReviewService userReviewService;
-    private final UserReviewReplyService userReviewReplyService;
     
     // ========== 페이지 ==========
     
@@ -42,33 +41,41 @@ public class UserReviewController {
     // 리뷰 작성
     @PostMapping
     @ResponseBody
-    public ResponseEntity<UserReview> createReview(
+    public ResponseEntity<UserReviewDto> createReview(
             @RequestParam Integer userId,
-            @RequestParam Long itemId,
-            @RequestParam Integer bookingId,
+            @RequestParam(required = false) Long itemId,
+            @RequestParam Long bookingId,  // reservations.id
             @RequestParam Byte rating,
             @RequestParam String title,
             @RequestParam(required = false) String content,
             @RequestParam(required = false) MultipartFile image,
             @RequestParam(defaultValue = "true") Boolean isPublic) {
         
-        UserReview review = new UserReview();
-        review.setUserId(userId);
-        review.setItemId(itemId);
-        review.setBookingId(bookingId);
-        review.setRating(rating);
-        review.setTitle(title);
-        review.setContent(content);
-        review.setIsPublic(isPublic);
-        
-        UserReview createdReview = userReviewService.createReview(review, image);
-        return ResponseEntity.ok(createdReview);
+        try {
+            UserReview review = new UserReview();
+            review.setUserId(userId);
+            // itemId가 null이면 기본값 1 설정
+            review.setItemId(itemId != null ? itemId : 1L);
+            review.setBookingId(bookingId);  // bookingId 직접 설정
+            review.setRating(rating);
+            review.setTitle(title);
+            review.setContent(content);
+            review.setIsPublic(isPublic);
+            
+            UserReview createdReview = userReviewService.createReview(review, image);
+            
+            // DTO로 변환하여 반환 (직렬화 문제 방지)
+            UserReviewDto dto = userReviewService.getReviewById(createdReview.getReviewId());
+            return ResponseEntity.ok(dto);
+        } catch (Exception e) {
+            throw new RuntimeException("리뷰 등록 중 오류가 발생했습니다: " + e.getMessage(), e);
+        }
     }
     
     // 리뷰 수정
     @PutMapping("/{reviewId}")
     @ResponseBody
-    public ResponseEntity<UserReview> updateReview(
+    public ResponseEntity<UserReviewDto> updateReview(
             @PathVariable Integer reviewId,
             @RequestParam Byte rating,
             @RequestParam String title,
@@ -76,14 +83,21 @@ public class UserReviewController {
             @RequestParam(required = false) MultipartFile image,
             @RequestParam(defaultValue = "true") Boolean isPublic) {
         
-        UserReview review = new UserReview();
-        review.setRating(rating);
-        review.setTitle(title);
-        review.setContent(content);
-        review.setIsPublic(isPublic);
-        
-        UserReview updatedReview = userReviewService.updateReview(reviewId, review, image);
-        return ResponseEntity.ok(updatedReview);
+        try {
+            UserReview review = new UserReview();
+            review.setRating(rating);
+            review.setTitle(title);
+            review.setContent(content);
+            review.setIsPublic(isPublic);
+            
+            UserReview updatedReview = userReviewService.updateReview(reviewId, review, image);
+            
+            // DTO로 변환하여 반환 (직렬화 문제 방지)
+            UserReviewDto dto = userReviewService.getReviewById(updatedReview.getReviewId());
+            return ResponseEntity.ok(dto);
+        } catch (Exception e) {
+            throw new RuntimeException("리뷰 수정 중 오류가 발생했습니다: " + e.getMessage(), e);
+        }
     }
     
     // 리뷰 삭제
@@ -118,22 +132,22 @@ public class UserReviewController {
         return ResponseEntity.ok(reviews);
     }
     
-    // 예약 ID로 리뷰 조회
-    @GetMapping("/booking/{bookingId}")
+    // 예약 ID로 리뷰 조회 (reservations.id 사용)
+    @GetMapping("/booking/{reservationId}")
     @ResponseBody
-    public ResponseEntity<UserReview> getReviewByBooking(@PathVariable Integer bookingId) {
-        UserReview review = userReviewService.getReviewByBookingId(bookingId);
+    public ResponseEntity<UserReview> getReviewByBooking(@PathVariable Long reservationId) {
+        UserReview review = userReviewService.getReviewByReservationId(reservationId);
         if (review != null) {
             return ResponseEntity.ok(review);
         }
         return ResponseEntity.notFound().build();
     }
     
-    // 리뷰 작성 가능 여부 확인
-    @GetMapping("/booking/{bookingId}/can-write")
+    // 리뷰 작성 가능 여부 확인 (reservations.id 사용)
+    @GetMapping("/booking/{reservationId}/can-write")
     @ResponseBody
-    public ResponseEntity<Boolean> canWriteReview(@PathVariable Integer bookingId) {
-        boolean canWrite = userReviewService.canWriteReview(bookingId);
+    public ResponseEntity<Boolean> canWriteReview(@PathVariable Long reservationId) {
+        boolean canWrite = userReviewService.canWriteReview(reservationId);
         return ResponseEntity.ok(canWrite);
     }
     
@@ -161,22 +175,6 @@ public class UserReviewController {
         return ResponseEntity.ok(stats);
     }
     
-    // 리뷰 이미지 조회
-    @GetMapping("/image/{reviewId}")
-    public ResponseEntity<byte[]> getReviewImage(@PathVariable Integer reviewId) {
-        try {
-            byte[] imageData = userReviewService.getReviewImage(reviewId);
-            if (imageData == null) {
-                return ResponseEntity.notFound().build();
-            }
-            
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.IMAGE_JPEG); // 실제로는 imageMime을 확인해야 함
-            return new ResponseEntity<>(imageData, headers, HttpStatus.OK);
-        } catch (Exception e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
     
     // 리뷰 공개/비공개 설정
     @PatchMapping("/{reviewId}/toggle-visibility")
@@ -186,78 +184,28 @@ public class UserReviewController {
         return ResponseEntity.ok().build();
     }
     
-    // ========== 답글 API ==========
     
-    // 답글 작성
-    @PostMapping("/{reviewId}/reply")
+    // 리뷰 이미지 조회
+    @GetMapping("/{reviewId}/image")
     @ResponseBody
-    public ResponseEntity<UserReviewReply> createReply(
-            @PathVariable Integer reviewId,
-            @RequestParam Integer companyId,
-            @RequestParam String body,
-            @RequestParam(defaultValue = "true") Boolean isPublic) {
-        
-        UserReviewReply reply = new UserReviewReply();
-        reply.setReviewId(reviewId);
-        reply.setCompanyId(companyId);
-        reply.setBody(body);
-        reply.setIsPublic(isPublic);
-        
-        UserReviewReply createdReply = userReviewReplyService.createReply(reply);
-        return ResponseEntity.ok(createdReply);
-    }
-    
-    // 답글 수정
-    @PutMapping("/reply/{replyId}")
-    @ResponseBody
-    public ResponseEntity<UserReviewReply> updateReply(
-            @PathVariable Integer replyId,
-            @RequestParam String body) {
-        
-        UserReviewReply updatedReply = userReviewReplyService.updateReply(replyId, body);
-        return ResponseEntity.ok(updatedReply);
-    }
-    
-    // 답글 삭제
-    @DeleteMapping("/reply/{replyId}")
-    @ResponseBody
-    public ResponseEntity<Void> deleteReply(@PathVariable Integer replyId) {
-        userReviewReplyService.deleteReply(replyId);
-        return ResponseEntity.ok().build();
-    }
-    
-    // 특정 리뷰의 답글 목록 조회
-    @GetMapping("/{reviewId}/replies")
-    @ResponseBody
-    public ResponseEntity<List<UserReviewReplyDto>> getRepliesByReview(@PathVariable Integer reviewId) {
-        List<UserReviewReplyDto> replies = userReviewReplyService.getRepliesByReviewId(reviewId);
-        return ResponseEntity.ok(replies);
-    }
-    
-    // 특정 업체의 답글 목록 조회
-    @GetMapping("/company/{companyId}/replies")
-    @ResponseBody
-    public ResponseEntity<List<UserReviewReplyDto>> getRepliesByCompany(@PathVariable Integer companyId) {
-        List<UserReviewReplyDto> replies = userReviewReplyService.getRepliesByCompanyId(companyId);
-        return ResponseEntity.ok(replies);
-    }
-    
-    // 업체가 특정 리뷰에 답글을 작성했는지 확인
-    @GetMapping("/{reviewId}/company/{companyId}/has-replied")
-    @ResponseBody
-    public ResponseEntity<Boolean> hasCompanyReplied(
-            @PathVariable Integer reviewId,
-            @PathVariable Integer companyId) {
-        boolean hasReplied = userReviewReplyService.hasCompanyReplied(reviewId, companyId);
-        return ResponseEntity.ok(hasReplied);
-    }
-    
-    // 답글 공개/비공개 설정
-    @PatchMapping("/reply/{replyId}/toggle-visibility")
-    @ResponseBody
-    public ResponseEntity<Void> toggleReplyVisibility(@PathVariable Integer replyId) {
-        userReviewReplyService.toggleReplyVisibility(replyId);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<byte[]> getReviewImage(@PathVariable Integer reviewId) {
+        try {
+            byte[] imageData = userReviewService.getReviewImage(reviewId);
+            if (imageData != null && imageData.length > 0) {
+                UserReviewDto review = userReviewService.getReviewById(reviewId);
+                String mimeType = review.getImageMime() != null ? review.getImageMime() : "image/jpeg";
+                
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.parseMediaType(mimeType));
+                headers.setContentLength(imageData.length);
+                
+                return new ResponseEntity<>(imageData, headers, HttpStatus.OK);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }
 

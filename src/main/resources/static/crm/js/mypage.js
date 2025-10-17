@@ -1,6 +1,12 @@
 // 마이페이지 JavaScript
 
+// 알림 데이터 저장
+let notifications = [];
+
 document.addEventListener('DOMContentLoaded', function() {
+    // 알림 데이터 로드
+    loadNotifications();
+    
     // 알림 팝업 관련 기능
     initializeNotificationPopup();
     
@@ -9,7 +15,155 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 예약내역 카드 클릭 이벤트
     initializeBookingItems();
+    
+    // 주기적으로 알림 확인 (30초마다)
+    setInterval(loadNotifications, 30000);
 });
+
+// 알림 데이터 로드
+async function loadNotifications() {
+    try {
+        // 임시 데이터 (실제로는 서버에서 가져옴)
+        notifications = [
+            {
+                id: 1,
+                type: 'CHAT',
+                title: '새로운 채팅이 왔습니다',
+                message: '병원명에서 채팅 메시지를 보냈습니다.',
+                companyName: '서울치과',
+                read: false,
+                createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000) // 2시간 전
+            },
+            {
+                id: 2,
+                type: 'RESERVATION_CONFIRMED',
+                title: '새로운 예약이 확정되었습니다',
+                message: '화이트닝 패키지 예약이 확정되었습니다.',
+                reservationTitle: '화이트닝 패키지',
+                reservationDate: '2024.10.25 14:00',
+                companyName: '강남치과',
+                read: false,
+                createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) // 1일 전
+            },
+            {
+                id: 3,
+                type: 'RESERVATION_UPDATED',
+                title: '예약일정이 변경되었습니다',
+                message: '임플란트 상담 예약 시간이 변경되었습니다.',
+                reservationTitle: '임플란트 상담',
+                oldDate: '2024.10.20 10:00',
+                newDate: '2024.10.22 14:00',
+                companyName: '서초치과',
+                read: false,
+                createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) // 3일 전
+            }
+        ];
+        
+        // 알림 렌더링
+        renderNotifications();
+    } catch (error) {
+        console.error('알림 로드 실패:', error);
+    }
+}
+
+// 알림 렌더링
+function renderNotifications() {
+    const notificationList = document.getElementById('notificationList');
+    const unreadNotifications = notifications.filter(n => !n.read).slice(0, 3); // 최신 3개만
+    
+    if (unreadNotifications.length === 0) {
+        notificationList.innerHTML = `
+            <li class="no-notifications" style="text-align: center; padding: 40px; color: #adb5bd;">
+                <i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>
+                <p style="margin: 0;">새로운 소식이 없습니다</p>
+            </li>
+        `;
+        return;
+    }
+    
+    notificationList.innerHTML = unreadNotifications.map(notification => {
+        const icon = getNotificationIcon(notification.type);
+        const timeAgo = getTimeAgo(notification.createdAt);
+        
+        return `
+            <li class="notification-item" data-id="${notification.id}" onclick="markAsRead(${notification.id})">
+                <span class="notification-icon">${icon}</span>
+                <div class="notification-content">
+                    <span class="notification-text">${notification.title}</span>
+                    ${notification.companyName ? `<span class="notification-company">${notification.companyName}</span>` : ''}
+                    ${notification.reservationTitle ? `<span class="notification-detail">${notification.reservationTitle}</span>` : ''}
+                    ${notification.newDate ? `<span class="notification-detail">${notification.newDate}</span>` : ''}
+                </div>
+                <span class="notification-time">${timeAgo}</span>
+            </li>
+        `;
+    }).join('');
+}
+
+// 알림 타입에 따른 아이콘 반환
+function getNotificationIcon(type) {
+    switch(type) {
+        case 'CHAT':
+            return '<i class="fas fa-comment-dots"></i>';
+        case 'RESERVATION_CONFIRMED':
+            return '<i class="fas fa-bell"></i>';
+        case 'RESERVATION_UPDATED':
+            return '<i class="fas fa-calendar-alt"></i>';
+        default:
+            return '<i class="fas fa-info-circle"></i>';
+    }
+}
+
+// 시간 전 표시
+function getTimeAgo(date) {
+    const seconds = Math.floor((new Date() - date) / 1000);
+    
+    if (seconds < 60) return `${seconds}초 전`;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}분 전`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}시간 전`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days}일 전`;
+    const weeks = Math.floor(days / 7);
+    if (weeks < 4) return `${weeks}주 전`;
+    const months = Math.floor(days / 30);
+    return `${months}개월 전`;
+}
+
+// 알림 읽음 처리
+async function markAsRead(notificationId) {
+    try {
+        // 서버에 읽음 처리 요청 (실제 구현 시)
+        // await fetch(`/api/notifications/${notificationId}/read`, { method: 'POST' });
+        
+        // 로컬에서 읽음 처리
+        const notification = notifications.find(n => n.id === notificationId);
+        if (notification) {
+            notification.read = true;
+            
+            // 알림 타입에 따라 다른 동작
+            switch(notification.type) {
+                case 'CHAT':
+                    window.location.href = '/chat';
+                    break;
+                case 'RESERVATION_CONFIRMED':
+                case 'RESERVATION_UPDATED':
+                    window.location.href = '/booking';
+                    break;
+                default:
+                    break;
+            }
+            
+            // 알림 다시 렌더링
+            renderNotifications();
+            
+            showMessage('알림을 확인했습니다.');
+        }
+    } catch (error) {
+        console.error('알림 읽음 처리 실패:', error);
+    }
+}
 
 // 알림 팝업 초기화
 function initializeNotificationPopup() {
@@ -17,7 +171,7 @@ function initializeNotificationPopup() {
     const notificationsSection = document.querySelector('.notifications-section');
     if (notificationsSection) {
         notificationsSection.addEventListener('click', function(e) {
-            if (!e.target.closest('.view-all')) {
+            if (!e.target.closest('.view-all') && !e.target.closest('.notification-item')) {
                 openNotificationPopup();
             }
         });
@@ -207,7 +361,74 @@ function openNotificationModal() {
     if (modal) {
         modal.classList.add('show');
         document.body.style.overflow = 'hidden'; // 배경 스크롤 방지
+        
+        // 모달 내용 렌더링
+        renderNotificationModal();
     }
+}
+
+// 알림 모달 내용 렌더링
+function renderNotificationModal() {
+    const modalList = document.getElementById('notificationModalList');
+    if (!modalList) return;
+    
+    const allNotifications = notifications.filter(n => !n.read);
+    
+    if (allNotifications.length === 0) {
+        modalList.innerHTML = `
+            <li style="text-align: center; padding: 60px; color: #adb5bd;">
+                <i class="fas fa-inbox" style="font-size: 64px; margin-bottom: 20px; display: block;"></i>
+                <p style="margin: 0; font-size: 16px;">새로운 소식이 없습니다</p>
+            </li>
+        `;
+        return;
+    }
+    
+    modalList.innerHTML = allNotifications.map(notification => {
+        const icon = getNotificationIcon(notification.type);
+        const timeAgo = getTimeAgo(notification.createdAt);
+        
+        let detailHtml = '';
+        if (notification.type === 'RESERVATION_CONFIRMED') {
+            detailHtml = `
+                <div class="notification-details">
+                    <p><strong>예약 내용:</strong> ${notification.reservationTitle}</p>
+                    <p><strong>예약 일시:</strong> ${notification.reservationDate}</p>
+                    <p><strong>업체명:</strong> ${notification.companyName}</p>
+                </div>
+            `;
+        } else if (notification.type === 'RESERVATION_UPDATED') {
+            detailHtml = `
+                <div class="notification-details">
+                    <p><strong>예약 내용:</strong> ${notification.reservationTitle}</p>
+                    <p><strong>변경 전:</strong> ${notification.oldDate}</p>
+                    <p><strong>변경 후:</strong> ${notification.newDate}</p>
+                    <p><strong>업체명:</strong> ${notification.companyName}</p>
+                </div>
+            `;
+        } else if (notification.type === 'CHAT') {
+            detailHtml = `
+                <div class="notification-details">
+                    <p><strong>업체명:</strong> ${notification.companyName}</p>
+                    <p>${notification.message}</p>
+                </div>
+            `;
+        }
+        
+        return `
+            <li class="notification-modal-item" onclick="markAsRead(${notification.id})">
+                <div class="notification-item">
+                    <div class="notification-line"></div>
+                    <div class="notification-header">
+                        <span class="notification-icon">${icon}</span>
+                        <span class="notification-text">${notification.title}</span>
+                        <span class="notification-time">${timeAgo}</span>
+                    </div>
+                    ${detailHtml}
+                </div>
+            </li>
+        `;
+    }).join('');
 }
 
 // 알림 모달 닫기

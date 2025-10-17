@@ -10,10 +10,9 @@ public class UserReviewReplyDto {
     private Integer replyId;
     private Integer reviewId;
     private Integer companyId;
-    private String companyName; // 업체 이름
+    private String companyName;
     private String body;
     private Boolean isPublic;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
-
