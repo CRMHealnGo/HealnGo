@@ -71,7 +71,38 @@ public class FavoriteItemController {
         if (user == null) return ResponseEntity.status(401).body("로그인이 필요합니다");
 
         List<ItemList> favorites = favoriteItemService.getFavoriteItems(user.getId());
-        return ResponseEntity.ok(favorites);
+        
+        // DTO로 변환하여 반환 (Hibernate 프록시 직렬화 문제 방지)
+        List<FavoriteItemDto> favoriteDtos = favorites.stream()
+            .map(FavoriteItemDto::from)
+            .collect(java.util.stream.Collectors.toList());
+        
+        return ResponseEntity.ok(favoriteDtos);
+    }
+    
+    // 즐겨찾기 아이템 DTO
+    public static class FavoriteItemDto {
+        public Long id;
+        public String name;
+        public String address;
+        public String phone;
+        public String homepage;
+        public String region;
+        public String subregion;
+        public String category;
+        
+        public static FavoriteItemDto from(ItemList item) {
+            FavoriteItemDto dto = new FavoriteItemDto();
+            dto.id = item.getId();
+            dto.name = item.getName();
+            dto.address = item.getAddress();
+            dto.phone = item.getPhone();
+            dto.homepage = item.getHomepage();
+            dto.region = item.getRegion();
+            dto.subregion = item.getSubregion();
+            dto.category = item.getCategory();
+            return dto;
+        }
     }
 
     // ✅ 찜한 병원 페이지 뷰 렌더링

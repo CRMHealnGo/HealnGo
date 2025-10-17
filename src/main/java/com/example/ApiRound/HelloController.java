@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import com.example.ApiRound.Service.ClickLogService;
 import com.example.ApiRound.Service.CommunityPostService;
@@ -50,6 +51,12 @@ public class HelloController {
     @GetMapping("/location")
     public String location() {
         return "location";
+    }
+
+    @GetMapping("/service/detail/{serviceId}")
+    public String serviceDetail(@PathVariable Long serviceId, Model model) {
+        model.addAttribute("serviceId", serviceId);
+        return "service_detail";
     }
 
 }

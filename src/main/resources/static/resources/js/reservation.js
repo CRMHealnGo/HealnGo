@@ -1,10 +1,28 @@
 // Reservation Page JavaScript
+let serviceData = null;
+let hospitalData = null;
+
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize page
     initializeReservationPage();
 });
 
-function initializeReservationPage() {
+async function initializeReservationPage() {
+    // URL에서 serviceId와 itemId 가져오기
+    const urlParams = new URLSearchParams(window.location.search);
+    const serviceId = urlParams.get('serviceId');
+    const itemId = urlParams.get('itemId');
+    
+    // 서비스 정보가 있으면 로드
+    if (serviceId) {
+        await loadServiceData(serviceId);
+    }
+    
+    // 병원 정보가 있으면 로드
+    if (itemId) {
+        await loadHospitalData(itemId);
+    }
+    
     // Category tab functionality
     setupCategoryTabs();
     
@@ -22,6 +40,160 @@ function initializeReservationPage() {
     
     // Price calculation
     updateTotalPrice();
+}
+
+// 서비스 데이터 로드
+async function loadServiceData(serviceId) {
+    try {
+        const response = await fetch(`/api/items/services/${serviceId}`);
+        if (response.ok) {
+            serviceData = await response.json();
+            console.log('서비스 데이터 로드됨:', serviceData);
+            displayServiceData();
+        }
+    } catch (error) {
+        console.error('서비스 데이터 로드 실패:', error);
+    }
+}
+
+// 병원 데이터 로드
+async function loadHospitalData(itemId) {
+    try {
+        const response = await fetch(`/api/items/${itemId}`);
+        if (response.ok) {
+            hospitalData = await response.json();
+            console.log('병원 데이터 로드됨:', hospitalData);
+        }
+    } catch (error) {
+        console.error('병원 데이터 로드 실패:', error);
+    }
+}
+
+// 서비스 데이터 표시
+function displayServiceData() {
+    if (!serviceData) return;
+    
+    // 페이지 제목 변경
+    const pageTitle = document.querySelector('.page-title h1');
+    if (pageTitle) {
+        pageTitle.textContent = serviceData.name || '시술 예약';
+    }
+    
+    // 카테고리 탭 숨기기 (특정 서비스 예약이므로)
+    const categoryTabs = document.querySelector('.category-tabs');
+    if (categoryTabs) {
+        categoryTabs.style.display = 'none';
+    }
+    
+    // 기존 시술 옵션 대신 선택된 서비스만 표시
+    const procedureSelection = document.querySelector('.procedure-selection');
+    if (procedureSelection) {
+        const priceText = serviceData.price 
+            ? `${Number(serviceData.price).toLocaleString()} ${serviceData.currency || '원'}`
+            : '가격 문의';
+        
+        const tags = serviceData.tags 
+            ? serviceData.tags.split(',').map(t => t.trim()).filter(Boolean).join(', ')
+            : '';
+        
+        procedureSelection.innerHTML = `
+            <div class="procedure-option">
+                <div class="option-content">
+                    <input type="checkbox" id="selectedService" class="procedure-checkbox" checked disabled>
+                    <label for="selectedService" class="procedure-label">
+                        <div class="procedure-info">
+                            <div class="procedure-name">${serviceData.name || '서비스'}</div>
+                            <div class="procedure-detail">${tags || serviceData.serviceCategory || ''}</div>
+                        </div>
+                        <div class="procedure-price">${priceText}</div>
+                    </label>
+                    <button class="detail-btn" onclick="toggleServiceDetail()">▼</button>
+                </div>
+                <div class="procedure-detail-content" id="serviceDetail" style="display: none;">
+                    <div class="detail-section">
+                        <h3>서비스 정보</h3>
+                        <p>${serviceData.description || '서비스에 대한 상세 설명이 표시됩니다.'}</p>
+                        ${serviceData.startDate && serviceData.endDate ? `
+                            <p><strong>제공 기간:</strong> ${serviceData.startDate} ~ ${serviceData.endDate}</p>
+                        ` : ''}
+                        ${serviceData.genderTarget ? `
+                            <p><strong>대상:</strong> ${getGenderText(serviceData.genderTarget)}</p>
+                        ` : ''}
+                    </div>
+                    <div class="detail-section">
+                        <h3>가격 정보</h3>
+                        <p><strong>기본 가격:</strong> ${priceText}</p>
+                        <p><strong>VAT:</strong> ${serviceData.vatIncluded ? '포함' : '별도'}</p>
+                        <p><strong>환불:</strong> ${serviceData.isRefundable ? '가능' : '불가능'}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // 체크박스 이벤트 재설정
+        setupProcedureSelection();
+    }
+    
+    // 정보 섹션 업데이트
+    updateInfoSection();
+    
+    // VAT 정보 업데이트
+    const vatNote = document.querySelector('.vat-note');
+    if (vatNote && serviceData.vatIncluded !== undefined) {
+        vatNote.textContent = serviceData.vatIncluded ? '(VAT 포함)' : '(VAT 별도)';
+    }
+    
+    // 가격 업데이트
+    updateTotalPrice();
+}
+
+// 정보 섹션 업데이트
+function updateInfoSection() {
+    const infoSections = document.querySelector('.info-sections');
+    if (!infoSections || !serviceData) return;
+    
+    infoSections.innerHTML = `
+        <div class="info-section">
+            <h3>시술정보</h3>
+            <p>${serviceData.description || '안전하고 효과적인 시술을 위해 전문의가 직접 상담 후 진행됩니다.'}</p>
+            ${serviceData.startDate && serviceData.endDate ? `
+                <p><strong>제공 기간:</strong> ${serviceData.startDate} ~ ${serviceData.endDate}</p>
+            ` : ''}
+        </div>
+        <div class="info-section">
+            <h3>주의사항</h3>
+            <p>시술 전 24시간 금주, 시술 후 6시간 동안 마사지 금지, 일주일간 사우나 및 찜질방 이용 금지 등이 있습니다.</p>
+            ${serviceData.isRefundable !== undefined ? `
+                <p><strong>환불 정책:</strong> ${serviceData.isRefundable ? '환불 가능' : '환불 불가능'}</p>
+            ` : ''}
+        </div>
+    `;
+}
+
+// 성별 텍스트 변환
+function getGenderText(genderTarget) {
+    const genderMap = {
+        'ALL': '남녀공용',
+        'MALE': '남성',
+        'FEMALE': '여성'
+    };
+    return genderMap[genderTarget] || '남녀공용';
+}
+
+// 서비스 상세 토글
+window.toggleServiceDetail = function() {
+    const detailContent = document.getElementById('serviceDetail');
+    const detailBtn = event.target.closest('.procedure-option').querySelector('.detail-btn');
+    
+    if (detailContent && detailBtn) {
+        if (detailContent.style.display === 'none') {
+            detailContent.style.display = 'block';
+            detailBtn.textContent = '▲';
+        } else {
+            detailContent.style.display = 'none';
+            detailBtn.textContent = '▼';
+        }
+    }
 }
 
 // Detail Toggle Functionality
@@ -231,6 +403,22 @@ function updateModalContent() {
     const reservationNameElement = document.querySelector('.info-card .info-row .value');
     if (reservationNameElement) {
         reservationNameElement.textContent = 'Yoyo';
+    }
+    
+    // 서비스명 업데이트
+    if (serviceData) {
+        const serviceNameElement = document.querySelector('.info-card:nth-child(4) .info-row:first-child .value');
+        if (serviceNameElement) {
+            serviceNameElement.textContent = serviceData.name || '서비스';
+        }
+    }
+    
+    // 병원명 업데이트
+    if (hospitalData) {
+        const hospitalNameElement = document.querySelector('.info-card:nth-child(4) .info-row:nth-child(3) .value');
+        if (hospitalNameElement) {
+            hospitalNameElement.textContent = hospitalData.name || '병원';
+        }
     }
     
     // Update total amount in modal

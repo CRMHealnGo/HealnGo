@@ -107,10 +107,6 @@ function renderList(rows) {
         body.appendChild(pill);
       });
     }
-    card.appendChild(body);
-    wrap.appendChild(card);
-  });
-}
 
     // 모달 태그 입력 기능 초기화
     initializeEditModal();
@@ -381,6 +377,10 @@ function deleteService(serviceId) {
             alert('서비스 삭제 중 오류가 발생했습니다: ' + error.message);
         });
     }
+}
+    card.appendChild(body);
+    wrap.appendChild(card);
+  });
 }
 
 function escapeHtml(str) {
