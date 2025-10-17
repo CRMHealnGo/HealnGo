@@ -2,6 +2,8 @@ package com.example.ApiRound;
 
 import java.util.List;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,6 +11,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import com.example.ApiRound.Service.ClickLogService;
 import com.example.ApiRound.Service.CommunityPostService;
+import com.example.ApiRound.crm.hyeonah.notice.Notice;
+import com.example.ApiRound.crm.hyeonah.notice.NoticeService;
 import com.example.ApiRound.entity.CommunityPost;
 
 @Controller
@@ -16,18 +20,25 @@ public class HelloController {
 
     private final ClickLogService clickLogService;
     private final CommunityPostService communityPostService;
+    private final NoticeService noticeService;
 
-    public HelloController(ClickLogService clickLogService, CommunityPostService communityPostService) {
+    public HelloController(ClickLogService clickLogService, CommunityPostService communityPostService, NoticeService noticeService) {
         this.clickLogService = clickLogService;
         this.communityPostService = communityPostService;
+        this.noticeService = noticeService;
     }
     @GetMapping("/main")
     public String main(Model model) {
         List<Object[]> topCompanies = clickLogService.getTop3CompaniesLast7Days();
         List<CommunityPost> communityPosts = communityPostService.getAllPosts();
+        
+        // 최신 공지사항 5개 가져오기
+        Pageable pageable = PageRequest.of(0, 5);
+        List<Notice> recentNotices = noticeService.getPublishedNotices(pageable).getContent();
 
         model.addAttribute("topCompanies", topCompanies);
         model.addAttribute("posts", communityPosts);
+        model.addAttribute("notices", recentNotices);
 
         return "main";
     }

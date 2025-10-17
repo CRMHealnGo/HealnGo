@@ -93,7 +93,6 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    alert('로그인 성공!');
                     window.location.href = result.redirectUrl || '/main';
                 } else {
                     document.getElementById('email-error').textContent = result.message || '로그인에 실패했습니다.';

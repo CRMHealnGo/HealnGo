@@ -28,7 +28,7 @@ public class SecurityConfig {
     @Order(1)
     public SecurityFilterChain companyChain(HttpSecurity http) throws Exception {
         http
-            .securityMatcher("/crm/**", "/company/**", "/admin/**", "/api/crm/**")
+            .securityMatcher("/crm/**", "/company/**", "/admin/**", "/api/crm/**", "/ws/**")
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
@@ -38,6 +38,8 @@ public class SecurityConfig {
                     "/crm/forgot-password",
                     "/crm/forgot-crm-password",
                     "/crm/forgot-crm-email",
+                    // WebSocket
+                    "/ws/**",
                     // API (공개)
                     "/crm/check-email",
                     "/crm/send-code",
@@ -83,7 +85,7 @@ public class SecurityConfig {
                     // 공개 페이지(고객)
                     "/", "/index", "/main",
                     "/login", "/signup", "/user-signup",
-                    "/location", "/community", "/list",
+                    "/location", "/notice", "/list",
                     "/detail/**",
                     "/category/**",
                     "/search", "/lang",
@@ -92,6 +94,8 @@ public class SecurityConfig {
                     "/forget-password", "/forgot-password",
                     // OAuth
                     "/oauth/**",
+                    // WebSocket
+                    "/ws/**",
                     // API (공개)
                     "/api/user/**",
                     "/api/**",
@@ -99,7 +103,7 @@ public class SecurityConfig {
                     "/css/**", "/js/**", "/images/**",
                     "/resources/**", "/static/**",
                     // 세션 기반 인증 페이지 (컨트롤러에서 체크)
-                    "/mypage/**", "/favorite/**", "/reservation/**"
+                    "/mypage/**", "/favorite/**", "/reservation/**", "/review/**", "/chat/**", "/inquiry/**"
                 ).permitAll()
                 .anyRequest().permitAll()  // 나머지는 공개
             )

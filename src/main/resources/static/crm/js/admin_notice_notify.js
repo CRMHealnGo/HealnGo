@@ -2,6 +2,8 @@
 
 console.log('공지사항 & 알림 관리 JavaScript 로드됨');
 
+let editingNoticeId = null;
+
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM 로드 완료');
     
@@ -75,6 +77,7 @@ function openNoticeModal() {
     
     // 폼 초기화
     form.reset();
+    editingNoticeId = null;
     
     // 모달 제목 변경
     modal.querySelector('.modal-header h2').textContent = '공지사항 작성';
@@ -86,6 +89,7 @@ function openNoticeModal() {
 function closeNoticeModal() {
     const modal = document.getElementById('noticeModal');
     modal.style.display = 'none';
+    editingNoticeId = null;
 }
 
 // 공지사항 수정
@@ -105,23 +109,62 @@ function editNotice(button) {
     document.getElementById('noticeContent').value = description;
     document.getElementById('noticeType').value = type;
     
+    // TODO: 실제 데이터에서 noticeId 가져와야 함
+    // editingNoticeId = noticeId;
+    
     modal.style.display = 'block';
 }
 
 // 공지사항 삭제
-function deleteNotice(button) {
+async function deleteNotice(button) {
     const item = button.closest('.notice-item');
     const title = item.querySelector('.notice-title').textContent;
     
-    if (confirm(`"${title}" 공지사항을 삭제하시겠습니까?`)) {
-        item.style.opacity = '0';
-        item.style.transform = 'scale(0.8)';
-        item.style.transition = 'all 0.3s ease';
+    // TODO: 실제 데이터에서 noticeId 가져와야 함
+    const noticeId = item.dataset.noticeId;
+    
+    if (!noticeId) {
+        alert('공지사항 ID를 찾을 수 없습니다.');
+        return;
+    }
+    
+    if (!confirm(`"${title}" 공지사항을 삭제하시겠습니까?`)) {
+        return;
+    }
+    
+    try {
+        const formData = new URLSearchParams();
+        formData.append('noticeId', noticeId);
         
-        setTimeout(() => {
-            item.remove();
-            alert('공지사항이 삭제되었습니다.');
-        }, 300);
+        const response = await fetch('/admin/notice-notify/delete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: formData
+        });
+        
+        const result = await response.text();
+        
+        if (result === 'success') {
+            // 애니메이션과 함께 삭제
+            item.style.opacity = '0';
+            item.style.transform = 'scale(0.8)';
+            item.style.transition = 'all 0.3s ease';
+            
+            setTimeout(() => {
+                alert('공지사항이 삭제되었습니다.');
+                location.reload();
+            }, 300);
+        } else if (result === 'login_required') {
+            alert('로그인이 필요합니다.');
+            location.href = '/crm/crm_login';
+        } else {
+            alert('공지사항 삭제에 실패했습니다.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('오류가 발생했습니다.');
     }
 }
 
@@ -232,20 +275,61 @@ function setupModalEvents() {
     
     // 공지사항 폼 제출
     if (noticeForm) {
-        noticeForm.addEventListener('submit', function(e) {
+        noticeForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const formData = new FormData(noticeForm);
-            const data = Object.fromEntries(formData.entries());
+            const title = document.getElementById('noticeTitle').value.trim();
+            const content = document.getElementById('noticeContent').value.trim();
+            const type = document.getElementById('noticeType').value;
+            const topFixed = document.getElementById('noticeTopFixed').checked;
+            const startDate = document.getElementById('noticeStartDate').value;
             
-            console.log('공지사항 저장:', data);
+            if (!title || !content) {
+                alert('제목과 내용을 입력하세요.');
+                return;
+            }
             
-            // 여기에 실제 저장 로직 추가 (API 호출 등)
-            alert('공지사항이 저장되었습니다.');
-            closeNoticeModal();
-            
-            // 페이지 새로고침 또는 목록 업데이트
-            // location.reload();
+            try {
+                const formData = new URLSearchParams();
+                formData.append('title', title);
+                formData.append('body', content);
+                formData.append('audience', 'ALL'); // type에 따라 변경 가능
+                formData.append('isPinned', topFixed);
+                if (startDate) {
+                    formData.append('publishAt', startDate);
+                }
+                
+                const url = editingNoticeId 
+                    ? '/admin/notice-notify/update' 
+                    : '/admin/notice-notify/create';
+                
+                if (editingNoticeId) {
+                    formData.append('noticeId', editingNoticeId);
+                }
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: formData
+                });
+                
+                const result = await response.text();
+                
+                if (result === 'success') {
+                    alert('공지사항이 저장되었습니다.');
+                    location.reload();
+                } else if (result === 'login_required') {
+                    alert('로그인이 필요합니다.');
+                    location.href = '/crm/crm_login';
+                } else {
+                    alert('공지사항 저장에 실패했습니다.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('오류가 발생했습니다.');
+            }
         });
     }
     
@@ -275,4 +359,3 @@ function setupModalEvents() {
         });
     }
 }
-

@@ -16,9 +16,11 @@ import com.example.ApiRound.crm.hyeonah.entity.ChatMessage;
 import com.example.ApiRound.crm.hyeonah.entity.ChatThread;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ChatAppService {
 
     private final ChatThreadRepository threadRepo;
@@ -146,9 +148,63 @@ public class ChatAppService {
 
     // 스레드 상태 업데이트
     @Transactional
-    public void updateThreadStatus(Long threadId, String status) {
-        var thread = threadRepo.findById(threadId).orElseThrow();
-        thread.setStatus(status);
-        thread.setUpdatedAt(LocalDateTime.now());
+    public boolean updateThreadStatus(Long threadId, String status) {
+        try {
+            return threadRepo.findById(threadId)
+                    .map(thread -> {
+                        thread.setStatus(status);
+                        thread.setUpdatedAt(LocalDateTime.now());
+                        threadRepo.save(thread);
+                        return true;
+                    })
+                    .orElse(false);
+        } catch (Exception e) {
+            log.error("스레드 상태 업데이트 실패: threadId={}, status={}", threadId, status, e);
+            return false;
+        }
     }
+
+    // 병원과의 새 스레드 생성
+    @Transactional
+    public ChatThreadDto createThread(Integer companyId, String title, Integer userId) {
+        // 기존 스레드가 있는지 확인
+        var existingThread = threadRepo.findFirstByUserIdAndCompanyId(userId, companyId);
+        if (existingThread.isPresent()) {
+            // 기존 스레드가 있으면 반환
+            var thread = existingThread.get();
+            return ChatThreadDto.builder()
+                    .threadId(thread.getThreadId())
+                    .userId(thread.getUserId())
+                    .companyId(thread.getCompanyId())
+                    .title(thread.getTitle())
+                    .status(thread.getStatus())
+                    .lastMsgAt(thread.getLastMsgAt())
+                    .createdAt(thread.getCreatedAt())
+                    .build();
+        }
+
+        // 새 스레드 생성
+        var newThread = ChatThread.builder()
+                .userId(userId)
+                .companyId(companyId)
+                .itemId(null) // 병원 상담은 itemId 없음
+                .title(title)
+                .muted(false)
+                .status("NEW")
+                .lastMsgAt(LocalDateTime.now())
+                .build();
+
+        var savedThread = threadRepo.save(newThread);
+
+        return ChatThreadDto.builder()
+                .threadId(savedThread.getThreadId())
+                .userId(savedThread.getUserId())
+                .companyId(savedThread.getCompanyId())
+                .title(savedThread.getTitle())
+                .status(savedThread.getStatus())
+                .lastMsgAt(savedThread.getLastMsgAt())
+                .createdAt(savedThread.getCreatedAt())
+                .build();
+    }
+
 }

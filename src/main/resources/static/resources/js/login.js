@@ -75,7 +75,12 @@
             if (response.ok) {
                 return response.json();
             }
-            throw new Error('로그인 실패');
+            // 로그인 실패 시 (401, 403 등)
+            return response.json().then(data => {
+                throw new Error(data.message || '아이디 또는 비밀번호를 확인해주세요.');
+            }).catch(() => {
+                throw new Error('아이디 또는 비밀번호를 확인해주세요.');
+            });
         })
         .then(data => {
             if (data.success) {
@@ -85,12 +90,12 @@
                     window.location.href = '/main';
                 }, 1500);
             } else {
-                showMessage(data.message || '로그인에 실패했습니다.', 'error');
+                showMessage(data.message || '아이디 또는 비밀번호를 확인해주세요.', 'error');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            showMessage('네트워크 오류가 발생했습니다.', 'error');
+            showMessage(error.message || '아이디 또는 비밀번호를 확인해주세요.', 'error');
         })
         .finally(() => {
             // 로딩 상태 해제
