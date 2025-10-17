@@ -44,6 +44,7 @@ public class UserReviewController {
     public ResponseEntity<UserReviewDto> createReview(
             @RequestParam Integer userId,
             @RequestParam(required = false) Long itemId,
+            @RequestParam(required = false) Long serviceId,
             @RequestParam Long bookingId,  // reservations.id
             @RequestParam Byte rating,
             @RequestParam String title,
@@ -54,8 +55,14 @@ public class UserReviewController {
         try {
             UserReview review = new UserReview();
             review.setUserId(userId);
-            // itemId가 null이면 기본값 1 설정
-            review.setItemId(itemId != null ? itemId : 1L);
+            // itemId 설정 (프론트에서 전달된 경우)
+            if (itemId != null) {
+                review.setItemId(itemId);
+            }
+            // serviceId 설정 (프론트에서 전달된 경우)
+            if (serviceId != null) {
+                review.setServiceId(serviceId);
+            }
             review.setBookingId(bookingId);  // bookingId 직접 설정
             review.setRating(rating);
             review.setTitle(title);

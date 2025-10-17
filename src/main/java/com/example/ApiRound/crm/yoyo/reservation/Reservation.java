@@ -19,7 +19,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -69,8 +68,12 @@ public class Reservation {
     @Column(name = "total_amount", precision = 10, scale = 2)
     private BigDecimal totalAmount;
 
-    // 임시 필드: DB에 item_id 컬럼이 없으므로 @Transient로 처리
-    @Transient
+    // service_id 컬럼 (medical_service 테이블의 service_id)
+    @Column(name = "service_id")
+    private Long serviceId;
+    
+    // item_id 컬럼 (item_list 테이블의 id)
+    @Column(name = "item_id")
     private Long itemId;
 
     @Column(name = "created_at", updatable = false)

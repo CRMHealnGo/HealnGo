@@ -473,27 +473,49 @@
                             
                             <!-- 후기 관리 카드 -->
                             <div class="company-card">
-                                <div class="company-card-header">
-                                    <h3 class="company-card-title">후기 관리</h3>
-                                    <a href="#" class="company-view-all-link">View all ></a>
+                            <div class="company-card-header">
+                                <h3 class="company-card-title">후기 관리</h3>
+                                <a href="/company/review" class="company-view-all-link">View all ></a>
+                            </div>
+
+                            <div class="company-review-list">
+                                <div class="company-review-item" th:each="rv, iterStat : ${latestReviews}" th:if="${iterStat.index < 3}">
+                                <div class="company-review-image">
+                                    <img th:src="@{|/review/${rv.reviewId}/image|}"
+                                        alt="리뷰 이미지"
+                                        style="width:80px;height:80px;object-fit:cover;border-radius:8px;"
+                                        onerror="this.parentElement.textContent='이미지'; this.remove();">
                                 </div>
-                                <div class="company-review-list">
-                                    <div class="company-review-item" th:each="review : ${reviews}">
-                                        <div class="company-review-image">이미지</div>
-                                        <div class="company-review-content">
-                                            <div class="company-review-name" th:text="${review.name}">브이라인 리프팅</div>
-                                            <div class="company-review-id" th:text="${review.productId}">PN0001265</div>
-                                            <div class="company-review-rating" th:text="${review.rating}">4.8★(288)</div>
-                                            <div class="company-review-price" th:text="${review.price}">290,000원</div>
-                                            <div class="company-review-text" th:utext="${#strings.replace(#strings.replace(review.text, '\n', '<br>'), '\r', '')}">
-                                                한국어 리뷰 텍스트...<br>
-                                                English review text...<br>
-                                                일본어 리뷰 텍스트...
-                                            </div>
-                                        </div>
+
+                                <div class="company-review-content">
+                                    <div class="company-review-name" th:text="${rv.itemName != null ? rv.itemName : '상품/시술명 미입력'}">시술명</div>
+                                    <div class="company-review-id">
+                                    <span th:text="'#' + ${rv.reviewId}">#1</span>
+                                    <span style="margin-left:8px;color:#999;" th:text="${#temporals.format(rv.createdAt, 'yyyy-MM-dd')}">2025-10-18</span>
+                                    </div>
+
+                                    <div class="company-review-rating">
+                                    <span th:utext="${'★'.repeat(rv.rating != null ? rv.rating : 0)}"></span>
+                                    <span th:text="'(' + ${rv.rating} + ')'"> (5) </span>
+                                    </div>
+
+                                    <div class="company-review-text"
+                                        th:text="${#strings.length(rv.content) > 60 ? #strings.substring(rv.content,0,60) + '…' : (rv.content != null ? rv.content : '내용 없음')}">
+                                    내용 미리보기…
                                     </div>
                                 </div>
+                                </div>
+
+                                <!-- 리뷰가 없을 때 -->
+                                <div class="company-review-item" th:if="${#lists.isEmpty(latestReviews)}">
+                                <div class="company-review-content">
+                                    <div class="company-review-name">최근 리뷰 없음</div>
+                                    <div class="company-review-text">아직 등록된 리뷰가 없습니다.</div>
+                                </div>
+                                </div>
                             </div>
+                            </div>
+
                             
                             <!-- 인기 서비스 카드 -->
                             <div class="company-card">

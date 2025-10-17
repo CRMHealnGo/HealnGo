@@ -33,6 +33,9 @@ public class UserReview {
     @Column(name = "item_id")
     private Long itemId;
     
+    @Column(name = "service_id")
+    private Long serviceId;
+    
     // booking_id 직접 매핑 (FK 연결 문제 해결용)
     @Column(name = "booking_id")
     private Long bookingId;

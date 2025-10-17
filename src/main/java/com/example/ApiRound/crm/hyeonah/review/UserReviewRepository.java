@@ -13,6 +13,9 @@ public interface UserReviewRepository extends JpaRepository<UserReview, Integer>
     // 특정 아이템의 리뷰 목록 조회
     List<UserReview> findByItemIdAndIsPublicTrueOrderByCreatedAtDesc(Long itemId);
     
+    // 특정 서비스의 리뷰 목록 조회
+    List<UserReview> findByServiceIdAndIsPublicTrueOrderByCreatedAtDesc(Long serviceId);
+    
     // 특정 사용자의 리뷰 목록 조회
     List<UserReview> findByUserIdOrderByCreatedAtDesc(Integer userId);
     
@@ -23,12 +26,23 @@ public interface UserReviewRepository extends JpaRepository<UserReview, Integer>
     @Query("SELECT AVG(r.rating) FROM UserReview r WHERE r.itemId = :itemId AND r.isPublic = true")
     Double findAverageRatingByItemId(@Param("itemId") Long itemId);
     
+    // 특정 서비스의 평균 평점 조회
+    @Query("SELECT AVG(r.rating) FROM UserReview r WHERE r.serviceId = :serviceId AND r.isPublic = true")
+    Double findAverageRatingByServiceId(@Param("serviceId") Long serviceId);
+    
     // 특정 아이템의 리뷰 개수 조회
     Long countByItemIdAndIsPublicTrue(Long itemId);
+    
+    // 특정 서비스의 리뷰 개수 조회
+    Long countByServiceIdAndIsPublicTrue(Long serviceId);
     
     // 특정 평점의 리뷰 개수 조회
     @Query("SELECT COUNT(r) FROM UserReview r WHERE r.itemId = :itemId AND r.rating = :rating AND r.isPublic = true")
     Long countByItemIdAndRating(@Param("itemId") Long itemId, @Param("rating") Byte rating);
+    
+    // 특정 서비스의 특정 평점 리뷰 개수 조회
+    @Query("SELECT COUNT(r) FROM UserReview r WHERE r.serviceId = :serviceId AND r.rating = :rating AND r.isPublic = true")
+    Long countByServiceIdAndRating(@Param("serviceId") Long serviceId, @Param("rating") Byte rating);
     
     // booking_id로 리뷰 존재 여부 확인
     boolean existsByBookingId(Long bookingId);

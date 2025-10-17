@@ -415,13 +415,18 @@ async function submitReview() {
         // FormData 생성
         const formData = new FormData();
         formData.append('userId', currentUserId);
-        // itemId 설정 (reservations에서 가져오거나, 없으면 업체의 첫 번째 아이템 사용)
+        
+        // serviceId와 itemId 설정 (reservations에서 가져옴)
+        const serviceId = selectedReservation.service_id;
         const itemId = selectedReservation.item_id;
-        if (!itemId) {
-            alert('아이템 정보가 없습니다. 예약 데이터를 확인해주세요.');
-            return;
+        
+        if (serviceId) {
+            formData.append('serviceId', serviceId);  // serviceId 전달
         }
-        formData.append('itemId', itemId);
+        if (itemId) {
+            formData.append('itemId', itemId);  // itemId 전달
+        }
+        
         formData.append('bookingId', selectedReservation.id);
         formData.append('rating', rating);
         formData.append('title', title);
@@ -435,6 +440,8 @@ async function submitReview() {
         console.log('리뷰 등록 요청:', {
             userId: currentUserId,
             bookingId: selectedReservation.id,
+            serviceId: serviceId,
+            itemId: itemId,
             rating: rating,
             title: title
         });

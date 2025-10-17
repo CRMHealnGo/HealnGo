@@ -11,6 +11,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.ApiRound.crm.hyeonah.Repository.SocialUsersRepository;
+import com.example.ApiRound.crm.yoyo.reservation.Reservation;
+import com.example.ApiRound.crm.yoyo.reservation.ReservationRepository;
 import com.example.ApiRound.repository.ItemListRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -23,6 +26,8 @@ public class UserReviewServiceImpl implements UserReviewService {
     private final UserReviewRepository userReviewRepository;
     private final UserReviewReplyRepository userReviewReplyRepository;
     private final ItemListRepository itemListRepository;
+    private final SocialUsersRepository socialUsersRepository;
+    private final ReservationRepository reservationRepository;
     
     @Override
     public UserReview createReview(UserReview review, MultipartFile image) {
@@ -36,9 +41,23 @@ public class UserReviewServiceImpl implements UserReviewService {
             throw new RuntimeException("이미 해당 예약에 대한 리뷰가 작성되었습니다.");
         }
         
-        // 아이템이 존재하는지 확인
-        if (review.getItemId() != null && !itemListRepository.existsById(review.getItemId())) {
-            throw new RuntimeException("해당 아이템을 찾을 수 없습니다.");
+        // 예약 정보에서 service_id와 item_id 자동으로 가져오기
+        Reservation reservation = reservationRepository.findById(review.getBookingId())
+                .orElseThrow(() -> new RuntimeException("예약 정보를 찾을 수 없습니다."));
+        
+        // serviceId가 설정되지 않았다면 예약 정보에서 가져오기
+        if (review.getServiceId() == null && reservation.getServiceId() != null) {
+            review.setServiceId(reservation.getServiceId());
+        }
+        
+        // itemId가 설정되지 않았다면 예약 정보에서 가져오기
+        if (review.getItemId() == null && reservation.getItemId() != null) {
+            review.setItemId(reservation.getItemId());
+        }
+        
+        // serviceId와 itemId 중 하나는 반드시 있어야 함
+        if (review.getServiceId() == null && review.getItemId() == null) {
+            throw new RuntimeException("예약에 연결된 서비스/아이템 정보가 없습니다.");
         }
         
         // 이미지 처리
@@ -105,6 +124,15 @@ public class UserReviewServiceImpl implements UserReviewService {
     
     @Override
     @Transactional(readOnly = true)
+    public List<UserReviewDto> getReviewsByServiceId(Long serviceId) {
+        List<UserReview> reviews = userReviewRepository.findByServiceIdAndIsPublicTrueOrderByCreatedAtDesc(serviceId);
+        return reviews.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
     public List<UserReviewDto> getReviewsByUserId(Integer userId) {
         List<UserReview> reviews = userReviewRepository.findByUserIdOrderByCreatedAtDesc(userId);
         return reviews.stream()
@@ -133,8 +161,21 @@ public class UserReviewServiceImpl implements UserReviewService {
     
     @Override
     @Transactional(readOnly = true)
+    public Double getAverageRatingByServiceId(Long serviceId) {
+        Double average = userReviewRepository.findAverageRatingByServiceId(serviceId);
+        return average != null ? Math.round(average * 10) / 10.0 : 0.0;
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
     public Long getReviewCountByItemId(Long itemId) {
         return userReviewRepository.countByItemIdAndIsPublicTrue(itemId);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Long getReviewCountByServiceId(Long serviceId) {
+        return userReviewRepository.countByServiceIdAndIsPublicTrue(serviceId);
     }
     
     @Override
@@ -143,6 +184,17 @@ public class UserReviewServiceImpl implements UserReviewService {
         Map<Byte, Long> stats = new HashMap<>();
         for (byte rating = 1; rating <= 5; rating++) {
             Long count = userReviewRepository.countByItemIdAndRating(itemId, rating);
+            stats.put(rating, count);
+        }
+        return stats;
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Map<Byte, Long> getRatingStatsByServiceId(Long serviceId) {
+        Map<Byte, Long> stats = new HashMap<>();
+        for (byte rating = 1; rating <= 5; rating++) {
+            Long count = userReviewRepository.countByServiceIdAndRating(serviceId, rating);
             stats.put(rating, count);
         }
         return stats;
@@ -182,6 +234,7 @@ public class UserReviewServiceImpl implements UserReviewService {
         dto.setReviewId(review.getReviewId());
         dto.setUserId(review.getUserId());
         dto.setItemId(review.getItemId());
+        dto.setServiceId(review.getServiceId());  // serviceId 추가
         dto.setBookingId(review.getBookingId());
         dto.setRating(review.getRating());
         dto.setTitle(review.getTitle());
@@ -190,6 +243,12 @@ public class UserReviewServiceImpl implements UserReviewService {
         dto.setIsPublic(review.getIsPublic());
         dto.setCreatedAt(review.getCreatedAt());
         dto.setUpdatedAt(review.getUpdatedAt());
+        
+        // 사용자 이름 조회
+        if (review.getUserId() != null) {
+            socialUsersRepository.findById(review.getUserId())
+                    .ifPresent(user -> dto.setUserName(user.getName()));
+        }
         
         // 이미지가 있으면 URL 설정
         if (review.getImageBlob() != null) {

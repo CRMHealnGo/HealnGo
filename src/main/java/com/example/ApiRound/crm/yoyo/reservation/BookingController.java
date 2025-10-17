@@ -270,7 +270,8 @@ public class BookingController {
         data.put("location", reservation.getLocation());
         data.put("status", reservation.getStatus());
         data.put("totalAmount", reservation.getTotalAmount());
-        data.put("item_id", reservation.getItemId() != null ? reservation.getItemId() : 1L);
+        data.put("service_id", reservation.getServiceId());  // serviceId 전달
+        data.put("item_id", reservation.getItemId());  // itemId 전달
         data.put("description", reservation.getDescription());
         return data;
     }

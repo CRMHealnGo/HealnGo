@@ -12,6 +12,7 @@ public class UserReviewDto {
     private Integer userId;
     private String userName; // 사용자 이름
     private Long itemId;
+    private Long serviceId;  // medical_service.service_id
     private String itemName; // 아이템 이름
     private Long bookingId;  // reservations.id (Long)
     private Byte rating;

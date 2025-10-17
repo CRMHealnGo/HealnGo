@@ -50,6 +50,14 @@ public class CompanyManageController {
 
     @GetMapping("/review")
     public String companyReview(Model model, HttpSession session) {
+        // 세션 체크: 업체로 로그인한 사용자만 접근 가능
+        Integer companyId = (Integer) session.getAttribute("companyId");
+        String userType = (String) session.getAttribute("userType");
+        
+        if (companyId == null || !"company".equals(userType)) {
+            return "redirect:/crm/crm_login";
+        }
+        
         // 리뷰 통계 데이터 (실제로는 서비스에서 가져와야 함)
         model.addAttribute("totalReviews", 26);
         model.addAttribute("pendingReplies", 3);
