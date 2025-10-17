@@ -43,7 +43,13 @@ public class AdminController {
     @GetMapping("/dashboard")
     public String dashboard(HttpSession session, Model model) {
         // 세션 체크: 관리자로 로그인한 사용자만 접근 가능
-        Long managerId = (Long) session.getAttribute("managerId");
+        Object managerIdObj = session.getAttribute("managerId");
+        Long managerId = null;
+        if (managerIdObj instanceof Integer) {
+            managerId = ((Integer) managerIdObj).longValue();
+        } else if (managerIdObj instanceof Long) {
+            managerId = (Long) managerIdObj;
+        }
         String userType = (String) session.getAttribute("userType");
 
         if (managerId == null || !"manager".equals(userType)) {
@@ -63,6 +69,10 @@ public class AdminController {
         stats.put("totalCompanies", companyRepo.count());
         stats.put("totalReservations", 0); // TODO: 예약 테이블 연동
         stats.put("totalRevenue", 0); // TODO: 결제 테이블 연동
+
+        // 월별 가입자 데이터 (1월~12월) - 실제 DB 데이터 사용
+        List<Map<String, Object>> monthlyData = getMonthlyUserData();
+        stats.put("monthlyData", monthlyData);
 
         model.addAttribute("stats", stats);
 
@@ -612,5 +622,34 @@ public class AdminController {
         response.put("success", true);
         response.put("message", count + "명의 사용자가 정지되었습니다.");
         return ResponseEntity.ok(response);
+    }
+    
+    // 월별 가입자 데이터 조회
+    private List<Map<String, Object>> getMonthlyUserData() {
+        List<Map<String, Object>> monthlyData = new ArrayList<>();
+        
+        try {
+            for (int month = 1; month <= 12; month++) {
+                Map<String, Object> monthData = new HashMap<>();
+                monthData.put("month", month);
+                monthData.put("totalUsers", usersRepo.countByMonthAndIsDeletedFalse(month));
+                monthData.put("activeUsers", usersRepo.countByMonthAndStatusAndIsDeletedFalse(month, "ACTIVE"));
+                monthData.put("suspendedUsers", usersRepo.countByMonthAndStatusAndIsDeletedFalse(month, "SUSPENDED"));
+                monthlyData.add(monthData);
+            }
+        } catch (Exception e) {
+            // 쿼리 실패 시 더미 데이터로 대체
+            System.err.println("월별 데이터 조회 실패, 더미 데이터 사용: " + e.getMessage());
+            for (int month = 1; month <= 12; month++) {
+                Map<String, Object> monthData = new HashMap<>();
+                monthData.put("month", month);
+                monthData.put("totalUsers", 0);
+                monthData.put("activeUsers", 0);
+                monthData.put("suspendedUsers", 0);
+                monthlyData.add(monthData);
+            }
+        }
+        
+        return monthlyData;
     }
 }

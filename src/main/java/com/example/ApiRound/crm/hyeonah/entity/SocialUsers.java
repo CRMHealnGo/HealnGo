@@ -7,17 +7,28 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Lob;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "social_users")
+@Table(
+        name = "social_users",
+        indexes = {
+                @Index(name = "idx_social_users_provider_provider_id", columnList = "provider, provider_id"),
+                @Index(name = "idx_social_users_email", columnList = "email")
+        },
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_social_users_provider_provider_id", columnNames = {"provider", "provider_id"})
+        }
+)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -62,6 +73,14 @@ public class SocialUsers {
     @Builder.Default
     private String status = "ACTIVE"; // ACTIVE, SUSPENDED, INACTIVE
 
+
+    // ✅ 소셜 로그인 구분/식별용 필드 (기존 서비스/레포 시그니처 호환)
+    @Column(name = "provider", length = 50)       // ex) google, kakao, naver
+    private String provider;
+
+    @Column(name = "provider_id", length = 190)   // 소셜에서 내려오는 유저 고유 ID
+    private String providerId;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
@@ -82,4 +101,3 @@ public class SocialUsers {
         this.updatedAt = LocalDateTime.now();
     }
 }
-

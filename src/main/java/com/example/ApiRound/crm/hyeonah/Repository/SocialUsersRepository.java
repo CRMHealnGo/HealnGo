@@ -23,6 +23,13 @@ public interface SocialUsersRepository extends JpaRepository<SocialUsers, Intege
     // 통계용 카운트
     long countByIsDeletedFalse();
     long countByStatusAndIsDeletedFalse(String status);
+    
+    // 월별 통계 - 네이티브 쿼리 사용 (데이터베이스 호환성)
+    @Query(value = "SELECT COUNT(*) FROM social_users WHERE MONTH(created_at) = :month AND is_deleted = false", nativeQuery = true)
+    long countByMonthAndIsDeletedFalse(@Param("month") int month);
+    
+    @Query(value = "SELECT COUNT(*) FROM social_users WHERE MONTH(created_at) = :month AND status = :status AND is_deleted = false", nativeQuery = true)
+    long countByMonthAndStatusAndIsDeletedFalse(@Param("month") int month, @Param("status") String status);
 
     // admin 사용자 관리 메서드
     // 목록/페이지네이션
