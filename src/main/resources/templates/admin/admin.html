@@ -166,101 +166,48 @@
                     <!-- 업체 관리 카드 -->
                     <div class="card">
                         <div class="card-header">
-                            <h3 class="card-title">업체 관리</h3>
+                            <h3 class="card-title">업체 관리 (예약 많은 순)</h3>
                             <a href="/admin/companies" class="view-all-link">View all ></a>
                         </div>
-                        <div class="company-list">
-                            <div class="company-item">
-                                <div class="company-icon" style="background: linear-gradient(135deg, #ff6b9d, #4ecdc4);">123</div>
-                                <div class="company-info">
-                                    <div class="company-name">123성형외과</div>
-                                    <div class="company-id">PN0001265</div>
-                                    <div class="company-date">계약일 Sep 12, 2021</div>
-                                    <div class="company-data">
-                                        <div class="data-item">
-                                            <span class="data-label">상담</span>
-                                            <span class="data-value">947</span>
-                                        </div>
-                                        <div class="data-item">
-                                            <span class="data-label">이벤트</span>
-                                            <span class="data-value">13</span>
-                                        </div>
-                                        <div class="data-item">
-                                            <span class="data-label">예약건</span>
-                                            <div class="profile-avatars">
-                                                <div class="profile-avatar">A</div>
-                                                <div class="profile-avatar">B</div>
-                                                <div class="profile-avatar">C</div>
-                                                <span style="margin-left: 5px; font-size: 12px; color: #7f8c8d;">+2</span>
-                                            </div>
-                                        </div>
+                        <div class="company-stats-container">
+                            <div class="stat-item">
+                                <div class="stat-label">전체 업체</div>
+                                <div class="stat-value" th:text="${stats.totalCompanies}">0</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">이번달 신규</div>
+                                <div class="stat-value" th:text="${stats.newThisMonth}">0</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">신고 접수</div>
+                                <div class="stat-value" th:text="${stats.reportsReceived}">0</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">제재 중</div>
+                                <div class="stat-value" th:text="${stats.underSanction}">0</div>
+                            </div>
+                        </div>
+                        
+                        <!-- 업체 리스트 -->
+                        <div class="company-list-container">
+                            <div th:if="${topCompanies != null and !topCompanies.isEmpty()}">
+                                <div class="company-list-item" th:each="company, iterStat : ${topCompanies}">
+                                    <div class="company-rank">
+                                        <span th:text="${iterStat.index + 1}">1</span>
                                     </div>
-                                </div>
-                                <div class="company-rating">
-                                    <div class="rating-stars">↑4.8★(288)</div>
+                                    <div class="company-info-section">
+                                        <div class="company-name-text" th:text="${company.companyName}">업체명</div>
+                                        <div class="company-category" th:text="${company.category}">카테고리</div>
+                                    </div>
+                                    <div class="company-reservation-count">
+                                        <span class="reservation-count-label">예약</span>
+                                        <span class="reservation-count-value" th:text="${company.reservationCount}">0</span>
+                                    </div>
                                 </div>
                             </div>
-                            
-                            <div class="company-item">
-                                <div class="company-icon" style="background: linear-gradient(135deg, #4ecdc4, #45b7d1);">하</div>
-                                <div class="company-info">
-                                    <div class="company-name">하나한의원</div>
-                                    <div class="company-id">PN0001221</div>
-                                    <div class="company-date">계약일 Sep 10, 2020</div>
-                                    <div class="company-data">
-                                        <div class="data-item">
-                                            <span class="data-label">상담</span>
-                                            <span class="data-value">1075</span>
-                                        </div>
-                                        <div class="data-item">
-                                            <span class="data-label">이벤트</span>
-                                            <span class="data-value">4</span>
-                                        </div>
-                                        <div class="data-item">
-                                            <span class="data-label">예약건</span>
-                                            <div class="profile-avatars">
-                                                <div class="profile-avatar">D</div>
-                                                <div class="profile-avatar">E</div>
-                                                <div class="profile-avatar">F</div>
-                                                <span style="margin-left: 5px; font-size: 12px; color: #7f8c8d;">+1</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="company-rating">
-                                    <div class="rating-stars">↑4.7★(312)</div>
-                                </div>
-                            </div>
-                            
-                            <div class="company-item">
-                                <div class="company-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">새</div>
-                                <div class="company-info">
-                                    <div class="company-name">새하얀피부과</div>
-                                    <div class="company-id">PN0001290</div>
-                                    <div class="company-date">계약일 May 28, 2024</div>
-                                    <div class="company-data">
-                                        <div class="data-item">
-                                            <span class="data-label">상담</span>
-                                            <span class="data-value">966</span>
-                                        </div>
-                                        <div class="data-item">
-                                            <span class="data-label">이벤트</span>
-                                            <span class="data-value">20</span>
-                                        </div>
-                                        <div class="data-item">
-                                            <span class="data-label">예약건</span>
-                                            <div class="profile-avatars">
-                                                <div class="profile-avatar">G</div>
-                                                <div class="profile-avatar">H</div>
-                                                <div class="profile-avatar">I</div>
-                                                <span style="margin-left: 5px; font-size: 12px; color: #7f8c8d;">+5</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="company-rating">
-                                    <div class="rating-stars" style="color: #e74c3c;">↓4.2★(162)</div>
-                                </div>
+                            <div th:if="${topCompanies == null or topCompanies.isEmpty()}" class="no-data-message">
+                                <i class="fas fa-building"></i>
+                                <p>등록된 업체가 없습니다.</p>
                             </div>
                         </div>
                     </div>

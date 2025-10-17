@@ -74,4 +74,12 @@ public interface AdminManageRepository extends JpaRepository<ItemList, Long> {
     int updateCompanyApprovalStatus(@Param("companyId") Integer companyId, 
                                    @Param("newStatus") String newStatus, 
                                    @Param("approvedAt") LocalDateTime approvedAt);
+    
+    // 업체 존재 여부 확인
+    @Query("SELECT COUNT(c) > 0 FROM CompanyUser c WHERE c.companyId = :companyId")
+    boolean existsByCompanyId(@Param("companyId") Integer companyId);
+    
+    // 업체명 조회
+    @Query("SELECT c.companyName FROM CompanyUser c WHERE c.companyId = :companyId")
+    String getCompanyNameById(@Param("companyId") Integer companyId);
 }

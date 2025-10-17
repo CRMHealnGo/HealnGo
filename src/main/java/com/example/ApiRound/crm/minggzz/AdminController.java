@@ -24,7 +24,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.example.ApiRound.crm.hyeonah.Repository.CompanyUserRepository;
 import com.example.ApiRound.crm.hyeonah.Repository.SocialUsersRepository;
+import com.example.ApiRound.crm.hyeonah.entity.CompanyUser;
 import com.example.ApiRound.crm.hyeonah.entity.SocialUsers;
+import com.example.ApiRound.crm.yoyo.reservation.ReservationRepository;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +38,7 @@ public class AdminController {
 
     private final SocialUsersRepository usersRepo;
     private final CompanyUserRepository companyRepo;
+    private final ReservationRepository reservationRepo;
 
     /**
      * 관리자 대시보드 메인 페이지
@@ -66,7 +69,16 @@ public class AdminController {
         stats.put("totalUsers", usersRepo.countByIsDeletedFalse());
         stats.put("activeUsers", usersRepo.countByStatusAndIsDeletedFalse("ACTIVE"));
         stats.put("suspendedUsers", usersRepo.countByStatusAndIsDeletedFalse("SUSPENDED"));
-        stats.put("totalCompanies", companyRepo.count());
+        
+        // 업체 관련 통계 - 실제 DB 데이터 사용
+        stats.put("totalCompanies", companyRepo.countByApprovalStatus("APPROVED")); // 승인된 업체 수
+        stats.put("newThisMonth", companyRepo.countNewCompaniesThisMonth(
+            java.time.LocalDate.now().getYear(), 
+            java.time.LocalDate.now().getMonthValue()
+        )); // 이번 달 신규 업체 수
+        stats.put("reportsReceived", companyRepo.countByApprovalStatus("REPORTED")); // 신고 접수된 업체 수
+        stats.put("underSanction", companyRepo.countByApprovalStatusAndIsActive("SUSPENDED", true)); // 제재 중인 업체 수
+        
         stats.put("totalReservations", 0); // TODO: 예약 테이블 연동
         stats.put("totalRevenue", 0); // TODO: 결제 테이블 연동
 
@@ -83,6 +95,10 @@ public class AdminController {
         // 차트 데이터
         Map<String, Object> chartData = getChartData();
         model.addAttribute("chartData", chartData);
+        
+        // 예약 많은 순으로 업체 리스트 (상위 5개)
+        List<Map<String, Object>> topCompanies = getTopCompaniesByReservations();
+        model.addAttribute("topCompanies", topCompanies);
 
         return "admin/admin";
     }
@@ -652,4 +668,48 @@ public class AdminController {
 
         return monthlyData;
     }
+    
+    // 예약 많은 순으로 업체 리스트 조회
+    private List<Map<String, Object>> getTopCompaniesByReservations() {
+        List<Map<String, Object>> topCompanies = new ArrayList<>();
+        
+        try {
+            // 승인된 업체 목록 조회 (상위 10개)
+            Pageable pageable = PageRequest.of(0, 10);
+            List<CompanyUser> companies = companyRepo.findTop5ApprovedCompanies(pageable);
+            
+            // 각 업체별 예약 수를 계산하고 정렬
+            List<Map<String, Object>> companyWithReservations = new ArrayList<>();
+            
+            for (CompanyUser company : companies) {
+                Long reservationCount = reservationRepo.countByCompany(company);
+                
+                Map<String, Object> companyData = new HashMap<>();
+                companyData.put("companyId", company.getCompanyId());
+                companyData.put("companyName", company.getCompanyName());
+                companyData.put("category", company.getCategory());
+                companyData.put("reservationCount", reservationCount);
+                companyData.put("createdAt", company.getCreatedAt());
+                
+                companyWithReservations.add(companyData);
+            }
+            
+            // 예약 수로 정렬 (내림차순)
+            companyWithReservations.sort((a, b) -> {
+                Long countA = (Long) a.get("reservationCount");
+                Long countB = (Long) b.get("reservationCount");
+                return countB.compareTo(countA);
+            });
+            
+            // 상위 5개만 추출
+            topCompanies = companyWithReservations.subList(0, Math.min(5, companyWithReservations.size()));
+            
+        } catch (Exception e) {
+            System.err.println("업체 리스트 조회 실패: " + e.getMessage());
+        }
+        
+        return topCompanies;
+    }
 }
+
+

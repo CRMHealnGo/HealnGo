@@ -569,3 +569,263 @@ function showApprovalError(message) {
 
 console.log('admin_manage_company_detail.js 로드 완료');
 
+// ========================================
+// 예약내역 모달 관련
+// ========================================
+let currentReservationPage = 0;
+let totalReservationPages = 1;
+
+function openReservationModalFromSidebar() {
+    console.log('===== 예약내역 모달 열기 =====');
+    
+    if (!selectedCompanyData || !selectedCompanyData.companyId) {
+        showCustomAlert('먼저 업체를 선택해주세요.', 'warning');
+        return;
+    }
+    
+    currentCompanyId = selectedCompanyData.companyId;
+    currentCompanyName = selectedCompanyData.companyName;
+    currentReservationPage = 0;
+    
+    console.log('선택된 업체 ID:', currentCompanyId);
+    console.log('선택된 업체명:', currentCompanyName);
+    
+    // 모달 열기
+    const modal = document.getElementById('reservationModal');
+    if (!modal) {
+        console.error('예약내역 모달을 찾을 수 없습니다.');
+        return;
+    }
+    
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    
+    // 업체명 미리 설정
+    const companyNameElement = document.getElementById('reservationModalCompanyName');
+    if (companyNameElement) {
+        companyNameElement.textContent = currentCompanyName;
+        console.log('업체명 미리 설정:', currentCompanyName);
+    }
+    
+    // 로딩 상태 표시
+    showReservationLoading();
+    
+    // 예약내역 로드
+    loadReservations();
+}
+
+function closeReservationModal() {
+    const modal = document.getElementById('reservationModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+}
+
+function showReservationLoading() {
+    document.getElementById('reservationLoading').style.display = 'flex';
+    document.getElementById('reservationListContainer').style.display = 'none';
+}
+
+function loadReservations() {
+    if (!currentCompanyId) {
+        console.error('업체 ID가 없습니다.');
+        return;
+    }
+    
+    console.log(`예약내역 로드: /admin/api/companies/${currentCompanyId}/reservations?page=${currentReservationPage}&size=10`);
+    
+    fetch(`/admin/api/companies/${currentCompanyId}/reservations?page=${currentReservationPage}&size=10`)
+        .then(response => {
+            console.log('응답 상태:', response.status);
+            if (!response.ok) {
+                throw new Error('서버 오류: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('받은 데이터:', data);
+            if (data.success) {
+                displayReservations(data);
+            } else {
+                showReservationError(data.message || '예약내역을 불러올 수 없습니다.');
+            }
+        })
+        .catch(error => {
+            console.error('예약내역 로드 오류:', error);
+            showReservationError('예약내역을 불러오는 중 오류가 발생했습니다.');
+        });
+}
+
+function displayReservations(data) {
+    const loading = document.getElementById('reservationLoading');
+    const content = document.getElementById('reservationListContainer');
+    const noData = document.getElementById('noReservations');
+    
+    console.log('displayReservations 호출됨:', data);
+    console.log('loading 요소:', loading);
+    console.log('content 요소:', content);
+    console.log('noData 요소:', noData);
+    
+    // 모든 상태를 먼저 숨김
+    if (loading) loading.style.display = 'none';
+    if (content) content.style.display = 'none';
+    if (noData) noData.style.display = 'none';
+    
+    // 업체명 설정 (항상)
+    const companyNameElement = document.getElementById('reservationModalCompanyName');
+    if (companyNameElement) {
+        const companyName = data.companyName || currentCompanyName || '업체명';
+        companyNameElement.textContent = companyName;
+        console.log('업체명 설정:', companyName);
+    }
+    
+    // 예약 데이터 확인
+    const hasReservations = data.reservations && Array.isArray(data.reservations) && data.reservations.length > 0;
+    console.log('예약 데이터 확인:', {
+        reservations: data.reservations,
+        isArray: Array.isArray(data.reservations),
+        length: data.reservations ? data.reservations.length : 'undefined',
+        hasReservations: hasReservations
+    });
+    
+    if (hasReservations) {
+        console.log('예약내역이 있습니다. 목록 표시');
+        if (content) content.style.display = 'block';
+        if (noData) noData.style.display = 'none';
+        
+        // 통계 업데이트
+        const totalElement = document.getElementById('totalReservations');
+        if (totalElement) {
+            totalElement.textContent = data.totalElements || 0;
+        }
+        
+        // 예약 목록 렌더링
+        renderReservationTable(data.reservations);
+        
+        // 페이지네이션 업데이트
+        updateReservationPagination(data);
+    } else {
+        console.log('예약내역이 없습니다. no-data 상태 표시');
+        if (content) content.style.display = 'none';
+        if (noData) {
+            noData.style.display = 'flex';
+            noData.innerHTML = `
+                <i class="fas fa-calendar-times"></i>
+                <p>예약된 내역이 없습니다.</p>
+            `;
+            console.log('noData 표시 완료, display:', noData.style.display);
+        } else {
+            console.error('noData 요소를 찾을 수 없습니다!');
+        }
+    }
+}
+
+function renderReservationTable(reservations) {
+    const tbody = document.getElementById('reservationTableBody');
+    
+    const rows = reservations.map(reservation => {
+        const statusClass = getReservationStatusClass(reservation.status);
+        const statusText = getReservationStatusText(reservation.status);
+        const dateTime = formatReservationDateTime(reservation.date, reservation.startTime);
+        
+        return `
+            <tr>
+                <td>${reservation.id || '-'}</td>
+                <td>${reservation.customerName || '고객명 없음'}</td>
+                <td>${reservation.customerContact || '연락처 없음'}</td>
+                <td>${dateTime}</td>
+                <td>${reservation.title || '서비스명 없음'}</td>
+                <td>${reservation.totalAmount ? formatReservationAmount(reservation.totalAmount) + '원' : '-'}</td>
+                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+            </tr>
+        `;
+    }).join('');
+    
+    tbody.innerHTML = rows;
+}
+
+function updateReservationPagination(data) {
+    totalReservationPages = data.totalPages || 1;
+    const pagination = document.getElementById('reservationPagination');
+    const pageInfo = document.getElementById('reservationPageInfo');
+    const prevBtn = document.getElementById('prevReservationBtn');
+    const nextBtn = document.getElementById('nextReservationBtn');
+    
+    if (totalReservationPages > 1) {
+        pagination.style.display = 'flex';
+        pageInfo.textContent = `페이지 ${data.currentPage + 1} / ${totalReservationPages}`;
+        
+        prevBtn.disabled = currentReservationPage === 0;
+        nextBtn.disabled = currentReservationPage >= totalReservationPages - 1;
+    } else {
+        pagination.style.display = 'none';
+    }
+}
+
+function loadReservationsPage(direction) {
+    const newPage = currentReservationPage + direction;
+    if (newPage >= 0 && newPage < totalReservationPages) {
+        currentReservationPage = newPage;
+        showReservationLoading();
+        loadReservations();
+    }
+}
+
+function showReservationError(message) {
+    const loading = document.getElementById('reservationLoading');
+    const content = document.getElementById('reservationListContainer');
+    const noData = document.getElementById('noReservations');
+    
+    console.log('showReservationError 호출됨:', message);
+    console.log('loading 요소:', loading);
+    console.log('content 요소:', content);
+    console.log('noData 요소:', noData);
+    
+    // 모든 상태 숨김
+    if (loading) loading.style.display = 'none';
+    if (content) content.style.display = 'none';
+    
+    if (noData) {
+        noData.style.display = 'flex';
+        noData.innerHTML = `
+            <i class="fas fa-exclamation-triangle"></i>
+            <p>${message}</p>
+        `;
+        console.log('오류 메시지 표시 완료, display:', noData.style.display);
+    } else {
+        console.error('noData 요소를 찾을 수 없습니다!');
+    }
+}
+
+function getReservationStatusClass(status) {
+    switch(status) {
+        case 'CONFIRMED': return 'status-confirmed';
+        case 'CANCELLED': return 'status-cancelled';
+        case 'COMPLETED': return 'status-completed';
+        case 'PENDING': return 'status-pending';
+        default: return 'status-pending';
+    }
+}
+
+function getReservationStatusText(status) {
+    switch(status) {
+        case 'CONFIRMED': return '확정';
+        case 'CANCELLED': return '취소';
+        case 'COMPLETED': return '완료';
+        case 'PENDING': return '대기';
+        default: return '알 수 없음';
+    }
+}
+
+function formatReservationDateTime(date, time) {
+    if (!date) return '-';
+    const dateStr = new Date(date).toLocaleDateString('ko-KR');
+    const timeStr = time ? time.substring(0, 5) : '';
+    return `${dateStr} ${timeStr}`;
+}
+
+function formatReservationAmount(amount) {
+    return new Intl.NumberFormat('ko-KR').format(amount);
+}
+

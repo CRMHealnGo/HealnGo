@@ -77,4 +77,8 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
            "WHERE r.status = :status " +
            "ORDER BY r.date DESC, r.startTime DESC")
     Page<Reservation> findByStatusWithDetails(@Param("status") String status, Pageable pageable);
+    
+    // 업체별 전체 예약 수 조회
+    @Query("SELECT COUNT(r) FROM Reservation r WHERE r.company = :company")
+    Long countByCompany(@Param("company") CompanyUser company);
 }

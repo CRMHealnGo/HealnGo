@@ -121,7 +121,7 @@ public class ReservationServiceImpl implements ReservationService {
                 .orElseThrow(() -> new RuntimeException("업체를 찾을 수 없습니다."));
         
         List<Reservation> reservations = reservationRepository.findByCompanyOrderByDateDescStartTimeDesc(company);
-        return reservations.stream().map(this::convertToDto).collect(Collectors.toList());
+        return reservations.stream().map(this::convertToDtoWithDetails).collect(Collectors.toList());
     }
 
     @Override
@@ -131,7 +131,7 @@ public class ReservationServiceImpl implements ReservationService {
                 .orElseThrow(() -> new RuntimeException("업체를 찾을 수 없습니다."));
         
         Page<Reservation> reservations = reservationRepository.findByCompanyOrderByDateDescStartTimeDesc(company, pageable);
-        return reservations.map(this::convertToDto);
+        return reservations.map(this::convertToDtoWithDetails);
     }
 
     @Override
@@ -141,7 +141,7 @@ public class ReservationServiceImpl implements ReservationService {
                 .orElseThrow(() -> new RuntimeException("업체를 찾을 수 없습니다."));
         
         List<Reservation> reservations = reservationRepository.findByCompanyAndDateOrderByStartTimeAsc(company, date);
-        return reservations.stream().map(this::convertToDto).collect(Collectors.toList());
+        return reservations.stream().map(this::convertToDtoWithDetails).collect(Collectors.toList());
     }
 
     @Override
@@ -151,7 +151,7 @@ public class ReservationServiceImpl implements ReservationService {
                 .orElseThrow(() -> new RuntimeException("업체를 찾을 수 없습니다."));
         
         List<Reservation> reservations = reservationRepository.findByCompanyAndStatusOrderByDateDescStartTimeDesc(company, status);
-        return reservations.stream().map(this::convertToDto).collect(Collectors.toList());
+        return reservations.stream().map(this::convertToDtoWithDetails).collect(Collectors.toList());
     }
 
     @Override
@@ -298,9 +298,23 @@ public class ReservationServiceImpl implements ReservationService {
     // Entity를 DTO로 변환 (FK 정보 포함)
     private ReservationDto convertToDtoWithDetails(Reservation reservation) {
         ReservationDto dto = convertToDto(reservation);
-        dto.setCustomerName(reservation.getUser().getName());
-        dto.setCustomerContact(reservation.getUser().getPhone());
-        dto.setClinicName(reservation.getCompany().getCompanyName());
+        
+        // 고객 정보 설정 (null 체크)
+        if (reservation.getUser() != null) {
+            dto.setCustomerName(reservation.getUser().getName());
+            dto.setCustomerContact(reservation.getUser().getPhone());
+        } else {
+            dto.setCustomerName("고객 정보 없음");
+            dto.setCustomerContact("연락처 없음");
+        }
+        
+        // 업체 정보 설정 (null 체크)
+        if (reservation.getCompany() != null) {
+            dto.setClinicName(reservation.getCompany().getCompanyName());
+        } else {
+            dto.setClinicName("업체 정보 없음");
+        }
+        
         return dto;
     }
 }
