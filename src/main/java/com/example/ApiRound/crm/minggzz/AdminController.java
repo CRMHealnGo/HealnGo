@@ -22,11 +22,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.example.ApiRound.Service.UserInquiryService;
 import com.example.ApiRound.crm.hyeonah.Repository.CompanyUserRepository;
 import com.example.ApiRound.crm.hyeonah.Repository.SocialUsersRepository;
 import com.example.ApiRound.crm.hyeonah.entity.CompanyUser;
 import com.example.ApiRound.crm.hyeonah.entity.SocialUsers;
 import com.example.ApiRound.crm.yoyo.reservation.ReservationRepository;
+import com.example.ApiRound.entity.UserInquiry;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +41,7 @@ public class AdminController {
     private final SocialUsersRepository usersRepo;
     private final CompanyUserRepository companyRepo;
     private final ReservationRepository reservationRepo;
+    private final UserInquiryService userInquiryService;
 
     /**
      * 관리자 대시보드 메인 페이지
@@ -99,6 +102,10 @@ public class AdminController {
         // 예약 많은 순으로 업체 리스트 (상위 5개)
         List<Map<String, Object>> topCompanies = getTopCompaniesByReservations();
         model.addAttribute("topCompanies", topCompanies);
+        
+        // 최근 문의/신고 데이터 (최대 3건)
+        List<UserInquiry> recentInquiries = userInquiryService.getAdminPagedList(1, 3, null).getContent();
+        model.addAttribute("recentInquiries", recentInquiries);
 
         return "admin/admin";
     }
@@ -249,14 +256,124 @@ public class AdminController {
      * 문의/신고 상세 페이지 (관리자용)
      */
     @GetMapping("/inquiry-report/detail/{id}")
-    public String inquiryReportDetail(@PathVariable("id") Long id, Model model, HttpSession session) {
-        // 문의/신고 상세 데이터 (실제로는 서비스에서 가져와야 함)
-        Map<String, Object> report = getInquiryReportById(id);
-        model.addAttribute("report", report);
+    public String inquiryReportDetail(@PathVariable("id") Integer id, Model model, HttpSession session) {
+        model.addAttribute("reportId", id);
         model.addAttribute("sidebarType", "admin");
         model.addAttribute("managerName", session.getAttribute("managerName"));
 
         return "crm/inquiry_detail";
+    }
+    
+    /**
+     * 문의/신고 상세 조회 API (관리자용)
+     */
+    @GetMapping("/api/inquiry-reports/{id}")
+    @ResponseBody
+    public ResponseEntity<UserInquiry> getInquiryDetail(@PathVariable Integer id) {
+        try {
+            List<UserInquiry> inquiries = userInquiryService.getAdminPagedList(1, 1000, null).getContent();
+            
+            UserInquiry inquiry = inquiries.stream()
+                    .filter(i -> i.getInquiryId().equals(id))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("문의/신고를 찾을 수 없습니다."));
+            
+            return ResponseEntity.ok(inquiry);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
+    /**
+     * 문의/신고 목록 조회 API (관리자용)
+     */
+    @GetMapping("/api/inquiry-reports")
+    @ResponseBody
+    public ResponseEntity<List<UserInquiry>> getAllInquiryReports(
+            @RequestParam(value = "status", required = false) String status) {
+        try {
+            List<UserInquiry> inquiries = userInquiryService.getAdminPagedList(1, 100, status).getContent();
+            return ResponseEntity.ok(inquiries);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+    
+    /**
+     * 문의/신고 상태 변경 API (관리자용)
+     */
+    @PostMapping("/api/inquiry-reports/{id}/status")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> updateInquiryStatus(
+            @PathVariable Integer id,
+            @RequestBody Map<String, String> request,
+            HttpSession session) {
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            String newStatus = request.get("status");
+            Object managerIdObj = session.getAttribute("managerId");
+            Integer adminId = null;
+            if (managerIdObj instanceof Integer) {
+                adminId = (Integer) managerIdObj;
+            } else if (managerIdObj instanceof Long) {
+                adminId = ((Long) managerIdObj).intValue();
+            }
+            
+            userInquiryService.updateStatus(id, newStatus, adminId);
+            
+            response.put("success", true);
+            response.put("message", "상태가 변경되었습니다.");
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+    
+    /**
+     * 문의/신고 답변 작성 API (관리자용)
+     */
+    @PostMapping("/api/inquiry-reports/{id}/reply")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> replyInquiry(
+            @PathVariable Integer id,
+            @RequestBody Map<String, String> request,
+            HttpSession session) {
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            String replyText = request.get("reply");
+            
+            if (replyText == null || replyText.trim().isEmpty()) {
+                response.put("success", false);
+                response.put("message", "답변 내용을 입력해주세요.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            Object managerIdObj = session.getAttribute("managerId");
+            Integer adminId = null;
+            if (managerIdObj instanceof Integer) {
+                adminId = (Integer) managerIdObj;
+            } else if (managerIdObj instanceof Long) {
+                adminId = ((Long) managerIdObj).intValue();
+            }
+            
+            userInquiryService.answer(id, replyText, adminId);
+            
+            response.put("success", true);
+            response.put("message", "답변이 전송되었습니다.");
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
     }
 
     // 임시 데이터 생성 메서드들 (실제로는 서비스에서 구현)
@@ -336,93 +453,107 @@ public class AdminController {
 
     private List<Map<String, Object>> getInquiryReports() {
         List<Map<String, Object>> reports = new ArrayList<>();
-
-        // 시술 후 부작용 문의
-        Map<String, Object> report1 = new HashMap<>();
-        report1.put("id", 1);
-        report1.put("type", "inquiry");
-        report1.put("title", "시술 후 부작용 문의");
-        report1.put("reporterName", "김민수");
-        report1.put("reporterPhone", "010-1234-5678");
-        report1.put("reporterEmail", "kim@example.com");
-        report1.put("companyName", "힝거 피부과");
-        report1.put("description", "브이라인 리프팅 시술을 받은 후 얼굴이 부어오르고 통증이 있습니다. 정상적인 반응인지 확인하고 싶습니다.");
-        report1.put("status", "pending");
-        report1.put("priority", "high");
-        report1.put("createdDate", "2024-01-15 14:30");
-        reports.add(report1);
-
-        // 의료진 태도 문제 신고
-        Map<String, Object> report2 = new HashMap<>();
-        report2.put("id", 2);
-        report2.put("type", "report");
-        report2.put("title", "의료진 태도 문제 신고");
-        report2.put("reporterName", "이영희");
-        report2.put("reporterPhone", "010-2345-6789");
-        report2.put("reporterEmail", "lee@example.com");
-        report2.put("companyName", "서울 성형외과");
-        report2.put("description", "시술 중 의료진이 불친절하고 무성의한 태도로 시술을 진행했습니다. 환자에 대한 기본적인 예의가 부족했습니다.");
-        report2.put("status", "processing");
-        report2.put("priority", "medium");
-        report2.put("createdDate", "2024-01-14 16:45");
-        reports.add(report2);
-
-        // 예약 변경 요청
-        Map<String, Object> report3 = new HashMap<>();
-        report3.put("id", 3);
-        report3.put("type", "inquiry");
-        report3.put("title", "예약 변경 요청");
-        report3.put("reporterName", "박준호");
-        report3.put("reporterPhone", "010-3456-7890");
-        report3.put("reporterEmail", "park@example.com");
-        report3.put("companyName", "강남 치과");
-        report3.put("description", "개인 사정으로 인해 예약된 시술 일정을 다음 주로 변경하고 싶습니다. 가능한지 확인 부탁드립니다.");
-        report3.put("status", "resolved");
-        report3.put("priority", "low");
-        report3.put("createdDate", "2024-01-13 10:20");
-        reports.add(report3);
-
-        // 시설 청결도 문제 신고
-        Map<String, Object> report4 = new HashMap<>();
-        report4.put("id", 4);
-        report4.put("type", "report");
-        report4.put("title", "시설 청결도 문제 신고");
-        report4.put("reporterName", "최수진");
-        report4.put("reporterPhone", "010-4567-8901");
-        report4.put("reporterEmail", "choi@example.com");
-        report4.put("companyName", "제주 한의원");
-        report4.put("description", "병원 내부 시설이 불결하고 위생상 문제가 있다고 생각됩니다. 정기적인 청소와 소독이 필요합니다.");
-        report4.put("status", "rejected");
-        report4.put("priority", "medium");
-        report4.put("createdDate", "2024-01-12 09:15");
-        reports.add(report4);
-
-        // 시술 비용 환불 요청
-        Map<String, Object> report5 = new HashMap<>();
-        report5.put("id", 5);
-        report5.put("type", "inquiry");
-        report5.put("title", "시술 비용 환불 요청");
-        report5.put("reporterName", "정다은");
-        report5.put("reporterPhone", "010-5678-9012");
-        report5.put("reporterEmail", "jung@example.com");
-        report5.put("companyName", "부산 피부과");
-        report5.put("description", "시술 결과가 만족스럽지 않아 환불을 요청합니다. 계약서에 명시된 환불 정책에 따라 처리해주세요.");
-        report5.put("status", "pending");
-        report5.put("priority", "high");
-        report5.put("createdDate", "2024-01-11 15:30");
-        reports.add(report5);
-
+        
+        try {
+            // DB에서 모든 문의/신고 조회 (최신순)
+            List<UserInquiry> inquiries = userInquiryService.getAdminPagedList(1, 100, null).getContent();
+            
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+            
+            for (UserInquiry inquiry : inquiries) {
+                Map<String, Object> report = new HashMap<>();
+                report.put("id", inquiry.getInquiryId());
+                
+                // subject에서 [문의:xxx] 또는 [신고:xxx] 패턴 제거
+                String cleanSubject = inquiry.getSubject() != null ? 
+                    inquiry.getSubject().replaceAll("^\\[(?:문의|신고):[^\\]]+\\]\\s*", "") : "제목 없음";
+                
+                // subject에 [문의] 또는 [신고]가 포함되어 있으면 type 결정
+                String type = "inquiry";
+                if (inquiry.getSubject() != null && inquiry.getSubject().contains("[신고:")) {
+                    type = "report";
+                }
+                report.put("type", type);
+                report.put("title", cleanSubject);
+                report.put("reporterName", inquiry.getReporterType() == UserInquiry.ReporterType.COMPANY ? "업체" : "사용자");
+                report.put("reporterPhone", "-");
+                report.put("reporterEmail", "-");
+                report.put("companyName", "-");
+                report.put("description", inquiry.getContent() != null ? inquiry.getContent() : "");
+                
+                // 상태 매핑
+                String status = "pending";
+                if (inquiry.getStatus() == UserInquiry.Status.ANSWERED) {
+                    status = "resolved";
+                } else if (inquiry.getStatus() == UserInquiry.Status.CLOSED) {
+                    status = "rejected";
+                }
+                report.put("status", status);
+                report.put("priority", "medium");
+                report.put("createdDate", inquiry.getCreatedAt() != null ? 
+                    inquiry.getCreatedAt().format(formatter) : "-");
+                
+                reports.add(report);
+            }
+        } catch (Exception e) {
+            System.err.println("문의/신고 목록 조회 실패: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
         return reports;
     }
 
     private Map<String, Object> getInquiryReportById(Long id) {
-        // 실제로는 DB에서 조회해야 함
-        List<Map<String, Object>> reports = getInquiryReports();
-
-        return reports.stream()
-                .filter(report -> report.get("id").equals(id.intValue()))
-                .findFirst()
-                .orElse(new HashMap<>());
+        try {
+            // DB에서 특정 문의/신고 조회
+            List<UserInquiry> inquiries = userInquiryService.getAdminPagedList(1, 1000, null).getContent();
+            
+            UserInquiry inquiry = inquiries.stream()
+                    .filter(i -> i.getInquiryId().equals(id.intValue()))
+                    .findFirst()
+                    .orElse(null);
+            
+            if (inquiry == null) {
+                return new HashMap<>();
+            }
+            
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+            
+            Map<String, Object> report = new HashMap<>();
+            report.put("id", inquiry.getInquiryId());
+            
+            String cleanSubject = inquiry.getSubject() != null ? 
+                inquiry.getSubject().replaceAll("^\\[(?:문의|신고):[^\\]]+\\]\\s*", "") : "제목 없음";
+            
+            String type = "inquiry";
+            if (inquiry.getSubject() != null && inquiry.getSubject().contains("[신고:")) {
+                type = "report";
+            }
+            report.put("type", type);
+            report.put("title", cleanSubject);
+            report.put("reporterName", inquiry.getReporterType() == UserInquiry.ReporterType.COMPANY ? "업체" : "사용자");
+            report.put("reporterPhone", "-");
+            report.put("reporterEmail", "-");
+            report.put("companyName", "-");
+            report.put("description", inquiry.getContent() != null ? inquiry.getContent() : "");
+            
+            String status = "pending";
+            if (inquiry.getStatus() == UserInquiry.Status.ANSWERED) {
+                status = "resolved";
+            } else if (inquiry.getStatus() == UserInquiry.Status.CLOSED) {
+                status = "rejected";
+            }
+            report.put("status", status);
+            report.put("priority", "medium");
+            report.put("createdDate", inquiry.getCreatedAt() != null ? 
+                inquiry.getCreatedAt().format(formatter) : "-");
+            
+            return report;
+        } catch (Exception e) {
+            System.err.println("문의/신고 상세 조회 실패: " + e.getMessage());
+            e.printStackTrace();
+            return new HashMap<>();
+        }
     }
 
     /**
