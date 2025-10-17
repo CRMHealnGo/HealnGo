@@ -95,4 +95,17 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
            "WHERE r.user.userId = :userId " +
            "ORDER BY r.createdAt DESC")
     Page<Reservation> findByUser_UserId(@Param("userId") Integer userId, Pageable pageable);
+    
+    // 업체별 인기 서비스 (title 기준 예약 수 집계) - Native Query
+    @Query(value = "SELECT r.title AS serviceName, " +
+                   "COUNT(*) AS reservationCount, " +
+                   "AVG(r.total_amount) AS avgPrice " +
+                   "FROM reservations r " +
+                   "WHERE r.company_id = :companyId " +
+                   "AND r.title IS NOT NULL " +
+                   "AND r.title != '' " +
+                   "GROUP BY r.title " +
+                   "ORDER BY COUNT(*) DESC " +
+                   "LIMIT :limit", nativeQuery = true)
+    List<Object[]> findTopServicesByCompany(@Param("companyId") Integer companyId, @Param("limit") int limit);
 }

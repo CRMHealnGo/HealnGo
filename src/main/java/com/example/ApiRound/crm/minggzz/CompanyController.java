@@ -1,5 +1,6 @@
 package com.example.ApiRound.crm.minggzz;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -94,8 +95,8 @@ public class CompanyController {
         List<Map<String, Object>> reviews = getCompanyReviews();
         model.addAttribute("reviews", reviews);
 
-        // 인기 이벤트 데이터
-        List<Map<String, Object>> popularEvents = getPopularEvents();
+        // 인기 서비스 데이터 (예약 수 기준)
+        List<Map<String, Object>> popularEvents = getPopularEvents(companyId);
         model.addAttribute("popularEvents", popularEvents);
 
         model.addAttribute("sidebarType", "company");
@@ -350,34 +351,46 @@ public class CompanyController {
         return reviews;
     }
 
-    private List<Map<String, Object>> getPopularEvents() {
-        List<Map<String, Object>> events = new ArrayList<>();
-
-        // 브이라인 리프팅 이벤트
-        Map<String, Object> event1 = new HashMap<>();
-        event1.put("name", "브이라인 리프팅");
-        event1.put("price", "290,000원");
-        event1.put("count", "553+");
-        event1.put("trend", "up");
-        events.add(event1);
-
-        // 모공제로 모공주사 이벤트
-        Map<String, Object> event2 = new HashMap<>();
-        event2.put("name", "모공제로 모공주사");
-        event2.put("price", "380,000원");
-        event2.put("count", "200+");
-        event2.put("trend", "down");
-        events.add(event2);
-
-        // 백옥같은 피부 레이저 이벤트
-        Map<String, Object> event3 = new HashMap<>();
-        event3.put("name", "백옥같은 피부 레이저");
-        event3.put("price", "1,090,000원");
-        event3.put("count", "110+");
-        event3.put("trend", "down");
-        events.add(event3);
-
-        return events;
+    private List<Map<String, Object>> getPopularEvents(Integer companyId) {
+        List<Map<String, Object>> services = new ArrayList<>();
+        
+        try {
+            if (companyId == null) {
+                System.err.println("companyId가 null입니다. 인기 서비스를 조회할 수 없습니다.");
+                return services;
+            }
+            
+            System.out.println("=== 인기 서비스 조회 시작 ===");
+            System.out.println("업체 ID: " + companyId);
+            
+            // DB에서 예약 수 기준 인기 서비스 조회 (상위 5개)
+            List<Object[]> topServices = reservationRepo.findTopServicesByCompany(companyId, 5);
+            System.out.println("조회된 인기 서비스 수: " + topServices.size());
+            
+            for (Object[] row : topServices) {
+                String serviceName = (String) row[0];
+                Long reservationCount = ((Number) row[1]).longValue();
+                BigDecimal avgPrice = row[2] != null ? new BigDecimal(row[2].toString()) : BigDecimal.ZERO;
+                
+                Map<String, Object> service = new HashMap<>();
+                service.put("name", serviceName);
+                service.put("price", String.format("%,d원", avgPrice.intValue()));
+                service.put("count", reservationCount + "건");
+                service.put("trend", "up"); // 예약 수만 표시하므로 trend는 up으로 고정
+                
+                services.add(service);
+                
+                System.out.println("서비스명: " + serviceName + ", 예약수: " + reservationCount + ", 평균가격: " + avgPrice);
+            }
+            
+            System.out.println("===============================");
+            
+        } catch (Exception e) {
+            System.err.println("인기 서비스 조회 실패: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return services;
     }
 
     private List<Map<String, Object>> getMedicalServices() {
