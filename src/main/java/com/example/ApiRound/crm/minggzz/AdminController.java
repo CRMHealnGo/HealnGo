@@ -226,22 +226,6 @@ public class AdminController {
         return "admin/reservations";
     }
 
-    /**
-     * 리포트 & 통계 페이지
-     */
-    @GetMapping("/report")
-    public String report(Model model, HttpSession session) {
-        model.addAttribute("managerName", session.getAttribute("managerName"));
-
-        // 통계 데이터 (실제로는 서비스에서 가져와야 함)
-        Map<String, Object> reportStats = new HashMap<>();
-        reportStats.put("totalRevenue", 0);
-        reportStats.put("totalReservations", 0);
-        reportStats.put("totalUsers", 0);
-        model.addAttribute("reportStats", reportStats);
-
-        return "admin/report";
-    }
 
     /**
      * 문의/신고 접수 페이지 (관리자용)

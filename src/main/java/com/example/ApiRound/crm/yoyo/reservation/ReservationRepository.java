@@ -15,6 +15,7 @@ import org.springframework.stereotype.Repository;
 
 import com.example.ApiRound.crm.hyeonah.entity.SocialUsers;
 import com.example.ApiRound.crm.hyeonah.entity.CompanyUser;
+import com.example.ApiRound.crm.yoyo.reservation.Reservation;
 
 @Repository
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
@@ -95,4 +96,26 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
            "WHERE r.user.userId = :userId " +
            "ORDER BY r.createdAt DESC")
     Page<Reservation> findByUser_UserId(@Param("userId") Integer userId, Pageable pageable);
+    
+    // 업체별 인기 서비스 (title 기준 예약 수 집계) - Native Query
+    @Query(value = "SELECT r.title AS serviceName, " +
+                   "COUNT(*) AS reservationCount, " +
+                   "AVG(r.total_amount) AS avgPrice " +
+                   "FROM reservations r " +
+                   "WHERE r.company_id = :companyId " +
+                   "AND r.title IS NOT NULL " +
+                   "AND r.title != '' " +
+                   "GROUP BY r.title " +
+                   "ORDER BY COUNT(*) DESC " +
+                   "LIMIT :limit", nativeQuery = true)
+    List<Object[]> findTopServicesByCompany(@Param("companyId") Integer companyId, @Param("limit") int limit);
+    
+    // 업체별 모든 예약 조회
+    List<Reservation> findByCompany(CompanyUser company);
+    
+    // 업체별 서비스명으로 예약 조회
+    List<Reservation> findByCompanyAndTitle(CompanyUser company, String title);
+    
+    // 업체와 특정 날짜로 예약 조회 (일일 시간별 통계용)
+    List<Reservation> findByCompanyAndDate(CompanyUser company, LocalDate date);
 }

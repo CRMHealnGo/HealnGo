@@ -30,11 +30,11 @@
                 <div class="dashboard-content">
                     <!-- 상단 섹션 -->
                     <div class="top-section">
-                        <!-- 일일 매출 리포트 -->
+                        <!-- 시간별 예약 리포트 -->
                         <div class="sales-report-card">
                             <div class="card-header">
-                                <h2>일일 매출 리포트</h2>
-                                <a href="#" class="view-all-link">View all ></a>
+                                <h2>시간별 예약 현황</h2>
+                                <a href="/company/company_reservation_management" class="view-all-link">View all ></a>
                             </div>
                             <div class="chart-container">
                                 <canvas id="salesChart"></canvas>
@@ -99,6 +99,31 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- 추가 차트 섹션 -->
+                    <div class="additional-charts-section" style="margin-top: 30px;">
+                        <!-- 일일 매출 그래프 -->
+                        <div class="sales-report-card" style="margin-bottom: 30px;">
+                            <div class="card-header">
+                                <h2>일일 매출 리포트</h2>
+                                <a href="/company/company_reservation_management" class="view-all-link">View all ></a>
+                            </div>
+                            <div class="chart-container" style="height: 300px;">
+                                <canvas id="dailySalesChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <!-- 최근 한 달 매출 그래프 -->
+                        <div class="sales-report-card">
+                            <div class="card-header">
+                                <h2>최근 한 달 매출 현황</h2>
+                                <a href="/company/company_reservation_management" class="view-all-link">View all ></a>
+                            </div>
+                            <div class="chart-container" style="height: 300px;">
+                                <canvas id="monthlySalesChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -110,38 +135,45 @@
     <script src="/static/crm/js/company_report.js"></script>
     
     <script th:inline="javascript">
-        // Thymeleaf에서 데이터 전달
-        const dailySalesData = /*[[${dailySalesData}]]*/ [];
+        // Thymeleaf에서 시간별 예약 데이터 전달
+        /*<![CDATA[*/
+        const hourlyReservationData = [[${dailySalesData}]];
+        /*]]>*/
+        
+        console.log('=== 시간별 예약 데이터 (프론트엔드) ===');
+        console.log('데이터:', hourlyReservationData);
+        console.log('=====================================');
         
         // 차트 생성
         document.addEventListener('DOMContentLoaded', function() {
             const ctx = document.getElementById('salesChart').getContext('2d');
             
-            // 한국인/외국인 사용자 데이터 분리
-            const months = dailySalesData.map(item => item.month);
-            const koreanUsers = dailySalesData.map(item => item.koreanUsers);
-            const foreignUsers = dailySalesData.map(item => item.foreignUsers);
+            // 시간대와 예약 수 분리
+            const hours = hourlyReservationData.map(item => item.hour);
+            const reservationCounts = hourlyReservationData.map(item => item.reservationCount);
+            
+            // 최대값 계산 (여유 있게 표시)
+            const maxCount = Math.max(...reservationCounts, 5);
+            const yAxisMax = Math.ceil(maxCount * 1.2);
             
             new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: months,
+                    labels: hours,
                     datasets: [
                         {
-                            label: '한국인 사용객',
-                            data: koreanUsers,
+                            label: '시간별 예약 수',
+                            data: reservationCounts,
                             borderColor: '#3B82F6',
                             backgroundColor: 'rgba(59, 130, 246, 0.1)',
                             tension: 0.4,
-                            fill: false
-                        },
-                        {
-                            label: '외국인 사용객',
-                            data: foreignUsers,
-                            borderColor: '#EF4444',
-                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                            tension: 0.4,
-                            fill: false
+                            fill: true,
+                            borderWidth: 3,
+                            pointBackgroundColor: '#3B82F6',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
                         }
                     ]
                 },
@@ -150,32 +182,190 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            position: 'bottom',
+                            display: true,
+                            position: 'top',
                             labels: {
                                 usePointStyle: true,
-                                padding: 20
+                                padding: 15,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return '예약 수: ' + context.parsed.y + '건';
+                                }
                             }
                         }
                     },
                     scales: {
                         y: {
                             beginAtZero: true,
-                            max: 100,
+                            max: yAxisMax,
                             ticks: {
-                                stepSize: 20
+                                stepSize: Math.ceil(yAxisMax / 5),
+                                precision: 0,
+                                callback: function(value) {
+                                    return value + '건';
+                                }
                             },
                             grid: {
-                                color: '#E5E7EB'
+                                color: '#E5E7EB',
+                                drawBorder: false
                             }
                         },
                         x: {
                             grid: {
                                 display: false
+                            },
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45,
+                                font: {
+                                    size: 10
+                                }
                             }
                         }
                     }
                 }
             });
+            
+            // ========== 새로 추가된 차트들 ==========
+            
+            // 일일 매출 그래프 (오늘 시간별 매출)
+            const dailySalesCtx = document.getElementById('dailySalesChart');
+            if (dailySalesCtx) {
+                const dailySalesData = [[${dailyRevenueData}]];
+                
+                console.log('=== 일일 매출 데이터 ===');
+                console.log('데이터:', dailySalesData);
+                
+                const dailyHours = dailySalesData.map(item => item.hour);
+                const dailyRevenue = dailySalesData.map(item => item.revenue);
+                
+                const maxDailyRevenue = Math.max(...dailyRevenue, 10000);
+                const yMaxDaily = Math.ceil(maxDailyRevenue * 1.2);
+                
+                new Chart(dailySalesCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: dailyHours,
+                        datasets: [{
+                            label: '시간별 매출 (원)',
+                            data: dailyRevenue,
+                            backgroundColor: 'rgba(52, 152, 219, 0.6)',
+                            borderColor: '#3498db',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return '매출: ' + context.parsed.y.toLocaleString() + '원';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: yMaxDaily,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value.toLocaleString() + '원';
+                                    }
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    maxRotation: 45,
+                                    minRotation: 45
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // 최근 한 달 매출 그래프 (일별 매출)
+            const monthlySalesCtx = document.getElementById('monthlySalesChart');
+            if (monthlySalesCtx) {
+                const monthlySalesData = [[${monthlyRevenueData}]];
+                
+                console.log('=== 월간 매출 데이터 ===');
+                console.log('데이터:', monthlySalesData);
+                
+                const monthlyDays = monthlySalesData.map(item => item.day);
+                const monthlyRevenue = monthlySalesData.map(item => item.revenue);
+                
+                const maxMonthlyRevenue = Math.max(...monthlyRevenue, 10000);
+                const yMaxMonthly = Math.ceil(maxMonthlyRevenue * 1.2);
+                
+                new Chart(monthlySalesCtx, {
+                    type: 'line',
+                    data: {
+                        labels: monthlyDays,
+                        datasets: [{
+                            label: '일별 매출 (원)',
+                            data: monthlyRevenue,
+                            borderColor: '#27ae60',
+                            backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#27ae60',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return '매출: ' + context.parsed.y.toLocaleString() + '원';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: yMaxMonthly,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value.toLocaleString() + '원';
+                                    }
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    maxRotation: 0,
+                                    minRotation: 0
+                                }
+                            }
+                        }
+                    }
+                });
+            }
         });
     </script>
 </body>
