@@ -415,11 +415,24 @@ body {
     border-bottom: 1px solid #e9ecef;
 }
 
+.modal-title-section {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
 .modal-header h3 {
     margin: 0;
     font-size: 18px;
     font-weight: 600;
     color: #2c3e50;
+}
+
+.modal-subtitle {
+    margin: 0;
+    font-size: 14px;
+    color: #6c757d;
+    font-weight: 400;
 }
 
 .close {
@@ -436,6 +449,174 @@ body {
 
 .modal-body {
     padding: 25px;
+}
+
+/* 예약내역 모달 스타일 */
+.large-modal .modal-content {
+    max-width: 900px;
+    width: 95%;
+}
+
+.reservations-container {
+    min-height: 400px;
+}
+
+.loading-state, .no-data-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: #6c757d;
+    text-align: center;
+    min-height: 200px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.loading-state i, .no-data-state i {
+    font-size: 48px;
+    margin-bottom: 20px;
+    opacity: 0.6;
+}
+
+.loading-state p, .no-data-state p {
+    margin: 0;
+    font-size: 16px;
+}
+
+.reservations-stats {
+    background: #f8f9fa;
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 20px;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.stat-label {
+    font-weight: 500;
+    color: white !important;
+}
+
+.stat-value {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 18px;
+}
+
+.reservations-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.reservation-item {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 20px;
+    transition: all 0.3s ease;
+}
+
+.reservation-item:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: #667eea;
+}
+
+.reservation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.customer-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.customer-name {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 16px;
+}
+
+.customer-phone {
+    color: #6c757d;
+    font-size: 14px;
+}
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    color: white;
+}
+
+.status-confirmed {
+    background: #28a745;
+}
+
+.status-cancelled {
+    background: #dc3545;
+}
+
+.status-completed {
+    background: #6c757d;
+}
+
+.status-pending {
+    background: #ffc107;
+    color: #212529;
+}
+
+.reservation-details {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.reservation-datetime,
+.reservation-service,
+.reservation-amount {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #6c757d;
+    font-size: 14px;
+}
+
+.reservation-datetime i,
+.reservation-service i,
+.reservation-amount i {
+    width: 16px;
+    text-align: center;
+}
+
+.reservations-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-top: 20px;
+    padding: 15px 0;
+    border-top: 1px solid #e9ecef;
+}
+
+.page-info {
+    font-weight: 500;
+    color: #6c757d;
 }
 
 /* 반응형 디자인 */

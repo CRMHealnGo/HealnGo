@@ -12,9 +12,12 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.example.ApiRound.crm.hyeonah.Service.CompanyUserService;
 import com.example.ApiRound.crm.hyeonah.entity.CompanyUser;
+import com.example.ApiRound.crm.yoyo.reservation.Reservation;
+import com.example.ApiRound.crm.yoyo.reservation.ReservationRepository;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -23,10 +26,21 @@ import jakarta.servlet.http.HttpSession;
 public class CompanyController {
     
     private final CompanyUserService companyUserService;
+    private final ReservationRepository reservationRepo;
     
     @Autowired
-    public CompanyController(CompanyUserService companyUserService) {
+    public CompanyController(CompanyUserService companyUserService, ReservationRepository reservationRepo) {
         this.companyUserService = companyUserService;
+        this.reservationRepo = reservationRepo;
+    }
+
+    /**
+     * 테스트 엔드포인트
+     */
+    @GetMapping("/test")
+    @ResponseBody
+    public String test() {
+        return "Company Controller is working!";
     }
 
     /**
@@ -54,9 +68,15 @@ public class CompanyController {
 
         model.addAttribute("companyStats", companyStats);
 
-        // 예약 차트 데이터
-        Map<String, Object> reservationChartData = getReservationChartData();
-        model.addAttribute("reservationChartData", reservationChartData);
+        // 예약 차트 데이터 - 실제 DB 데이터 사용
+        Optional<CompanyUser> companyOpt = companyUserService.findById(companyId);
+        if (companyOpt.isPresent()) {
+            Map<String, Object> reservationChartData = getReservationChartData(companyOpt.get());
+            model.addAttribute("reservationChartData", reservationChartData);
+        } else {
+            Map<String, Object> reservationChartData = getReservationChartData(null);
+            model.addAttribute("reservationChartData", reservationChartData);
+        }
 
         // 후기 데이터
         List<Map<String, Object>> reviews = getCompanyReviews();
@@ -200,20 +220,62 @@ public class CompanyController {
     }
 
     // 업체 페이지용 데이터 생성 메서드들
-    private Map<String, Object> getReservationChartData() {
+    private Map<String, Object> getReservationChartData(CompanyUser company) {
         Map<String, Object> chartData = new HashMap<>();
 
-        // 외국인 사용객 데이터
-        List<Integer> foreignUsers = List.of(36, 24, 30, 44, 58, 77, 89);
-        chartData.put("foreignUsers", foreignUsers);
+        if (company == null) {
+            // 업체 정보가 없을 경우 빈 데이터
+            chartData.put("days", new ArrayList<>());
+            chartData.put("reservations", new ArrayList<>());
+            chartData.put("currentMonth", java.time.LocalDate.now().getMonthValue() + "월");
+            return chartData;
+        }
 
-        // 한국인 사용객 데이터
-        List<Integer> koreanUsers = List.of(50, 60, 52, 59, 62, 80, 70);
-        chartData.put("koreanUsers", koreanUsers);
-
-        // 월별 라벨
-        List<String> months = List.of("4월", "5월", "6월", "7월", "8월", "9월", "10월");
-        chartData.put("months", months);
+        // 현재 날짜 기준으로 이번 달의 일별 예약 데이터 조회
+        java.time.LocalDate now = java.time.LocalDate.now();
+        java.time.LocalDate startOfMonth = now.withDayOfMonth(1);
+        java.time.LocalDate endOfMonth = now.withDayOfMonth(now.lengthOfMonth());
+        
+        // 이번 달 시작과 끝의 LocalDateTime 생성
+        java.time.LocalDateTime startDateTime = startOfMonth.atStartOfDay();
+        java.time.LocalDateTime endDateTime = endOfMonth.atTime(23, 59, 59);
+        
+        System.out.println("=== 예약 차트 데이터 디버깅 ===");
+        System.out.println("업체 ID: " + company.getCompanyId());
+        System.out.println("업체명: " + company.getCompanyName());
+        System.out.println("조회 기간 (created_at): " + startDateTime + " ~ " + endDateTime);
+        
+        // 이번 달의 모든 예약 조회 (created_at 기준)
+        List<Reservation> monthReservations = reservationRepo.findByCompanyAndCreatedAtBetween(company, startDateTime, endDateTime);
+        System.out.println("조회된 예약 수: " + monthReservations.size());
+        
+        // 일별 데이터 집계
+        List<String> days = new ArrayList<>();
+        List<Integer> dailyReservations = new ArrayList<>();
+        
+        // 이번 달의 모든 날짜에 대해 예약 수 집계 (1일부터 오늘까지)
+        for (int day = 1; day <= now.getDayOfMonth(); day++) {
+            java.time.LocalDate date = now.withDayOfMonth(day);
+            days.add(day + "일");
+            
+            // 해당 날짜에 생성된 예약 수 계산 (created_at 기준)
+            long count = monthReservations.stream()
+                .filter(r -> r.getCreatedAt() != null && r.getCreatedAt().toLocalDate().equals(date))
+                .count();
+            
+            if (count > 0) {
+                System.out.println(day + "일 예약 생성 수: " + count);
+            }
+            
+            dailyReservations.add((int) count);
+        }
+        
+        System.out.println("최종 예약 데이터: " + dailyReservations);
+        System.out.println("===============================");
+        
+        chartData.put("days", days);
+        chartData.put("reservations", dailyReservations);
+        chartData.put("currentMonth", now.getMonthValue() + "월");
 
         return chartData;
     }

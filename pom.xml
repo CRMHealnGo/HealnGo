@@ -67,6 +67,12 @@
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
 
+        <!-- Spring WebSocket -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+
         <!-- JSP (정말 함께 쓸 경우에만 유지; 버전은 BOM에 위임) -->
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>

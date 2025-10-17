@@ -469,6 +469,22 @@ body {
     color: #0c5460;
 }
 
+.booking-status.cancelled {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* 예약 내역이 없을 때 */
+.no-reservations {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 0;
+    color: #999;
+    font-style: italic;
+    font-size: 14px;
+}
+
 /* 정보 수정 모달 */
 .profile-modal {
     display: none;

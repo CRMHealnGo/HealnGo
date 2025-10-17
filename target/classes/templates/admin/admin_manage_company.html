@@ -227,7 +227,9 @@
                             <button class="action-btn" id="productListBtn" onclick="openMedicalServiceModalFromSidebar()">
                                 <i class="fas fa-list"></i> 상품 목록
                             </button>
-                            <button class="action-btn">상세 페이지</button>
+                            <button class="action-btn" id="reservationHistoryBtn" onclick="openReservationModalFromSidebar()">
+                                <i class="fas fa-calendar-alt"></i> 예약 내역
+                            </button>
                         </div>
                     </div>
                     
@@ -376,6 +378,86 @@
             
             <div class="modal-footer">
                 <button class="btn-secondary" onclick="closeMedicalServiceModal()">닫기</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 예약내역 모달 -->
+    <div id="reservationModal" class="modal-overlay">
+        <div class="modal-container large-modal">
+            <div class="modal-header">
+                <div class="modal-title-section">
+                    <h2 class="modal-title">예약내역</h2>
+                    <p class="modal-subtitle" id="reservationModalCompanyName">업체명</p>
+                </div>
+                <button class="modal-close" onclick="closeReservationModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <!-- 로딩 스피너 -->
+                <div id="reservationLoading" class="modal-loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>예약내역을 불러오는 중...</p>
+                </div>
+                
+                <!-- 예약내역 목록 -->
+                <div id="reservationListContainer" class="reservation-list-container" style="display: none;">
+                    <!-- 통계 카드 -->
+                    <div class="reservation-stats">
+                        <div class="stat-item">
+                            <div class="stat-icon">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-number" id="totalReservations">0</span>
+                                <span class="stat-label">총 예약</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 예약 테이블 -->
+                    <div class="reservation-table-wrapper">
+                        <table class="reservation-table">
+                            <thead>
+                                <tr>
+                                    <th>예약 ID</th>
+                                    <th>고객명</th>
+                                    <th>연락처</th>
+                                    <th>예약일시</th>
+                                    <th>서비스</th>
+                                    <th>금액</th>
+                                    <th>상태</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reservationTableBody">
+                                <!-- JavaScript로 동적 생성 -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- 페이지네이션 -->
+                    <div class="reservation-pagination" id="reservationPagination" style="display: none;">
+                        <button class="btn-secondary" id="prevReservationBtn" onclick="loadReservationsPage(-1)">
+                            <i class="fas fa-chevron-left"></i> 이전
+                        </button>
+                        <span class="page-info" id="reservationPageInfo">페이지 1 / 1</span>
+                        <button class="btn-secondary" id="nextReservationBtn" onclick="loadReservationsPage(1)">
+                            다음 <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 예약내역이 없을 때 -->
+                <div id="noReservations" class="no-reservations" style="display: none;">
+                    <i class="fas fa-calendar-times"></i>
+                    <p>예약된 내역이 없습니다.</p>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeReservationModal()">닫기</button>
             </div>
         </div>
     </div>

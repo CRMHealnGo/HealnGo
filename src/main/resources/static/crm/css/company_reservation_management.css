@@ -527,6 +527,32 @@
     background: #e74c3c;
 }
 
+.status-completed {
+    background: #95a5a6;
+}
+
+/* 예약 내역이 없을 때 메시지 */
+.no-reservations-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: #95a5a6;
+    text-align: center;
+}
+
+.no-reservations-message i {
+    font-size: 64px;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.no-reservations-message p {
+    font-size: 16px;
+    margin: 0;
+}
+
 .item-datetime {
     font-size: 14px;
     color: #34495e;

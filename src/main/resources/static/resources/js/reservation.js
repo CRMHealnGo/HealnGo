@@ -399,15 +399,9 @@ function closeReservationModal() {
 function updateModalContent() {
     const selectedProcedures = document.querySelectorAll('.procedure-checkbox:checked');
     
-    // Update reservation name to "Yoyo"
-    const reservationNameElement = document.querySelector('.info-card .info-row .value');
-    if (reservationNameElement) {
-        reservationNameElement.textContent = 'Yoyo';
-    }
-    
     // 서비스명 업데이트
     if (serviceData) {
-        const serviceNameElement = document.querySelector('.info-card:nth-child(4) .info-row:first-child .value');
+        const serviceNameElement = document.getElementById('serviceName');
         if (serviceNameElement) {
             serviceNameElement.textContent = serviceData.name || '서비스';
         }
@@ -415,10 +409,28 @@ function updateModalContent() {
     
     // 병원명 업데이트
     if (hospitalData) {
-        const hospitalNameElement = document.querySelector('.info-card:nth-child(4) .info-row:nth-child(3) .value');
+        const hospitalNameElement = document.getElementById('hospitalName');
         if (hospitalNameElement) {
             hospitalNameElement.textContent = hospitalData.name || '병원';
         }
+    }
+    
+    // 예약 일시 업데이트 (현재 날짜와 선택된 시간)
+    const selectedDate = document.getElementById('reservationDate');
+    const selectedTime = document.querySelector('.time-slot.selected');
+    const reservationDateTimeElement = document.getElementById('reservationDateTime');
+    
+    if (selectedDate && selectedTime && reservationDateTimeElement) {
+        const date = new Date(selectedDate.value);
+        const time = selectedTime.textContent;
+        const formattedDate = date.toLocaleDateString('ko-KR', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            weekday: 'short'
+        }).replace(/\./g, '.').replace(/\s/g, '');
+        
+        reservationDateTimeElement.textContent = `${formattedDate} ${time}`;
     }
     
     // Update total amount in modal
@@ -446,10 +458,11 @@ window.addEventListener('click', function(event) {
 });
 
 // Confirm reservation
-function confirmReservation() {
+async function confirmReservation() {
     // Get selected procedures
     const selectedProcedures = document.querySelectorAll('.procedure-checkbox:checked');
     const selectedTime = document.querySelector('.time-slot.selected');
+    const selectedDate = document.getElementById('reservationDate');
     
     if (selectedProcedures.length === 0) {
         alert('시술을 선택해주세요.');
@@ -461,23 +474,77 @@ function confirmReservation() {
         return;
     }
     
-    // In a real application, this would send data to the server
+    if (!selectedDate || !selectedDate.value) {
+        alert('예약 날짜를 선택해주세요.');
+        return;
+    }
+    
+    // Get reservation data
+    const serviceName = selectedProcedures[0].closest('.procedure-option').querySelector('.procedure-name').textContent;
+    const totalAmountText = document.querySelector('.amount').textContent;
+    const totalAmount = parseFloat(totalAmountText.replace(/,/g, ''));
+    const hospitalName = hospitalData ? hospitalData.name : 'Yoyo의원';
+    
+    // Calculate end time (assuming 1 hour duration)
+    const startTime = selectedTime.textContent;
+    const [hours, minutes] = startTime.split(':').map(Number);
+    const endTime = new Date();
+    endTime.setHours(hours + 1, minutes);
+    const endTimeString = endTime.toTimeString().slice(0, 5);
+    
+    // URL 파라미터에서 companyId 가져오기 (있다면)
+    let companyId = getCompanyIdFromUrl();
+    
     const reservationData = {
-        procedures: Array.from(selectedProcedures).map(cb => ({
-            name: cb.closest('.procedure-option').querySelector('.procedure-name').textContent,
-            price: cb.closest('.procedure-option').querySelector('.procedure-price').textContent
-        })),
-        time: selectedTime.textContent,
-        totalPrice: document.querySelector('.amount').textContent
+        serviceName: serviceName,
+        date: selectedDate.value,
+        startTime: startTime + ':00',
+        endTime: endTimeString + ':00',
+        description: serviceData ? serviceData.description : '시술 예약',
+        hospitalName: hospitalName,
+        totalAmount: totalAmount,
+        companyId: companyId, // URL 파라미터에서 가져온 값 (없으면 null)
+        itemId: hospitalData ? hospitalData.id : null // itemId는 별도로 전송
     };
     
-    console.log('Reservation Data:', reservationData);
+    console.log('Sending reservation data:', reservationData);
     
-    // Show success message
-    alert('예약이 완료되었습니다.');
-    closeReservationModal();
+    // Show loading state
+    const confirmBtn = document.querySelector('.confirm-btn');
+    const originalText = confirmBtn.textContent;
+    confirmBtn.textContent = '예약 처리 중...';
+    confirmBtn.disabled = true;
     
-    // In a real application, redirect to confirmation page or show success message
+    try {
+        // Send data to server
+        const response = await fetch('/api/reservation/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(reservationData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('예약이 완료되었습니다!');
+            closeReservationModal();
+            
+            // Optional: redirect to confirmation page or show success message
+            // window.location.href = '/reservation-success?id=' + result.reservationId;
+        } else {
+            alert('예약 처리 중 오류가 발생했습니다: ' + result.message);
+        }
+        
+    } catch (error) {
+        console.error('Reservation error:', error);
+        alert('예약 처리 중 오류가 발생했습니다.');
+    } finally {
+        // Restore button state
+        confirmBtn.textContent = originalText;
+        confirmBtn.disabled = false;
+    }
 }
 
 // Add event listener for confirm button
@@ -506,6 +573,13 @@ function validateReservation() {
     }
     
     return { valid: true, message: '' };
+}
+
+// URL에서 업체 ID 가져오기
+function getCompanyIdFromUrl() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const companyId = urlParams.get('companyId');
+    return companyId ? parseInt(companyId) : null;
 }
 
 // Export functions for testing (if needed)
