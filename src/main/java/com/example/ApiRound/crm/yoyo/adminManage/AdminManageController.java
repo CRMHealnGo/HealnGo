@@ -2,9 +2,15 @@ package com.example.ApiRound.crm.yoyo.adminManage;
 
 import com.example.ApiRound.crm.yoyo.adminManage.AdminManageService;
 import com.example.ApiRound.entity.ItemList;
+import com.example.ApiRound.crm.yoyo.reservation.ReservationService;
+import com.example.ApiRound.crm.yoyo.reservation.ReservationDto;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -26,6 +32,7 @@ import java.util.HashMap;
 public class AdminManageController {
 
     private final AdminManageService adminManageService;
+    private final ReservationService reservationService;
 
     @GetMapping("/companies")
     public String companies(
@@ -165,6 +172,58 @@ public class AdminManageController {
             errorResponse.put("companyId", companyId);
 
             return ResponseEntity.status(500).body(errorResponse);
+        }
+    }
+    
+    /**
+     * 업체별 예약내역 조회 API
+     */
+    @GetMapping("/api/companies/{companyId}/reservations")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getCompanyReservations(
+            @PathVariable Integer companyId,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
+        
+        log.info("====== AdminManageController.getCompanyReservations 호출 ======");
+        log.info("Company ID: {}, Page: {}, Size: {}", companyId, page, size);
+        
+        try {
+            // 업체 존재 확인 (AdminManageService를 통해)
+            boolean companyExists = adminManageService.checkCompanyExists(companyId);
+            if (!companyExists) {
+                log.warn("업체를 찾을 수 없습니다: {}", companyId);
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("message", "업체를 찾을 수 없습니다.");
+                return ResponseEntity.notFound().build();
+            }
+
+            // 예약 목록 조회
+            Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending().and(Sort.by("startTime").descending()));
+            Page<ReservationDto> reservations = reservationService.getCompanyReservations(companyId, pageable);
+
+            // 업체명 조회
+            String companyName = adminManageService.getCompanyName(companyId);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("companyName", companyName);
+            response.put("reservations", reservations.getContent());
+            response.put("totalElements", reservations.getTotalElements());
+            response.put("totalPages", reservations.getTotalPages());
+            response.put("currentPage", page);
+            response.put("size", size);
+
+            log.info("예약내역 조회 완료: {}개 예약, 총 {}개", reservations.getContent().size(), reservations.getTotalElements());
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("예약내역 조회 중 오류 발생: ", e);
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "예약 내역 조회 중 오류가 발생했습니다: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
         }
     }
 }

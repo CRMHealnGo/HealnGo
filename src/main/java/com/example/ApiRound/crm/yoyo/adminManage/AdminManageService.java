@@ -281,4 +281,40 @@ public class AdminManageService {
             return 0;
         }
     }
+    
+    /**
+     * 업체 존재 여부 확인
+     */
+    public boolean checkCompanyExists(Integer companyId) {
+        log.info("====== AdminManageService.checkCompanyExists 호출 ======");
+        log.info("업체 ID: {}", companyId);
+        
+        try {
+            boolean exists = adminManageRepository.existsByCompanyId(companyId);
+            log.info("업체 존재 여부: {}", exists);
+            return exists;
+            
+        } catch (Exception e) {
+            log.error("업체 존재 여부 확인 중 오류 발생: ", e);
+            return false;
+        }
+    }
+    
+    /**
+     * 업체명 조회
+     */
+    public String getCompanyName(Integer companyId) {
+        log.info("====== AdminManageService.getCompanyName 호출 ======");
+        log.info("업체 ID: {}", companyId);
+        
+        try {
+            String companyName = adminManageRepository.getCompanyNameById(companyId);
+            log.info("업체명: {}", companyName);
+            return companyName != null ? companyName : "업체명 없음";
+            
+        } catch (Exception e) {
+            log.error("업체명 조회 중 오류 발생: ", e);
+            return "업체명 조회 실패";
+        }
+    }
 }

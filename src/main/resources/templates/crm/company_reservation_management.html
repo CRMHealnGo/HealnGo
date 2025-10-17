@@ -22,7 +22,7 @@
         <!-- 페이지 컨텐츠 -->
         <div class="page-content">
             <div class="page-header">
-                <h1 class="page-title">피부과병원_힝거피부과</h1>
+                <h1 class="page-title" th:text="${companyName != null ? companyName : '업체명'}">피부과병원_힝거피부과</h1>
                 <h2 class="section-title">예약 관리</h2>
             </div>
 
@@ -33,8 +33,8 @@
                         <i class="fas fa-calendar-check"></i>
                     </div>
                     <div class="stat-content">
-                        <h3 class="stat-number">320</h3>
-                        <p class="stat-label">이번 달 예약</p>
+                        <h3 class="stat-number" th:text="${totalCount}">0</h3>
+                        <p class="stat-label">전체 예약</p>
                     </div>
                 </div>
                 <div class="stat-card">
@@ -42,8 +42,8 @@
                         <i class="fas fa-check-circle"></i>
                     </div>
                     <div class="stat-content">
-                        <h3 class="stat-number">280</h3>
-                        <p class="stat-label">완료된 예약</p>
+                        <h3 class="stat-number" th:text="${confirmedCount}">0</h3>
+                        <p class="stat-label">확정된 예약</p>
                     </div>
                 </div>
                 <div class="stat-card">
@@ -51,17 +51,17 @@
                         <i class="fas fa-times-circle"></i>
                     </div>
                     <div class="stat-content">
-                        <h3 class="stat-number">25</h3>
+                        <h3 class="stat-number" th:text="${cancelledCount}">0</h3>
                         <p class="stat-label">취소된 예약</p>
                     </div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon">
-                        <i class="fas fa-won-sign"></i>
+                        <i class="fas fa-check-double"></i>
                     </div>
                     <div class="stat-content">
-                        <h3 class="stat-number">15,000,000</h3>
-                        <p class="stat-label">이번 달 매출</p>
+                        <h3 class="stat-number" th:text="${completedCount}">0</h3>
+                        <p class="stat-label">완료된 예약</p>
                     </div>
                 </div>
             </div>
@@ -167,104 +167,65 @@
                         
                         <!-- 예약 아이템 리스트 -->
                         <div class="reservation-items" id="reservationList">
-                            <div class="reservation-item" data-date="2024-10-15">
+                            <!-- 예약 내역이 없을 때 -->
+                            <div th:if="${#lists.isEmpty(reservations.content)}" class="no-reservations-message">
+                                <i class="fas fa-calendar-times"></i>
+                                <p>예약 내역이 없습니다.</p>
+                            </div>
+                            
+                            <!-- 실제 예약 데이터 표시 -->
+                            <div th:each="reservation : ${reservations.content}" 
+                                 class="reservation-item" 
+                                 th:attr="data-date=${#temporals.format(reservation.date, 'yyyy-MM-dd')},
+                                         data-id=${reservation.id}">
                                 <div class="item-header">
                                     <div class="customer-info">
-                                        <span class="customer-name">홍길동</span>
-                                        <span class="customer-phone">010-1234-5678</span>
+                                        <span class="customer-name" th:text="${reservation.customerName}">고객명</span>
+                                        <span class="customer-phone" th:text="${reservation.customerContact}">연락처</span>
                                     </div>
-                                    <span class="status-badge status-reserved">예약</span>
+                                    <!-- 상태 뱃지 -->
+                                    <span th:if="${reservation.status == 'CONFIRMED'}" 
+                                          class="status-badge status-confirmed">확정</span>
+                                    <span th:if="${reservation.status == 'CANCELLED'}" 
+                                          class="status-badge status-cancelled">취소</span>
+                                    <span th:if="${reservation.status == 'COMPLETED'}" 
+                                          class="status-badge status-completed">완료</span>
+                                    <span th:if="${reservation.status != 'CONFIRMED' and reservation.status != 'CANCELLED' and reservation.status != 'COMPLETED'}" 
+                                          class="status-badge status-reserved">예약</span>
                                 </div>
                                 <div class="item-datetime">
                                     <i class="fas fa-calendar"></i>
-                                    2024-10-15 14:00
+                                    <span th:text="${#temporals.format(reservation.date, 'yyyy-MM-dd')} + ' ' + ${#temporals.format(reservation.startTime, 'HH:mm')}">2024-10-15 14:00</span>
                                 </div>
-                                <div class="item-service">
-                                    레이저 토닝
+                                <div class="item-service" th:text="${reservation.title}">
+                                    서비스명
                                 </div>
                                 <div class="item-actions">
-                                    <button class="btn-action btn-confirm" onclick="confirmReservation(this)" title="확정">
+                                    <!-- CONFIRMED가 아닌 경우 확정 버튼 표시 -->
+                                    <button th:if="${reservation.status != 'CONFIRMED' and reservation.status != 'CANCELLED' and reservation.status != 'COMPLETED'}" 
+                                            class="btn-action btn-confirm" 
+                                            th:onclick="'confirmReservation(' + ${reservation.id} + ')'" 
+                                            title="확정">
                                         <i class="fas fa-check"></i>
                                     </button>
-                                    <button class="btn-action btn-edit" onclick="editReservation(this)" title="수정">
-                                        <i class="fas fa-edit"></i>
+                                    <!-- COMPLETED가 아닌 경우 완료 버튼 표시 -->
+                                    <button th:if="${reservation.status == 'CONFIRMED'}" 
+                                            class="btn-action btn-complete" 
+                                            th:onclick="'completeReservation(' + ${reservation.id} + ')'" 
+                                            title="완료">
+                                        <i class="fas fa-check-double"></i>
                                     </button>
-                                    <button class="btn-action btn-delete" onclick="deleteReservation(this)" title="삭제">
-                                        <i class="fas fa-trash"></i>
+                                    <!-- 취소되지 않은 예약만 취소 버튼 표시 -->
+                                    <button th:if="${reservation.status != 'CANCELLED' and reservation.status != 'COMPLETED'}" 
+                                            class="btn-action btn-cancel" 
+                                            th:onclick="'cancelReservation(' + ${reservation.id} + ')'" 
+                                            title="취소">
+                                        <i class="fas fa-times"></i>
                                     </button>
-                                </div>
-                            </div>
-                            
-                            <div class="reservation-item" data-date="2024-10-15">
-                                <div class="item-header">
-                                    <div class="customer-info">
-                                        <span class="customer-name">김영희</span>
-                                        <span class="customer-phone">010-2345-6789</span>
-                                    </div>
-                                    <span class="status-badge status-confirmed">확정</span>
-                                </div>
-                                <div class="item-datetime">
-                                    <i class="fas fa-calendar"></i>
-                                    2024-10-15 15:30
-                                </div>
-                                <div class="item-service">
-                                    보톡스 시술
-                                </div>
-                                <div class="item-actions">
-                                    <button class="btn-action btn-edit" onclick="editReservation(this)" title="수정">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn-action btn-delete" onclick="deleteReservation(this)" title="삭제">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="reservation-item" data-date="2024-10-16">
-                                <div class="item-header">
-                                    <div class="customer-info">
-                                        <span class="customer-name">이철수</span>
-                                        <span class="customer-phone">010-3456-7890</span>
-                                    </div>
-                                    <span class="status-badge status-reserved">예약</span>
-                                </div>
-                                <div class="item-datetime">
-                                    <i class="fas fa-calendar"></i>
-                                    2024-10-16 10:00
-                                </div>
-                                <div class="item-service">
-                                    필러 시술
-                                </div>
-                                <div class="item-actions">
-                                    <button class="btn-action btn-confirm" onclick="confirmReservation(this)" title="확정">
-                                        <i class="fas fa-check"></i>
-                                    </button>
-                                    <button class="btn-action btn-edit" onclick="editReservation(this)" title="수정">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn-action btn-delete" onclick="deleteReservation(this)" title="삭제">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="reservation-item" data-date="2024-10-16">
-                                <div class="item-header">
-                                    <div class="customer-info">
-                                        <span class="customer-name">박민수</span>
-                                        <span class="customer-phone">010-4567-8901</span>
-                                    </div>
-                                    <span class="status-badge status-cancelled">취소</span>
-                                </div>
-                                <div class="item-datetime">
-                                    <i class="fas fa-calendar"></i>
-                                    2024-10-16 14:00
-                                </div>
-                                <div class="item-service">
-                                    레이저 제모
-                                </div>
-                                <div class="item-actions">
-                                    <button class="btn-action btn-delete" onclick="deleteReservation(this)" title="삭제">
+                                    <!-- 항상 삭제 버튼 표시 -->
+                                    <button class="btn-action btn-delete" 
+                                            th:onclick="'deleteReservation(' + ${reservation.id} + ')'" 
+                                            title="삭제">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
