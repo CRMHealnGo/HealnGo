@@ -236,13 +236,17 @@ public class CompanyController {
         java.time.LocalDate startOfMonth = now.withDayOfMonth(1);
         java.time.LocalDate endOfMonth = now.withDayOfMonth(now.lengthOfMonth());
         
+        // 이번 달 시작과 끝의 LocalDateTime 생성
+        java.time.LocalDateTime startDateTime = startOfMonth.atStartOfDay();
+        java.time.LocalDateTime endDateTime = endOfMonth.atTime(23, 59, 59);
+        
         System.out.println("=== 예약 차트 데이터 디버깅 ===");
         System.out.println("업체 ID: " + company.getCompanyId());
         System.out.println("업체명: " + company.getCompanyName());
-        System.out.println("조회 기간: " + startOfMonth + " ~ " + endOfMonth);
+        System.out.println("조회 기간 (created_at): " + startDateTime + " ~ " + endDateTime);
         
-        // 이번 달의 모든 예약 조회
-        List<Reservation> monthReservations = reservationRepo.findByCompanyAndDateBetween(company, startOfMonth, endOfMonth);
+        // 이번 달의 모든 예약 조회 (created_at 기준)
+        List<Reservation> monthReservations = reservationRepo.findByCompanyAndCreatedAtBetween(company, startDateTime, endDateTime);
         System.out.println("조회된 예약 수: " + monthReservations.size());
         
         // 일별 데이터 집계
@@ -254,13 +258,13 @@ public class CompanyController {
             java.time.LocalDate date = now.withDayOfMonth(day);
             days.add(day + "일");
             
-            // 해당 날짜의 예약 수 계산
+            // 해당 날짜에 생성된 예약 수 계산 (created_at 기준)
             long count = monthReservations.stream()
-                .filter(r -> r.getDate().equals(date))
+                .filter(r -> r.getCreatedAt() != null && r.getCreatedAt().toLocalDate().equals(date))
                 .count();
             
             if (count > 0) {
-                System.out.println(day + "일 예약 수: " + count);
+                System.out.println(day + "일 예약 생성 수: " + count);
             }
             
             dailyReservations.add((int) count);

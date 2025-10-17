@@ -85,21 +85,32 @@ public class ReservationController {
                                 companyId = item.getOwnerCompany().getCompanyId();
                                 log.info("itemId {}로 companyId 찾음: {}", itemId, companyId);
                             } else {
-                                log.warn("itemId {}의 ownerCompany가 null입니다. 기본값 사용", itemId);
-                                companyId = 1; // 임시 기본값
+                                log.error("itemId {}의 ownerCompany가 null입니다. 예약할 수 없습니다.", itemId);
+                                return ResponseEntity.status(400).body(Map.of(
+                                    "success", false,
+                                    "message", "해당 상품의 업체 정보를 찾을 수 없습니다. 관리자에게 문의해주세요."
+                                ));
                             }
                         } else {
-                            log.warn("itemId {}에 해당하는 ItemList를 찾을 수 없습니다. 기본값 사용", itemId);
-                            companyId = 1; // 임시 기본값
+                            log.error("itemId {}에 해당하는 ItemList를 찾을 수 없습니다.", itemId);
+                            return ResponseEntity.status(400).body(Map.of(
+                                "success", false,
+                                "message", "존재하지 않는 상품입니다. 페이지를 새로고침해주세요."
+                            ));
                         }
                     } catch (Exception e) {
                         log.error("itemId 처리 오류: ", e);
-                        log.warn("예외 발생으로 기본값 사용");
-                        companyId = 1; // 임시 기본값
+                        return ResponseEntity.status(500).body(Map.of(
+                            "success", false,
+                            "message", "예약 처리 중 오류가 발생했습니다. 다시 시도해주세요."
+                        ));
                     }
                 } else {
-                    log.warn("itemId를 찾을 수 없습니다. 기본값 사용");
-                    companyId = 1; // 임시 기본값
+                    log.error("예약 요청에 itemId가 없습니다.");
+                    return ResponseEntity.status(400).body(Map.of(
+                        "success", false,
+                        "message", "예약할 상품 정보가 없습니다. 페이지를 새로고침해주세요."
+                    ));
                 }
             }
             

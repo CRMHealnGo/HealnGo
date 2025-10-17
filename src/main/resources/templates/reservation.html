@@ -124,11 +124,11 @@
                     <h3>예약자 정보</h3>
                     <div class="info-row">
                         <span class="label">이름</span>
-                        <span class="value">Yoyo Kang</span>
+                        <span class="value" th:text="${session.userName != null ? session.userName : '로그인 필요'}">로그인 필요</span>
                     </div>
                     <div class="info-row">
                         <span class="label">연락처</span>
-                        <span class="value">010-0000-0000</span>
+                        <span class="value" th:text="${session.userPhone != null ? session.userPhone : '-'}">-</span>
                     </div>
                 </div>
 
@@ -136,7 +136,7 @@
                 <div class="info-card">
                     <h3>예약 날짜</h3>
                     <div class="date-picker">
-                        <input type="date" id="reservationDate" value="2025-10-01" min="2025-01-01" max="2025-12-31">
+                        <input type="date" id="reservationDate" th:value="${#temporals.format(#temporals.createToday(), 'yyyy-MM-dd')}" min="2025-01-01" max="2025-12-31">
                     </div>
                 </div>
 
@@ -161,15 +161,15 @@
                     <h3>선택 서비스</h3>
                     <div class="info-row">
                         <span class="label">서비스명</span>
-                        <span class="value">국산틱 포스 500 1회 한정가</span>
+                        <span class="value" id="serviceName">서비스명</span>
                     </div>
                     <div class="info-row">
                         <span class="label">예약 일시</span>
-                        <span class="value">2025.10.01 (수) 15:00</span>
+                        <span class="value" id="reservationDateTime">예약 일시</span>
                     </div>
                     <div class="info-row">
                         <span class="label">병원명</span>
-                        <span class="value">Yoyo의원</span>
+                        <span class="value" id="hospitalName">병원명</span>
                     </div>
                 </div>
 

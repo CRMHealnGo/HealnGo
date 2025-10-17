@@ -525,21 +525,21 @@
     <!-- JavaScript -->
     <script src="/crm/js/company_sidebar.js"></script>
     <script src="/crm/js/company_header.js"></script>
-    <script>
+    <script th:inline="javascript">
         // 예약 관리 차트 초기화
         document.addEventListener('DOMContentLoaded', function() {
             const ctx = document.getElementById('companyReservationChart');
             if (ctx) {
                 // Thymeleaf에서 전달받은 실제 DB 데이터
-                const reservationData = /*[[${reservationChartData}]]*/ null;
-                console.log('Thymeleaf raw data:', reservationData);
+                /*<![CDATA[*/
+                const days = [[${reservationChartData.days}]];
+                const reservations = [[${reservationChartData.reservations}]];
+                const currentMonth = [[${reservationChartData.currentMonth}]];
+                /*]]>*/
                 
-                const days = reservationData ? reservationData.days : ['1일', '2일', '3일'];
-                const reservations = reservationData ? reservationData.reservations : [0, 0, 0];
-                const currentMonth = reservationData ? reservationData.currentMonth : '10월';
-                
-                // 디버깅 로그 추가
+                // 디버깅 로그
                 console.log('=== 프론트엔드 차트 데이터 디버깅 ===');
+                console.log('days length:', days.length);
                 console.log('days:', days);
                 console.log('reservations:', reservations);
                 console.log('currentMonth:', currentMonth);
@@ -605,6 +605,12 @@
                             x: {
                                 grid: {
                                     display: false
+                                },
+                                ticks: {
+                                    autoSkip: true,
+                                    maxTicksLimit: 10,
+                                    maxRotation: 0,
+                                    minRotation: 0
                                 }
                             }
                         }
