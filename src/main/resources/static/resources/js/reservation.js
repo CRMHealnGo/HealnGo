@@ -99,7 +99,7 @@ function displayServiceData() {
         procedureSelection.innerHTML = `
             <div class="procedure-option">
                 <div class="option-content">
-                    <input type="checkbox" id="selectedService" class="procedure-checkbox" checked disabled>
+                    <input type="checkbox" id="selectedService" class="procedure-checkbox" checked>
                     <label for="selectedService" class="procedure-label">
                         <div class="procedure-info">
                             <div class="procedure-name">${serviceData.name || '서비스'}</div>
