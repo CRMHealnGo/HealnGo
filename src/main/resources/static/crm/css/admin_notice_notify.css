@@ -711,23 +711,23 @@ form {
         align-items: flex-start;
         gap: 15px;
     }
-    
+
     .filters-section {
         padding: 15px;
     }
-    
+
     .search-bar {
         flex-direction: column;
     }
-    
+
     .notify-stats {
         grid-template-columns: 1fr;
     }
-    
+
     .form-row {
         grid-template-columns: 1fr;
     }
-    
+
     .notice-item,
     .notify-item {
         flex-direction: column;

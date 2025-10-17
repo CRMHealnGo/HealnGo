@@ -40,10 +40,6 @@
                             <div class="stat-label">이번달 신규</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-number" th:text="${reportsReceived}">0</div>
-                            <div class="stat-label">신고 접수</div>
-                        </div>
-                        <div class="stat-card">
                             <div class="stat-number" th:text="${underSanction}">0</div>
                             <div class="stat-label">제재 중</div>
                         </div>
@@ -79,19 +75,9 @@
                                 정상
                             </button>
                             <button class="filter-tab" 
-                                    th:classappend="${status == 'REPORTED'} ? 'active' : ''"
-                                    onclick="location.href='/admin/companies?status=REPORTED'">
-                                신고 접수
-                            </button>
-                            <button class="filter-tab" 
                                     th:classappend="${status == 'SUSPENDED'} ? 'active' : ''"
                                     onclick="location.href='/admin/companies?status=SUSPENDED'">
                                 제재중
-                            </button>
-                            <button class="filter-tab" 
-                                    th:classappend="${status == 'DORMANT'} ? 'active' : ''"
-                                    onclick="location.href='/admin/companies?status=DORMANT'">
-                                휴먼
                             </button>
                             <button class="filter-tab" 
                                     th:classappend="${status == 'PENDING'} ? 'active' : ''"
@@ -230,51 +216,6 @@
                             <button class="action-btn" id="reservationHistoryBtn" onclick="openReservationModalFromSidebar()">
                                 <i class="fas fa-calendar-alt"></i> 예약 내역
                             </button>
-                        </div>
-                    </div>
-                    
-                    <!-- 업체 문의 & 신고 접수 -->
-                    <div class="sidebar-section">
-                        <h3>업체 문의 & 신고 접수</h3>
-                        <div class="inquiry-list">
-                            <div class="inquiry-item">
-                                <div class="inquiry-avatar">
-                                    <i class="fas fa-user"></i>
-                                </div>
-                                <div class="inquiry-content">
-                                    <div class="inquiry-user">
-                                        <div class="user-name">기쁨 성형외과</div>
-                                        <div class="user-type">눈 전문 성형외과</div>
-                                    </div>
-                                    <div class="inquiry-message">
-                                        <i class="fas fa-comment"></i>
-                                        <span>병원에서 진행하는 프로모션을 광고하고 싶어요.</span>
-                                    </div>
-                                    <div class="inquiry-attachment">
-                                        <i class="fas fa-paperclip"></i>
-                                        <span>Attached files to the task</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="inquiry-item">
-                                <div class="inquiry-avatar">
-                                    <i class="fas fa-user"></i>
-                                </div>
-                                <div class="inquiry-content">
-                                    <div class="inquiry-user">
-                                        <div class="user-name">Emily Tyler</div>
-                                        <div class="user-type">사용자</div>
-                                    </div>
-                                    <div class="inquiry-message">
-                                        <i class="fas fa-comment"></i>
-                                        <span>바밤바피부과에서 이상한 연락을 보내서 신고하고 싶어요.</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="view-more">
-                            <a href="#">View more</a>
                         </div>
                     </div>
                 </div>
