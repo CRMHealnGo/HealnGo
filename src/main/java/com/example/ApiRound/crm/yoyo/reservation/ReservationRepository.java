@@ -15,6 +15,7 @@ import org.springframework.stereotype.Repository;
 
 import com.example.ApiRound.crm.hyeonah.entity.SocialUsers;
 import com.example.ApiRound.crm.hyeonah.entity.CompanyUser;
+import com.example.ApiRound.crm.yoyo.reservation.Reservation;
 
 @Repository
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
@@ -108,4 +109,13 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
                    "ORDER BY COUNT(*) DESC " +
                    "LIMIT :limit", nativeQuery = true)
     List<Object[]> findTopServicesByCompany(@Param("companyId") Integer companyId, @Param("limit") int limit);
+    
+    // 업체별 모든 예약 조회
+    List<Reservation> findByCompany(CompanyUser company);
+    
+    // 업체별 서비스명으로 예약 조회
+    List<Reservation> findByCompanyAndTitle(CompanyUser company, String title);
+    
+    // 업체와 특정 날짜로 예약 조회 (일일 시간별 통계용)
+    List<Reservation> findByCompanyAndDate(CompanyUser company, LocalDate date);
 }
