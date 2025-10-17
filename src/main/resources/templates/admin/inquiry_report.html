@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>문의/신고 접수 - HealnGo</title>
+    <link rel="stylesheet" href="/crm/css/admin_sidebar.css" />
+    <link rel="stylesheet" href="/crm/css/admin_header.css" />
+    <link rel="stylesheet" href="/crm/css/inquiry_report.css" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"/>
+</head>
+<body data-sidebar-type="admin">
+<div class="dashboard-container">
+    <div th:replace="common/admin_sidebar :: admin_sidebar"></div>
+
+    <div class="admin-content">
+        <div th:replace="common/admin_header :: admin_header"></div>
+
+        <div class="report-main-content">
+            <h2 class="report-page-title">문의/신고 접수</h2>
+
+            <!-- 필터 -->
+            <div class="report-filter-section">
+                <div class="report-filter-row">
+                    <div class="report-filter-group">
+                        <label class="report-filter-label">상태:</label>
+                        <select class="report-filter-select" id="statusFilter">
+                            <option value="">전체</option>
+                            <option value="OPEN">대기중</option>
+                            <option value="ANSWERED">답변완료</option>
+                            <option value="CLOSED">종료</option>
+                        </select>
+                    </div>
+                    <button class="report-search-btn" onclick="loadAdminInquiries()"><i class="fas fa-search"></i> 검색</button>
+                </div>
+            </div>
+
+            <!-- 목록 -->
+            <div class="report-list-section">
+                <div class="report-list-header">
+                    <div>
+                        <h3 class="report-list-title">문의/신고 목록</h3>
+                        <div class="report-list-count">총 <span id="totalCount">0</span>건</div>
+                    </div>
+                </div>
+
+                <div class="report-list-content" id="reportList">
+                    <!-- JS로 렌더링 -->
+                </div>
+
+                <!-- 페이지네이션 -->
+                <div class="pagination" id="pagination" style="margin-top:16px; display:flex; gap:8px; justify-content:center;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/crm/js/inquiry_report.js"></script>
+</body>
+</html>
+
