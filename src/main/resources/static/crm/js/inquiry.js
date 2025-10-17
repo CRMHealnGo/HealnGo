@@ -1,510 +1,268 @@
-/* ==========================================
-   신고 / 문의하기 페이지 JavaScript
-   HealnGo CRM System
-   ========================================== */
-
-// ===== 페이지 로드 시 초기화 =====
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('📋 신고/문의 페이지 초기화 시작...');
-    
-    initializeTabs();
-    initializeFileUpload();
-    initializeFormValidation();
-    initializeFormSubmit();
-    
-    console.log('✅ 초기화 완료!');
+/* ===== 사용자 신고/문의 JS ===== */
+document.addEventListener('DOMContentLoaded', () => {
+  initializeTabs();
+  initializeFileUpload();
+  initializeFormValidation();
+  initializeFormSubmit();
+  
+  // 초기 탭 상태 설정 (신고하기가 기본)
+  switchTab('report');
 });
 
-// ===== 탭 전환 기능 =====
+/* 탭 */
 function initializeTabs() {
-    const tabs = document.querySelectorAll('.inquiry-tab');
-    
-    tabs.forEach(tab => {
-        tab.addEventListener('click', function() {
-            const targetTab = this.getAttribute('data-tab');
-            switchTab(targetTab);
-        });
-    });
+  document.querySelectorAll('.inquiry-tab').forEach(tab => {
+    tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+  });
 }
-
 function switchTab(tabName) {
-    console.log('🔄 탭 전환:', tabName);
-    
-    // 모든 탭 버튼에서 active 클래스 제거
-    const tabs = document.querySelectorAll('.inquiry-tab');
-    tabs.forEach(tab => tab.classList.remove('active'));
-    
-    // 클릭된 탭 버튼에 active 클래스 추가
-    const activeTab = document.querySelector(`[data-tab="${tabName}"]`);
-    if (activeTab) {
-        activeTab.classList.add('active');
-        console.log('✅ 탭 버튼 활성화:', tabName);
-    }
-    
-    // 폼 콘텐츠 전환
-    const reportFormContent = document.getElementById('reportFormContent');
-    const inquiryFormContent = document.getElementById('inquiryFormContent');
-    
-    if (!reportFormContent || !inquiryFormContent) {
-        console.error('❌ 폼 콘텐츠를 찾을 수 없습니다!');
-        return;
-    }
-    
-    if (tabName === 'report') {
-        reportFormContent.style.display = 'block';
-        inquiryFormContent.style.display = 'none';
-        console.log('📝 신고하기 폼 표시');
-        
-        // 신고 폼의 필수 필드 활성화
-        setRequiredFields(reportFormContent, true);
-        setRequiredFields(inquiryFormContent, false);
-    } else if (tabName === 'inquiry') {
-        reportFormContent.style.display = 'none';
-        inquiryFormContent.style.display = 'block';
-        console.log('💬 문의하기 폼 표시');
-        
-        // 문의 폼의 필수 필드 활성화
-        setRequiredFields(reportFormContent, false);
-        setRequiredFields(inquiryFormContent, true);
-    }
-    
-    // 폼 초기화
-    resetForm();
+  document.querySelectorAll('.inquiry-tab').forEach(t => t.classList.remove('active'));
+  const btn = document.querySelector(`.inquiry-tab[data-tab="${tabName}"]`);
+  if (btn) btn.classList.add('active');
+
+  const report = document.getElementById('reportFormContent');
+  const inquiry = document.getElementById('inquiryFormContent');
+  const history = document.getElementById('historyFormContent');
+  
+  // 탭 표시/숨김
+  report.style.display = tabName === 'report' ? 'block' : 'none';
+  inquiry.style.display = tabName === 'inquiry' ? 'block' : 'none';
+  history.style.display = tabName === 'history' ? 'block' : 'none';
+  
+  // 현재 탭이 아닌 폼의 required 속성 제거
+  if (tabName === 'report') {
+    enableRequired(report, true);
+    enableRequired(inquiry, false);
+  } else if (tabName === 'inquiry') {
+    enableRequired(report, false);
+    enableRequired(inquiry, true);
+  } else {
+    enableRequired(report, false);
+    enableRequired(inquiry, false);
+  }
+
+  if (tabName === 'history') loadInquiryHistory();
 }
 
-// ===== 필수 필드 설정 =====
-function setRequiredFields(form, isRequired) {
-    // type이 file이 아닌 input, select, textarea만 선택
-    const inputs = form.querySelectorAll('input:not([type="file"]), select, textarea');
-    
-    inputs.forEach(input => {
-        // file 타입은 제외
-        if (input.type === 'file') return;
-        
-        if (isRequired) {
-            // 필수 필드로 설정 (file과 targetUrl 제외)
-            if (input.name !== 'attachment' && input.name !== 'targetUrl') {
-                input.setAttribute('required', 'required');
-            }
-        } else {
-            // 필수 필드 해제
-            input.removeAttribute('required');
-        }
-    });
-    
-    console.log(`📋 필수 필드 ${isRequired ? '활성화' : '비활성화'} 완료`);
+// required 속성 동적 제어
+function enableRequired(container, enable) {
+  if (!container) return;
+  container.querySelectorAll('input, select, textarea').forEach(el => {
+    if (el.type === 'file' || el.name === 'targetUrl' || el.name === 'orderId') {
+      // 파일, targetUrl, orderId는 선택 사항이므로 제외
+      return;
+    }
+    if (enable) {
+      el.setAttribute('required', 'required');
+    } else {
+      el.removeAttribute('required');
+    }
+  });
 }
 
-// ===== 파일 업로드 기능 =====
+/* 파일 업로드 표시 */
 function initializeFileUpload() {
-    // 신고 파일 업로드
-    const reportFileInput = document.getElementById('reportFile');
-    const reportFileName = document.getElementById('reportFileName');
-    
-    if (reportFileInput) {
-        reportFileInput.addEventListener('change', function(e) {
-            handleFileSelect(e, reportFileName);
-        });
-        
-        // 드래그 앤 드롭
-        const reportLabel = reportFileInput.nextElementSibling;
-        setupDragAndDrop(reportLabel, reportFileInput);
-    }
-    
-    // 문의 파일 업로드
-    const inquiryFileInput = document.getElementById('inquiryFile');
-    const inquiryFileName = document.getElementById('inquiryFileName');
-    
-    if (inquiryFileInput) {
-        inquiryFileInput.addEventListener('change', function(e) {
-            handleFileSelect(e, inquiryFileName);
-        });
-        
-        // 드래그 앤 드롭
-        const inquiryLabel = inquiryFileInput.nextElementSibling;
-        setupDragAndDrop(inquiryLabel, inquiryFileInput);
-    }
+  wireFile('reportFile', 'reportFileName');
+  wireFile('inquiryFile', 'inquiryFileName');
+}
+function wireFile(inputId, nameId) {
+  const inp = document.getElementById(inputId);
+  const name = document.getElementById(nameId);
+  if (!inp) return;
+  inp.addEventListener('change', e => {
+    const f = e.target.files?.[0];
+    if (!f) { name.textContent=''; name.classList.remove('active'); return; }
+    const max = 10 * 1024 * 1024;
+    if (f.size > max) { alert('파일 크기는 10MB를 초과할 수 없습니다.'); inp.value=''; return; }
+    name.textContent = f.name; name.classList.add('active');
+  });
 }
 
-// ===== 파일 선택 처리 =====
-function handleFileSelect(e, fileNameDisplay) {
-    const file = e.target.files[0];
-    
-    if (file) {
-        // 파일 크기 체크 (10MB)
-        const maxSize = 10 * 1024 * 1024; // 10MB
-        if (file.size > maxSize) {
-            showAlert('파일 크기는 10MB를 초과할 수 없습니다.', 'error');
-            e.target.value = '';
-            return;
-        }
-        
-        // 파일 형식 체크
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 
-                             'application/pdf', 'application/msword', 
-                             'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-        
-        if (!allowedTypes.includes(file.type)) {
-            showAlert('지원하지 않는 파일 형식입니다.', 'error');
-            e.target.value = '';
-            return;
-        }
-        
-        // 파일명 표시
-        fileNameDisplay.textContent = file.name;
-        fileNameDisplay.classList.add('active');
-    } else {
-        fileNameDisplay.textContent = '';
-        fileNameDisplay.classList.remove('active');
-    }
-}
-
-// ===== 드래그 앤 드롭 설정 =====
-function setupDragAndDrop(label, fileInput) {
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        label.addEventListener(eventName, preventDefaults, false);
-    });
-    
-    function preventDefaults(e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
-    
-    ['dragenter', 'dragover'].forEach(eventName => {
-        label.addEventListener(eventName, function() {
-            label.style.borderColor = '#667eea';
-            label.style.background = 'rgba(102, 126, 234, 0.05)';
-        });
-    });
-    
-    ['dragleave', 'drop'].forEach(eventName => {
-        label.addEventListener(eventName, function() {
-            label.style.borderColor = '#d0d7de';
-            label.style.background = '#fafbfc';
-        });
-    });
-    
-    label.addEventListener('drop', function(e) {
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            fileInput.files = files;
-            const event = new Event('change', { bubbles: true });
-            fileInput.dispatchEvent(event);
-        }
-    });
-}
-
-// ===== 폼 검증 =====
+/* 검증(간단) */
 function initializeFormValidation() {
-    // 실시간 검증
-    const inputs = document.querySelectorAll('.form-control');
-    
-    inputs.forEach(input => {
-        input.addEventListener('blur', function() {
-            validateField(this);
-        });
-        
-        input.addEventListener('input', function() {
-            if (this.classList.contains('is-invalid')) {
-                validateField(this);
-            }
-        });
-    });
+  document.querySelectorAll('.form-control').forEach(el => {
+    el.addEventListener('blur', () => validateField(el));
+    el.addEventListener('input', () => el.classList.contains('is-invalid') && validateField(el));
+  });
 }
-
 function validateField(field) {
-    const value = field.value.trim();
-    const fieldName = field.name;
-    let isValid = true;
-    let errorMessage = '';
-    
-    // 필수 필드 체크
-    if (field.hasAttribute('required') && !value) {
-        isValid = false;
-        errorMessage = '이 필드는 필수입니다.';
-    }
-    
-    // 이메일 검증
-    if (fieldName === 'email' && value) {
-        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailPattern.test(value)) {
-            isValid = false;
-            errorMessage = '올바른 이메일 주소를 입력해주세요.';
-        }
-    }
-    
-    // 전화번호 검증
-    if (fieldName === 'phone' && value) {
-        const phonePattern = /^01[0-9]-?[0-9]{3,4}-?[0-9]{4}$/;
-        if (!phonePattern.test(value.replace(/\s/g, ''))) {
-            isValid = false;
-            errorMessage = '올바른 전화번호를 입력해주세요. (예: 010-1234-5678)';
-        }
-    }
-    
-    // URL 검증 (신고 대상 URL)
-    if (fieldName === 'targetUrl' && value) {
-        try {
-            new URL(value);
-        } catch (e) {
-            isValid = false;
-            errorMessage = '올바른 URL을 입력해주세요. (예: https://example.com)';
-        }
-    }
-    
-    // 검증 결과 표시
-    if (isValid) {
-        field.classList.remove('is-invalid');
-        field.classList.add('is-valid');
-        removeErrorMessage(field);
-    } else {
-        field.classList.remove('is-valid');
-        field.classList.add('is-invalid');
-        showErrorMessage(field, errorMessage);
-    }
-    
-    return isValid;
+  const val = (field.value || '').trim();
+  let ok = true, msg = '';
+  if (field.hasAttribute('required') && !val) { ok=false; msg='이 필드는 필수입니다.'; }
+  if (field.name === 'email' && val) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; if (!re.test(val)) { ok=false; msg='올바른 이메일 주소를 입력해주세요.'; }
+  }
+  if (!ok) { field.classList.add('is-invalid'); showFieldError(field, msg); }
+  else { field.classList.remove('is-invalid'); clearFieldError(field); }
+  return ok;
+}
+function showFieldError(field, msg) {
+  clearFieldError(field);
+  const div = document.createElement('div');
+  div.className = 'invalid-feedback';
+  div.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${msg}`;
+  field.parentNode.appendChild(div);
+}
+function clearFieldError(field) {
+  const old = field.parentNode.querySelector('.invalid-feedback');
+  if (old) old.remove();
 }
 
-function showErrorMessage(field, message) {
-    removeErrorMessage(field);
-    
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'invalid-feedback';
-    errorDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
-    
-    field.parentNode.appendChild(errorDiv);
-}
-
-function removeErrorMessage(field) {
-    const existingError = field.parentNode.querySelector('.invalid-feedback');
-    if (existingError) {
-        existingError.remove();
-    }
-}
-
-// ===== 폼 제출 =====
+/* 제출 */
 function initializeFormSubmit() {
     const form = document.getElementById('mainForm');
-    
-    if (form) {
-        form.addEventListener('submit', function(e) {
+  form.addEventListener('submit', e => {
             e.preventDefault();
-            handleFormSubmit(this);
-        });
-    }
-    
-    // 초기화 버튼
-    const resetButtons = document.querySelectorAll('button[type="reset"]');
-    resetButtons.forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            if (confirm('작성 중인 내용을 모두 지우시겠습니까?')) {
-                resetForm();
-            }
-        });
-    });
+    handleFormSubmit();
+  });
 }
+function handleFormSubmit() {
+  const isReport = document.querySelector('.inquiry-tab.active')?.dataset.tab === 'report';
+  const active = isReport ? document.getElementById('reportFormContent') : document.getElementById('inquiryFormContent');
 
-function handleFormSubmit(form) {
-    // 현재 활성화된 탭 확인
-    const activeTab = document.querySelector('.inquiry-tab.active');
-    const isReportForm = activeTab.getAttribute('data-tab') === 'report';
-    
-    console.log('📤 폼 제출 시도:', isReportForm ? '신고하기' : '문의하기');
-    
-    // 활성화된 폼 콘텐츠 가져오기
-    const activeFormContent = isReportForm ? 
-        document.getElementById('reportFormContent') : 
-        document.getElementById('inquiryFormContent');
-    
-    // 폼 검증
-    const inputs = activeFormContent.querySelectorAll('.form-control[required]');
-    let isValid = true;
-    
-    inputs.forEach(input => {
-        if (!validateField(input)) {
-            isValid = false;
-        }
-    });
-    
-    if (!isValid) {
-        showAlert('필수 항목을 모두 올바르게 입력해주세요.', 'error');
-        
-        // 첫 번째 오류 필드로 스크롤
-        const firstInvalidField = activeFormContent.querySelector('.is-invalid');
-        if (firstInvalidField) {
-            firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            firstInvalidField.focus();
-        }
-        return;
-    }
-    
-    // 폼 데이터 수집
-    const formData = new FormData();
-    
-    // 활성화된 폼의 입력값만 수집
-    const formInputs = activeFormContent.querySelectorAll('input, select, textarea');
-    formInputs.forEach(input => {
-        if (input.type === 'file' && input.files[0]) {
-            formData.append(input.name, input.files[0]);
-        } else if (input.value.trim()) {
-            formData.append(input.name, input.value.trim());
-        }
-    });
-    
-    // 폼 타입 추가
-    formData.append('formType', isReportForm ? 'report' : 'inquiry');
-    
-    // 제출 버튼 비활성화 및 로딩 상태
-    const submitButton = activeFormContent.querySelector('button[type="submit"]');
-    submitButton.classList.add('loading');
-    submitButton.disabled = true;
-    
-    // 서버로 전송
-    submitFormData(formData, submitButton);
-}
+  const submitBtn = active.querySelector('button[type="submit"]');
+  
+  // 현재 활성 탭의 필수 입력 검증만 수행
+  let ok = true;
+  const visibleRequiredFields = active.querySelectorAll('.form-control[required]');
+  console.log('검증할 필드 수:', visibleRequiredFields.length);
+  
+  visibleRequiredFields.forEach(el => { 
+    const isValid = validateField(el);
+    console.log(`필드 ${el.name} 검증:`, isValid);
+    if (!isValid) ok = false;
+  });
+  
+  if (!ok) { 
+    alert('필수 항목을 모두 올바르게 입력해주세요.'); 
+    return; 
+  }
 
-function submitFormData(formData, submitButton) {
-    // AJAX 요청
-    fetch('/inquiry/submit', {
-        method: 'POST',
-        body: formData
+  // 백엔드 DTO 필드만 담아서 전송 (subject, content, orderId?, attachment?)
+  const fd = new FormData();
+  const subject = active.querySelector('input[name="subject"]')?.value?.trim() || '';
+  const content = active.querySelector('textarea[name="content"]')?.value?.trim() || '';
+  const orderId = active.querySelector('input[name="orderId"]')?.value?.trim();
+  const fileInp = active.querySelector('input[type="file"][name="attachment"]');
+
+  console.log('제출 데이터 확인:');
+  console.log('- subject:', subject);
+  console.log('- content:', content);
+  console.log('- orderId:', orderId);
+
+  // 제목과 내용이 비어있으면 제출 중단
+  if (!subject || !content) {
+    alert('제목과 내용을 모두 입력해주세요.');
+    return;
+  }
+
+  // 신고/문의 유형은 내용 앞에 태그로만 붙여서 저장(필드가 없으므로)
+  if (isReport) {
+    const reportType = active.querySelector('select[name="reportType"]')?.value || '';
+    const targetUrl  = active.querySelector('input[name="targetUrl"]')?.value || '';
+    fd.append('subject', `[신고:${reportType}] ${subject}`);
+    fd.append('content', `${targetUrl ? `URL: ${targetUrl}\n\n` : ''}${content}`);
+  } else {
+    const inquiryType = active.querySelector('select[name="inquiryType"]')?.value || '';
+    fd.append('subject', `[문의:${inquiryType}] ${subject}`);
+    fd.append('content', content);
+  }
+  if (orderId) fd.append('orderId', orderId);
+  if (fileInp?.files?.[0]) fd.append('attachment', fileInp.files[0]);
+
+  submitBtn.disabled = true;
+
+  console.log('폼 제출 시작 - URL:', '/api/user-inquiry/submit');
+  console.log('FormData 내용:', Array.from(fd.entries()));
+  
+  fetch('/api/user-inquiry/submit', { method: 'POST', body: fd })
+    .then(r => {
+      console.log('응답 상태:', r.status);
+      if (!r.ok) {
+        return r.text().then(text => {
+          console.error('서버 응답 에러:', text);
+          throw new Error(`서버 에러 (${r.status}): ${text}`);
+        });
+      }
+      return r.json();
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('서버 응답 오류');
-        }
-        return response.json();
-    })
-    .then(data => {
-        // 성공 처리
-        submitButton.classList.remove('loading');
-        submitButton.disabled = false;
-        
-        showAlert('제출이 완료되었습니다. 빠른 시일 내에 답변드리겠습니다.', 'success');
-        
+    .then(j => {
+      console.log('서버 응답:', j);
+      submitBtn.disabled = false;
+      if (j?.success) {
+        alert(`등록되었습니다. 번호: ${j.id}`);
         // 폼 초기화
-        setTimeout(() => {
-            resetForm();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }, 2000);
+        document.getElementById('mainForm').reset();
+        ['reportFileName','inquiryFileName'].forEach(id => { const n = document.getElementById(id); if (n){n.textContent=''; n.classList.remove('active');} });
+        // 내역 탭으로 전환하여 결과 확인
+        switchTab('history');
+      } else {
+        alert('실패: ' + (j?.message || '알 수 없는 오류'));
+      }
     })
-    .catch(error => {
-        // 오류 처리
-        console.error('Error:', error);
-        submitButton.classList.remove('loading');
-        submitButton.disabled = false;
-        
-        showAlert('오류가 발생했습니다. 다시 시도해주세요.', 'error');
+    .catch(e => {
+      console.error('제출 실패:', e);
+      submitBtn.disabled = false;
+      alert('오류가 발생했습니다: ' + e.message);
     });
 }
 
-// ===== 알림 메시지 표시 =====
-function showAlert(message, type = 'success') {
-    // 기존 알림 제거
-    const existingAlert = document.querySelector('.alert');
-    if (existingAlert) {
-        existingAlert.remove();
-    }
-    
-    // 새 알림 생성
-    const alert = document.createElement('div');
-    alert.className = `alert alert-${type}`;
-    
-    const icon = type === 'success' ? 
-        '<i class="fas fa-check-circle"></i>' : 
-        '<i class="fas fa-exclamation-circle"></i>';
-    
-    alert.innerHTML = `${icon} ${message}`;
-    
-    // 폼 컨테이너 상단에 추가
-    const formContainer = document.querySelector('.inquiry-form-container');
-    formContainer.insertBefore(alert, formContainer.firstChild);
-    
-    // 3초 후 자동 제거
-    setTimeout(() => {
-        alert.style.opacity = '0';
-        alert.style.transform = 'translateY(-10px)';
-        setTimeout(() => alert.remove(), 300);
-    }, 5000);
-}
+/* 내역 조회 - /api/user-inquiry/my-history (InquiryHistoryItem 리스트) */
+function loadInquiryHistory() {
+  const loading = document.getElementById('historyLoading');
+  const list = document.getElementById('historyList');
+  const empty = document.getElementById('historyEmpty');
 
-// ===== 폼 초기화 =====
-function resetForm() {
-    // 모든 입력 필드 초기화
-    const inputs = document.querySelectorAll('.form-control');
-    inputs.forEach(input => {
-        input.value = '';
-        input.classList.remove('is-valid', 'is-invalid');
+  loading.style.display = 'block';
+  list.style.display = 'none';
+  empty.style.display = 'none';
+
+  fetch('/api/user-inquiry/my-history')
+    .then(r => r.json())
+    .then(items => {
+      loading.style.display = 'none';
+      if (!items || items.length === 0) { empty.style.display='block'; return; }
+      list.innerHTML = items.map(toHistoryCard).join('');
+      list.style.display = 'block';
+    })
+    .catch(err => {
+      console.error(err);
+      loading.style.display = 'none';
+      empty.style.display = 'block';
     });
-    
-    // 파일 입력 초기화
-    const fileInputs = document.querySelectorAll('.form-control-file');
-    fileInputs.forEach(input => {
-        input.value = '';
-    });
-    
-    // 파일명 표시 초기화
-    const fileNames = document.querySelectorAll('.file-name');
-    fileNames.forEach(fileName => {
-        fileName.textContent = '';
-        fileName.classList.remove('active');
-    });
-    
-    // 오류 메시지 제거
-    const errorMessages = document.querySelectorAll('.invalid-feedback');
-    errorMessages.forEach(msg => msg.remove());
-    
-    // 알림 메시지 제거
-    const alerts = document.querySelectorAll('.alert');
-    alerts.forEach(alert => alert.remove());
 }
-
-// ===== 전화번호 자동 포맷팅 (선택적 기능) =====
-document.addEventListener('input', function(e) {
-    if (e.target.name === 'phone') {
-        let value = e.target.value.replace(/[^0-9]/g, '');
-        
-        if (value.length > 3 && value.length <= 7) {
-            value = value.slice(0, 3) + '-' + value.slice(3);
-        } else if (value.length > 7) {
-            value = value.slice(0, 3) + '-' + value.slice(3, 7) + '-' + value.slice(7, 11);
-        }
-        
-        e.target.value = value;
-    }
-});
-
-// ===== 페이지 이탈 시 경고 (작성 중인 내용이 있을 때) =====
-let formModified = false;
-
-document.addEventListener('input', function(e) {
-    if (e.target.classList.contains('form-control')) {
-        formModified = true;
-    }
-});
-
-window.addEventListener('beforeunload', function(e) {
-    if (formModified) {
-        e.preventDefault();
-        e.returnValue = '작성 중인 내용이 있습니다. 페이지를 나가시겠습니까?';
-        return e.returnValue;
-    }
-});
-
-// ===== 폼 제출 후 경고 해제 =====
-document.addEventListener('submit', function() {
-    formModified = false;
-});
-
-// ===== 디버그용 콘솔 로그 (개발 시에만 활성화) =====
-const DEBUG_MODE = false;
-
-function log(...args) {
-    if (DEBUG_MODE) {
-        console.log('[Inquiry Form]', ...args);
-    }
+function toHistoryCard(it) {
+  const statusK = (s) => ({OPEN:'대기중',ANSWERED:'답변완료',CLOSED:'종료'})[s] || s;
+  const fmt = (d) => d ? new Date(d).toLocaleString('ko-KR') : '-';
+  const cleanSubject = (s) => (s || '').replace(/^\[(?:문의|신고):[^\]]+\]\s*/, '');
+  
+  return `
+    <div class="history-item">
+      <div class="history-item-header">
+        <div class="history-item-title-wrapper">
+          <span class="history-item-type ${it.status === 'ANSWERED' ? 'answered':'pending'}">${statusK(it.status)}</span>
+          <div class="history-item-title">${escapeHtml(cleanSubject(it.subject))}</div>
+          <div class="history-item-date">${fmt(it.createdAt)}</div>
+        </div>
+        <div class="history-item-status ${it.status === 'ANSWERED' ? 'answered':'pending'}">
+          <i class="fas ${it.status === 'ANSWERED' ? 'fa-check-circle':'fa-clock'}"></i>
+          <span>${it.status === 'ANSWERED' ? '답변완료':'확인중'}</span>
+        </div>
+      </div>
+      <div class="history-item-content">
+        <div class="history-item-label">문의/신고 내용</div>
+        <div class="history-item-text">${escapeHtml(it.content || '')}</div>
+      </div>
+      ${it.status === 'ANSWERED' && it.adminAnswer ? `
+        <div class="history-item-reply">
+          <div class="history-item-reply-header"><i class="fas fa-reply"></i><span>관리자 답변</span></div>
+          <div class="history-item-reply-text">${escapeHtml(it.adminAnswer)}</div>
+          <div class="history-item-reply-date">답변일: ${fmt(it.answeredAt)}</div>
+        </div>` : (it.status === 'ANSWERED' && it.answeredAt ? `
+        <div class="history-item-reply">
+          <div class="history-item-reply-header"><i class="fas fa-check-circle"></i><span>답변 완료</span></div>
+          <div class="history-item-reply-date">답변일: ${fmt(it.answeredAt)}</div>
+        </div>` : ``)}
+    </div>`;
 }
-
-log('Inquiry form script loaded successfully');
+function escapeHtml(t) { const d=document.createElement('div'); d.textContent=t||''; return d.innerHTML; }
