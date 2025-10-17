@@ -15,17 +15,22 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.example.ApiRound.Service.FavoriteItemService;
 import com.example.ApiRound.dto.SocialUserDTO;
 import com.example.ApiRound.entity.ItemList;
+import com.example.ApiRound.crm.hyeonah.Repository.SocialUsersRepository;
+import com.example.ApiRound.crm.hyeonah.entity.SocialUsers;
 
 import jakarta.servlet.http.HttpSession;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/favorite")
 public class FavoriteItemController {
 
     private final FavoriteItemService favoriteItemService;
+    private final SocialUsersRepository socialUsersRepository;
 
-    public FavoriteItemController(FavoriteItemService favoriteItemService) {
+    public FavoriteItemController(FavoriteItemService favoriteItemService, SocialUsersRepository socialUsersRepository) {
         this.favoriteItemService = favoriteItemService;
+        this.socialUsersRepository = socialUsersRepository;
     }
 
     // ✅ 즐겨찾기 추가
@@ -148,18 +153,49 @@ public class FavoriteItemController {
         return ResponseEntity.ok(user != null);
     }
 
-    // ✅ 로그인 사용자 가져오기 (헬퍼 메서드)
+    // ✅ 로그인 사용자 가져오기 (헬퍼 메서드) - 상태 검증 포함
     private SocialUserDTO getLoginUser(HttpSession session) {
         Integer userId = (Integer) session.getAttribute("userId");
         if (userId == null) {
             return null;
         }
         
-        // 세션에서 사용자 정보로 DTO 생성
-        SocialUserDTO user = new SocialUserDTO();
-        user.setId(userId.longValue()); // Integer를 Long으로 변환
-        user.setEmail((String) session.getAttribute("userEmail"));
-        user.setName((String) session.getAttribute("userName"));
-        return user;
+        try {
+            // DB에서 실제 사용자 정보 조회 및 상태 검증
+            Optional<SocialUsers> userOpt = socialUsersRepository.findById(userId);
+            if (userOpt.isEmpty()) {
+                // 사용자가 DB에서 삭제됨 - 세션 무효화
+                session.invalidate();
+                return null;
+            }
+            
+            SocialUsers user = userOpt.get();
+            
+            // 사용자 상태 검증
+            if (!"ACTIVE".equals(user.getStatus())) {
+                System.out.println("세션 무효화: 사용자 상태가 ACTIVE가 아님 - " + user.getStatus());
+                session.invalidate();
+                return null;
+            }
+            
+            // 삭제된 사용자 검증
+            if (Boolean.TRUE.equals(user.getIsDeleted())) {
+                System.out.println("세션 무효화: 삭제된 사용자");
+                session.invalidate();
+                return null;
+            }
+            
+            // 검증 통과 시 DTO 생성
+            SocialUserDTO userDto = new SocialUserDTO();
+            userDto.setId(user.getUserId().longValue());
+            userDto.setEmail(user.getEmail());
+            userDto.setName(user.getName());
+            return userDto;
+            
+        } catch (Exception e) {
+            System.err.println("getLoginUser 오류: " + e.getMessage());
+            session.invalidate();
+            return null;
+        }
     }
 }

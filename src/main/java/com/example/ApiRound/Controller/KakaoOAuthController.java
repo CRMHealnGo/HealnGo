@@ -67,6 +67,19 @@ public class KakaoOAuthController {
             
             if (userOpt.isPresent()) {
                 user = userOpt.get();
+                
+                // 사용자 상태 검증
+                if (!"ACTIVE".equals(user.getStatus())) {
+                    System.out.println("로그인 거부: 사용자 상태가 ACTIVE가 아님 - " + user.getStatus());
+                    return new RedirectView("/login?error=account_inactive");
+                }
+                
+                // 삭제된 사용자 검증
+                if (Boolean.TRUE.equals(user.getIsDeleted())) {
+                    System.out.println("로그인 거부: 삭제된 사용자");
+                    return new RedirectView("/login?error=account_deleted");
+                }
+                
                 user.setLastLoginAt(LocalDateTime.now());
                 socialUsersRepository.save(user);
             } else {
