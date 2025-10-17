@@ -157,7 +157,7 @@
                                     <!-- COMPLETED가 아닌 경우 완료 버튼 표시 -->
                                     <button th:if="${reservation.status == 'CONFIRMED'}" 
                                             class="btn-action btn-complete" 
-                                            th:onclick="'completeReservation(' + ${reservation.id} + ')'" 
+                                            th:onclick="'openCompleteModal(' + ${reservation.id} + ')'" 
                                             title="완료">
                                         <i class="fas fa-check-double"></i>
                                     </button>
