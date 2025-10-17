@@ -369,6 +369,29 @@
     box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
 }
 
+.booking-btn.booking-btn-cancel {
+    background: #dc3545;
+    color: white;
+}
+
+.booking-btn.booking-btn-cancel:hover {
+    background: #c82333;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.booking-btn.booking-btn-cancel:disabled {
+    background: #e9ecef;
+    color: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.booking-btn.booking-btn-cancel:disabled:hover {
+    transform: none;
+    box-shadow: none;
+}
+
 @keyframes modalSlideIn {
     from {
         opacity: 0;
@@ -378,4 +401,58 @@
         opacity: 1;
         transform: scale(1) translateY(0);
     }
+}
+
+/* 예약 서비스 정보 */
+.booking-service {
+    font-size: 14px;
+    color: #6c757d;
+    margin-bottom: 5px;
+}
+
+/* 예약 상태 배지 */
+.booking-status {
+    margin-top: 8px;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-confirmed {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-cancelled {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.status-pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+/* 예약 내역이 없을 때 */
+.no-bookings {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6c757d;
+}
+
+.no-bookings i {
+    font-size: 64px;
+    color: #dee2e6;
+    margin-bottom: 20px;
+    display: block;
+}
+
+.no-bookings p {
+    font-size: 16px;
+    margin: 0;
 }

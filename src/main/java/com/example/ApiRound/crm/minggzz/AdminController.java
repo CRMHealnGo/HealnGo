@@ -242,7 +242,7 @@ public class AdminController {
         model.addAttribute("status", status);
         model.addAttribute("sidebarType", "admin");
 
-        return "crm/inquiry_report";
+        return "admin/inquiry_report";
     }
 
     /**

@@ -10,12 +10,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
@@ -194,6 +199,40 @@ public class CompanyReservationController {
         } catch (RuntimeException e) {
             model.addAttribute("error", e.getMessage());
             return "crm/company_reservation_management";
+        }
+    }
+    
+    // API: 예약 완료 처리 (JSON 응답)
+    @PostMapping("/api/reservations/{id}/complete")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> completeReservationApi(
+            @PathVariable Long id,
+            HttpSession session) {
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // 세션에서 업체 ID 확인
+            Integer companyId = (Integer) session.getAttribute("companyId");
+            
+            if (companyId == null) {
+                response.put("success", false);
+                response.put("message", "로그인이 필요합니다.");
+                return ResponseEntity.status(401).body(response);
+            }
+            
+            // 예약 완료 처리
+            reservationService.completeReservation(id);
+            
+            response.put("success", true);
+            response.put("message", "예약이 완료 처리되었습니다.");
+            return ResponseEntity.ok(response);
+            
+        } catch (RuntimeException e) {
+            log.error("예약 완료 처리 중 오류 발생: ", e);
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
         }
     }
 }
