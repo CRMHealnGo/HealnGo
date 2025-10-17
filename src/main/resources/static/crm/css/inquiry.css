@@ -20,8 +20,7 @@ body {
 
 /* ===== 메인 컨테이너 ===== */
 .inquiry-page-container {
-    max-width: 1200px;
-    margin: 100px ;
+    margin: 100px 200px auto;
     padding: 0 20px 80px;
 }
 
@@ -113,7 +112,8 @@ body {
 
 /* ===== 폼 콘텐츠 ===== */
 .inquiry-form-content {
-    padding: 40px;
+    padding: 40px 60px;
+    width: 100%;
 }
 
 /* ===== 폼 그룹 ===== */
