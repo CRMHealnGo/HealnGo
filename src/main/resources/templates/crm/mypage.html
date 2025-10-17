@@ -84,29 +84,28 @@
                         <a href="/booking" class="view-all">View all ></a>
                     </div>
                     <ul class="booking-list">
-                        <li class="booking-item">
-                            <div class="booking-details">
-                                <span class="booking-company">강남 성형외과</span>
-                                <span class="booking-date">2024.01.15</span>
-                                <span class="booking-service">코 성형</span>
-                            </div>
-                            <span class="booking-status completed">완료</span>
+                        <!-- 실제 예약 데이터 표시 -->
+                        <li th:if="${#lists.isEmpty(userReservations)}" class="no-reservations">
+                            <span>예약 내역이 없습니다.</span>
                         </li>
-                        <li class="booking-item">
+                        <li th:each="reservation : ${userReservations}" class="booking-item">
                             <div class="booking-details">
-                                <span class="booking-company">서울 피부과</span>
-                                <span class="booking-date">2024.01.20</span>
-                                <span class="booking-service">레이저 치료</span>
+                                <span class="booking-company" th:text="${reservation.clinicName}">병원명</span>
+                                <span class="booking-date" th:text="${#temporals.format(reservation.date, 'yyyy.MM.dd')}">2024.01.15</span>
+                                <span class="booking-service" th:text="${reservation.title}">서비스명</span>
                             </div>
-                            <span class="booking-status pending">예약중</span>
-                        </li>
-                        <li class="booking-item">
-                            <div class="booking-details">
-                                <span class="booking-company">부산 치과</span>
-                                <span class="booking-date">2024.01.25</span>
-                                <span class="booking-service">치아 교정</span>
-                            </div>
-                            <span class="booking-status confirmed">확정</span>
+                            <span th:if="${reservation.status == 'COMPLETED'}" 
+                                  class="booking-status completed" 
+                                  th:text="'완료'">완료</span>
+                            <span th:if="${reservation.status == 'CANCELLED'}" 
+                                  class="booking-status cancelled" 
+                                  th:text="'취소'">취소</span>
+                            <span th:if="${reservation.status == 'CONFIRMED'}" 
+                                  class="booking-status confirmed" 
+                                  th:text="'확정'">확정</span>
+                            <span th:if="${reservation.status != 'COMPLETED' and reservation.status != 'CANCELLED' and reservation.status != 'CONFIRMED'}" 
+                                  class="booking-status pending" 
+                                  th:text="'예약중'">예약중</span>
                         </li>
                     </ul>
                 </section>
