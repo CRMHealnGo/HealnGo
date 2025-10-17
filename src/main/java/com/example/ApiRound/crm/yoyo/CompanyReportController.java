@@ -22,15 +22,15 @@ import java.util.Map;
 @Controller
 @RequestMapping("/company")
 @Slf4j
-public class ReportController {
+public class CompanyReportController {
 
     private final ReservationRepository reservationRepository;
     private final MediServiceRepository mediServiceRepository;
     private final CompanyUserRepository companyUserRepository;
 
-    public ReportController(ReservationRepository reservationRepository,
-                            MediServiceRepository mediServiceRepository,
-                            CompanyUserRepository companyUserRepository) {
+    public CompanyReportController(ReservationRepository reservationRepository,
+                                   MediServiceRepository mediServiceRepository,
+                                   CompanyUserRepository companyUserRepository) {
         this.reservationRepository = reservationRepository;
         this.mediServiceRepository = mediServiceRepository;
         this.companyUserRepository = companyUserRepository;
