@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.example.ApiRound.crm.hyeonah.Repository.CompanyUserRepository;
 import com.example.ApiRound.crm.hyeonah.Repository.SocialUsersRepository;
 import com.example.ApiRound.crm.hyeonah.entity.SocialUsers;
 
@@ -35,7 +34,6 @@ import lombok.RequiredArgsConstructor;
 public class AdminController {
 
     private final SocialUsersRepository usersRepo;
-    private final CompanyUserRepository companyRepo;
 
     /**
      * 관리자 대시보드 메인 페이지
@@ -50,6 +48,7 @@ public class AdminController {
         } else if (managerIdObj instanceof Long) {
             managerId = (Long) managerIdObj;
         }
+        Integer managerId = (Integer) session.getAttribute("managerId");
         String userType = (String) session.getAttribute("userType");
 
         if (managerId == null || !"manager".equals(userType)) {
@@ -60,8 +59,7 @@ public class AdminController {
         model.addAttribute("managerId", managerId);
         model.addAttribute("managerName", session.getAttribute("managerName"));
         model.addAttribute("managerEmail", session.getAttribute("managerEmail"));
-
-        // 실제 DB 통계 데이터
+        // 대시보드 통계 데이터 (실제로는 서비스에서 가져와야 함)
         Map<String, Object> stats = new HashMap<>();
         stats.put("totalUsers", usersRepo.countByIsDeletedFalse());
         stats.put("activeUsers", usersRepo.countByStatusAndIsDeletedFalse("ACTIVE"));
@@ -117,8 +115,8 @@ public class AdminController {
 
         // Sort 생성
         Sort sortOrder = "asc".equalsIgnoreCase(dir)
-                ? Sort.by(sortProp).ascending()
-                : Sort.by(sortProp).descending();
+            ? Sort.by(sortProp).ascending()
+            : Sort.by(sortProp).descending();
 
         Pageable pageable = PageRequest.of(pageIdx, pageSize, sortOrder);
 
@@ -142,17 +140,17 @@ public class AdminController {
         // SocialUsers를 Map으로 변환 (HTML에서 사용하기 쉽게)
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         List<Map<String, Object>> users = userPage.getContent().stream()
-                .map(user -> {
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("id", user.getUserId());
-                    map.put("name", user.getName() != null ? user.getName() : "-");
-                    map.put("email", user.getEmail());
-                    map.put("phone", user.getPhone());
-                    map.put("joinDate", user.getCreatedAt() != null ? user.getCreatedAt().format(formatter) : "-");
-                    map.put("status", getStatusLabel(user.getStatus(), user.getIsDeleted()));
-                    return map;
-                })
-                .toList();
+            .map(user -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("id", user.getUserId());
+                map.put("name", user.getName() != null ? user.getName() : "-");
+                map.put("email", user.getEmail());
+                map.put("phone", user.getPhone());
+                map.put("joinDate", user.getCreatedAt() != null ? user.getCreatedAt().format(formatter) : "-");
+                map.put("status", getStatusLabel(user.getStatus(), user.getIsDeleted()));
+                return map;
+            })
+            .toList();
 
         model.addAttribute("users", users);
 
@@ -489,24 +487,24 @@ public class AdminController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> getUserDetail(@PathVariable Integer userId) {
         return usersRepo.findById(userId)
-                .map(user -> {
-                    Map<String, Object> response = new HashMap<>();
-                    response.put("id", user.getUserId());
-                    response.put("name", user.getName() != null ? user.getName() : "-");
-                    response.put("email", user.getEmail());
-                    response.put("phone", user.getPhone() != null ? user.getPhone() : "");
-                    response.put("joinDate", user.getCreatedAt() != null ?
-                            user.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) : "-");
-                    response.put("lastLogin", user.getLastLoginAt() != null ?
-                            user.getLastLoginAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) : "정보 없음");
-                    response.put("status", getStatusLabel(user.getStatus(), user.getIsDeleted()));
-                    response.put("totalReservations", 0); // TODO: 예약 테이블과 연동
-                    response.put("totalSpent", 0); // TODO: 결제 테이블과 연동
-                    response.put("notes", ""); // TODO: 관리자 메모 기능
+            .map(user -> {
+                Map<String, Object> response = new HashMap<>();
+                response.put("id", user.getUserId());
+                response.put("name", user.getName() != null ? user.getName() : "-");
+                response.put("email", user.getEmail());
+                response.put("phone", user.getPhone() != null ? user.getPhone() : "");
+                response.put("joinDate", user.getCreatedAt() != null ?
+                    user.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) : "-");
+                response.put("lastLogin", user.getLastLoginAt() != null ?
+                    user.getLastLoginAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) : "정보 없음");
+                response.put("status", getStatusLabel(user.getStatus(), user.getIsDeleted()));
+                response.put("totalReservations", 0); // TODO: 예약 테이블과 연동
+                response.put("totalSpent", 0); // TODO: 결제 테이블과 연동
+                response.put("notes", ""); // TODO: 관리자 메모 기능
 
-                    return ResponseEntity.ok(response);
-                })
-                .orElse(ResponseEntity.notFound().build());
+                return ResponseEntity.ok(response);
+            })
+            .orElse(ResponseEntity.notFound().build());
     }
 
     /**
@@ -519,32 +517,32 @@ public class AdminController {
             @RequestBody Map<String, String> updateData) {
 
         return usersRepo.findByUserIdAndIsDeletedFalse(userId)
-                .map(user -> {
-                    // 수정 가능한 필드 업데이트
-                    if (updateData.containsKey("name")) {
-                        user.setName(updateData.get("name"));
-                    }
-                    if (updateData.containsKey("phone")) {
-                        user.setPhone(updateData.get("phone"));
-                    }
-                    if (updateData.containsKey("status")) {
-                        String status = updateData.get("status");
-                        user.setIsDeleted(!"active".equals(status));
-                    }
+            .map(user -> {
+                // 수정 가능한 필드 업데이트
+                if (updateData.containsKey("name")) {
+                    user.setName(updateData.get("name"));
+                }
+                if (updateData.containsKey("phone")) {
+                    user.setPhone(updateData.get("phone"));
+                }
+                if (updateData.containsKey("status")) {
+                    String status = updateData.get("status");
+                    user.setIsDeleted(!"active".equals(status));
+                }
 
-                    usersRepo.save(user);
+                usersRepo.save(user);
 
-                    Map<String, Object> response = new HashMap<>();
-                    response.put("success", true);
-                    response.put("message", "사용자 정보가 수정되었습니다.");
-                    return ResponseEntity.ok(response);
-                })
-                .orElseGet(() -> {
-                    Map<String, Object> response = new HashMap<>();
-                    response.put("success", false);
-                    response.put("message", "사용자를 찾을 수 없습니다.");
-                    return ResponseEntity.notFound().build();
-                });
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", true);
+                response.put("message", "사용자 정보가 수정되었습니다.");
+                return ResponseEntity.ok(response);
+            })
+            .orElseGet(() -> {
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("message", "사용자를 찾을 수 없습니다.");
+                return ResponseEntity.notFound().build();
+            });
     }
 
     /**
@@ -554,43 +552,43 @@ public class AdminController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> toggleUserStatus(@PathVariable Integer userId) {
         return usersRepo.findById(userId)
-                .map(user -> {
-                    String currentStatus = user.getStatus() != null ? user.getStatus() : "ACTIVE";
-                    boolean isDeleted = Boolean.TRUE.equals(user.getIsDeleted());
+            .map(user -> {
+                String currentStatus = user.getStatus() != null ? user.getStatus() : "ACTIVE";
+                boolean isDeleted = Boolean.TRUE.equals(user.getIsDeleted());
 
-                    String newStatusLabel;
+                String newStatusLabel;
 
-                    // 상태 토글: 활성 → 정지 → 비활성화 → 활성 (순환)
-                    if (isDeleted) {
-                        // 비활성화 → 활성
-                        user.setIsDeleted(false);
-                        user.setStatus("ACTIVE");
-                        newStatusLabel = "활성";
-                    } else if ("SUSPENDED".equals(currentStatus)) {
-                        // 정지 → 비활성화
-                        user.setIsDeleted(true);
-                        user.setStatus("INACTIVE");
-                        newStatusLabel = "비활성화";
-                    } else {
-                        // 활성 → 정지
-                        user.setStatus("SUSPENDED");
-                        newStatusLabel = "정지";
-                    }
+                // 상태 토글: 활성 → 정지 → 비활성화 → 활성 (순환)
+                if (isDeleted) {
+                    // 비활성화 → 활성
+                    user.setIsDeleted(false);
+                    user.setStatus("ACTIVE");
+                    newStatusLabel = "활성";
+                } else if ("SUSPENDED".equals(currentStatus)) {
+                    // 정지 → 비활성화
+                    user.setIsDeleted(true);
+                    user.setStatus("INACTIVE");
+                    newStatusLabel = "비활성화";
+                } else {
+                    // 활성 → 정지
+                    user.setStatus("SUSPENDED");
+                    newStatusLabel = "정지";
+                }
 
-                    usersRepo.save(user);
+                usersRepo.save(user);
 
-                    Map<String, Object> response = new HashMap<>();
-                    response.put("success", true);
-                    response.put("message", "사용자 상태가 " + newStatusLabel + "(으)로 변경되었습니다.");
-                    response.put("newStatus", newStatusLabel);
-                    return ResponseEntity.ok(response);
-                })
-                .orElseGet(() -> {
-                    Map<String, Object> response = new HashMap<>();
-                    response.put("success", false);
-                    response.put("message", "사용자를 찾을 수 없습니다.");
-                    return ResponseEntity.notFound().build();
-                });
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", true);
+                response.put("message", "사용자 상태가 " + newStatusLabel + "(으)로 변경되었습니다.");
+                response.put("newStatus", newStatusLabel);
+                return ResponseEntity.ok(response);
+            })
+            .orElseGet(() -> {
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("message", "사용자를 찾을 수 없습니다.");
+                return ResponseEntity.notFound().build();
+            });
     }
 
     /**
@@ -623,11 +621,11 @@ public class AdminController {
         response.put("message", count + "명의 사용자가 정지되었습니다.");
         return ResponseEntity.ok(response);
     }
-    
+
     // 월별 가입자 데이터 조회
     private List<Map<String, Object>> getMonthlyUserData() {
         List<Map<String, Object>> monthlyData = new ArrayList<>();
-        
+
         try {
             for (int month = 1; month <= 12; month++) {
                 Map<String, Object> monthData = new HashMap<>();
@@ -649,7 +647,7 @@ public class AdminController {
                 monthlyData.add(monthData);
             }
         }
-        
+
         return monthlyData;
     }
 }
