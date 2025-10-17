@@ -131,7 +131,7 @@ public class CompanyController {
         model.addAttribute("companyName", session.getAttribute("companyName"));
         model.addAttribute("companyId", companyId);
         addAvatarInfo(model, companyId);
-        return "crm/inquiry_report";
+        return "crm/company_report";
     }
 
     /**

@@ -961,3 +961,73 @@
         width: 100%;
     }
 }
+
+/* 예약 완료 확인 모달 스타일 */
+.confirm-modal {
+    max-width: 400px;
+    text-align: center;
+}
+
+.confirm-modal .modal-body {
+    padding: 30px 20px;
+}
+
+.confirm-icon {
+    margin-bottom: 20px;
+}
+
+.confirm-icon i {
+    font-size: 64px;
+    color: #4CAF50;
+}
+
+.confirm-message {
+    font-size: 18px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.confirm-sub-message {
+    font-size: 14px;
+    color: #7f8c8d;
+    margin-bottom: 0;
+}
+
+.confirm-modal .modal-actions {
+    padding: 20px;
+    border-top: 1px solid #ecf0f1;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.confirm-modal .btn {
+    padding: 10px 30px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.confirm-modal .btn-secondary {
+    background-color: #ecf0f1;
+    color: #2c3e50;
+}
+
+.confirm-modal .btn-secondary:hover {
+    background-color: #d5dbdb;
+}
+
+.confirm-modal .btn-primary {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.confirm-modal .btn-primary:hover {
+    background-color: #45a049;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}

@@ -238,6 +238,27 @@
     </div>
 </div>
 
+<!-- 예약 완료 확인 모달 -->
+<div id="completeConfirmModal" class="modal">
+    <div class="modal-content confirm-modal">
+        <div class="modal-header">
+            <h2>예약 완료 처리</h2>
+            <span class="close" onclick="closeCompleteModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="confirm-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <p class="confirm-message">예약 완료 처리하시겠습니까?</p>
+            <p class="confirm-sub-message">완료 처리된 예약은 되돌릴 수 없습니다.</p>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" onclick="closeCompleteModal()">취소</button>
+            <button type="button" class="btn btn-primary" onclick="confirmComplete()">확인</button>
+        </div>
+    </div>
+</div>
+
 <!-- 일정 추가 모달 -->
 <div id="eventModal" class="modal">
     <div class="modal-content">
