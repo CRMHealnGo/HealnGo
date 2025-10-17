@@ -350,20 +350,6 @@ public class AdminController {
             return ResponseEntity.internalServerError()
                 .body(Map.of("success", false, "message", "승인 실패: " + e.getMessage()));
         }
-        // 예약 목록 데이터 (실제로는 서비스에서 가져와야 함)
-        List<Map<String, Object>> reservations = getReservations(page, size, search);
-        model.addAttribute("reservations", reservations);
-
-        // 페이지네이션 정보
-        int totalReservations = 320; // 실제로는 DB에서 조회
-        int totalPages = (int) Math.ceil((double) totalReservations / size);
-
-        model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", totalPages);
-        model.addAttribute("totalReservations", totalReservations);
-        model.addAttribute("search", search);
-
-        return "admin/reservations";
     }
 
     /**
@@ -398,6 +384,51 @@ public class AdminController {
         }
     }
 
+
+    /**
+     * 예약 관리 페이지
+     */
+    @GetMapping("/reservations")
+    public String reservations(
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "search", required = false) String search,
+            Model model, HttpSession session) {
+
+        model.addAttribute("managerName", session.getAttribute("managerName"));
+
+        // 예약 목록 데이터 (실제로는 서비스에서 가져와야 함)
+        List<Map<String, Object>> reservations = getReservations(page, size, search);
+        model.addAttribute("reservations", reservations);
+
+        // 페이지네이션 정보
+        int totalReservations = 320; // 실제로는 DB에서 조회
+        int totalPages = (int) Math.ceil((double) totalReservations / size);
+
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("totalReservations", totalReservations);
+        model.addAttribute("search", search);
+
+        return "admin/reservations";
+    }
+
+    /**
+     * 리포트 & 통계 페이지
+     */
+    @GetMapping("/report")
+    public String report(Model model, HttpSession session) {
+        model.addAttribute("managerName", session.getAttribute("managerName"));
+
+        // 통계 데이터 (실제로는 서비스에서 가져와야 함)
+        Map<String, Object> reportStats = new HashMap<>();
+        reportStats.put("totalRevenue", 0);
+        reportStats.put("totalReservations", 0);
+        reportStats.put("totalUsers", 0);
+        model.addAttribute("reportStats", reportStats);
+
+        return "admin/report";
+    }
 
     /**
      * 문의/신고 접수 페이지 (관리자용)

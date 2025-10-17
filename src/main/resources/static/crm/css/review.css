@@ -168,13 +168,9 @@ body {
 }
 
 .reply-badge {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
     padding: 3px 8px;
     border-radius: 10px;
-    font-size: 11px;
     font-weight: 600;
-    margin-left: 8px;
 }
 
 .review-status-pending {

@@ -45,5 +45,11 @@ public interface UserReviewService {
     
     // 리뷰 공개/비공개 설정
     void toggleReviewVisibility(Integer reviewId);
+    
+    // 업체별 리뷰 목록 조회
+    List<Object[]> getReviewsByCompanyId(Integer companyId);
+    
+    // UserReview 엔티티를 DTO로 변환
+    UserReviewDto convertToDto(UserReview review);
 }
 

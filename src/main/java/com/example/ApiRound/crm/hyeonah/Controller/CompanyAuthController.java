@@ -45,6 +45,28 @@ public class CompanyAuthController {
     }
     
     /**
+     * 현재 로그인한 업체 ID 조회 API
+     */
+    @GetMapping("/api/current-company")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getCurrentCompany(HttpSession session) {
+        Map<String, Object> response = new HashMap<>();
+        
+        Integer companyId = (Integer) session.getAttribute("companyId");
+        String userType = (String) session.getAttribute("userType");
+        
+        if (companyId != null && "company".equals(userType)) {
+            response.put("companyId", companyId);
+            response.put("success", true);
+            return ResponseEntity.ok(response);
+        } else {
+            response.put("success", false);
+            response.put("message", "로그인이 필요합니다.");
+            return ResponseEntity.status(401).body(response);
+        }
+    }
+
+    /**
      * CRM 로그인 페이지
      */
     @GetMapping("/crm_login")
@@ -225,18 +247,18 @@ public class CompanyAuthController {
         if (companyOpt.isPresent()) {
             CompanyUser company = companyOpt.get();
             
-            log.info("====== 업체 로그인 시도 ======");
-            log.info("업체 ID: {}", company.getCompanyId());
-            log.info("업체 이름: {}", company.getCompanyName());
-            log.info("업체 주소: {}", company.getAddress());
-            log.info("승인 상태: {}", company.getApprovalStatus());
+            System.out.println("====== 업체 로그인 시도 ======");
+            System.out.println("업체 ID: " + company.getCompanyId());
+            System.out.println("업체 이름: " + company.getCompanyName());
+            System.out.println("업체 주소: " + company.getAddress());
+            System.out.println("승인 상태: " + company.getApprovalStatus());
             
             // 승인 상태 체크
             String approvalStatus = company.getApprovalStatus();
             
             // 승인 대기 중인 경우
             if ("PENDING".equals(approvalStatus)) {
-                log.warn("승인 대기 중인 업체 로그인 시도: {}", company.getEmail());
+                System.out.println("승인 대기 중인 업체 로그인 시도: " + company.getEmail());
                 response.put("success", false);
                 response.put("status", "PENDING");
                 response.put("message", "승인 대기중입니다.");
@@ -246,7 +268,7 @@ public class CompanyAuthController {
             
             // 반려된 경우
             if ("REJECTED".equals(approvalStatus)) {
-                log.warn("반려된 업체 로그인 시도: {}", company.getEmail());
+                System.out.println("반려된 업체 로그인 시도: " + company.getEmail());
                 response.put("success", false);
                 response.put("status", "REJECTED");
                 response.put("message", "승인이 거부되었습니다.");
@@ -257,7 +279,7 @@ public class CompanyAuthController {
             
             // 활성화되지 않은 경우
             if (!company.getIsActive()) {
-                log.warn("비활성화된 업체 로그인 시도: {}", company.getEmail());
+                System.out.println("비활성화된 업체 로그인 시도: " + company.getEmail());
                 response.put("success", false);
                 response.put("status", "INACTIVE");
                 response.put("message", "비활성화된 계정입니다.");
@@ -267,13 +289,13 @@ public class CompanyAuthController {
             
             // 승인된 경우에만 로그인 허용 (APPROVED)
             if (!"APPROVED".equals(approvalStatus)) {
-                log.warn("알 수 없는 승인 상태: {}", approvalStatus);
+                System.out.println("알 수 없는 승인 상태: " + approvalStatus);
                 response.put("success", false);
                 response.put("message", "로그인할 수 없는 계정 상태입니다.");
                 return ResponseEntity.ok(response);
             }
             
-            log.info("====== 업체 로그인 성공 ======");
+            System.out.println("====== 업체 로그인 성공 ======");
             
             // 세션에 업체 정보 저장
             session.setAttribute("companyId", company.getCompanyId());
@@ -282,9 +304,9 @@ public class CompanyAuthController {
             session.setAttribute("companyAddress", company.getAddress());
             session.setAttribute("userType", "company");
             
-            log.info("세션에 저장된 companyId: {}", session.getAttribute("companyId"));
-            log.info("세션에 저장된 companyName: {}", session.getAttribute("companyName"));
-            log.info("세션에 저장된 userType: {}", session.getAttribute("userType"));
+            System.out.println("세션에 저장된 companyId: " + session.getAttribute("companyId"));
+            System.out.println("세션에 저장된 companyName: " + session.getAttribute("companyName"));
+            System.out.println("세션에 저장된 userType: " + session.getAttribute("userType"));
             
             response.put("success", true);
             response.put("message", "로그인 성공");
@@ -383,28 +405,5 @@ public class CompanyAuthController {
     
     // ========== 리뷰 시스템용 API ==========
     
-    /**
-     * 현재 로그인한 업체 정보 조회
-     * GET /api/current-company
-     */
-    @GetMapping("/api/current-company")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> getCurrentCompany(HttpSession session) {
-        Map<String, Object> response = new HashMap<>();
-        
-        Integer companyId = (Integer) session.getAttribute("companyId");
-        String userType = (String) session.getAttribute("userType");
-        
-        if (companyId == null || !"company".equals(userType)) {
-            response.put("error", "로그인이 필요합니다.");
-            return ResponseEntity.status(401).body(response);
-        }
-        
-        response.put("companyId", companyId);
-        response.put("companyName", session.getAttribute("companyName"));
-        response.put("email", session.getAttribute("companyEmail"));
-        
-        return ResponseEntity.ok(response);
-    }
 }
 

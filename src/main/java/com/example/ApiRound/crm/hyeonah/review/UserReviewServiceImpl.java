@@ -1,6 +1,7 @@
 package com.example.ApiRound.crm.hyeonah.review;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -163,8 +164,20 @@ public class UserReviewServiceImpl implements UserReviewService {
         userReviewRepository.save(review);
     }
     
+    @Override
+    @Transactional(readOnly = true)
+    public List<Object[]> getReviewsByCompanyId(Integer companyId) {
+        try {
+            return userReviewRepository.findByCompanyId(companyId);
+        } catch (Exception e) {
+            System.err.println("getReviewsByCompanyId 오류 - companyId: " + companyId + ", 오류: " + e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+    
     // DTO 변환 헬퍼 메서드
-    private UserReviewDto convertToDto(UserReview review) {
+    @Override
+    public UserReviewDto convertToDto(UserReview review) {
         UserReviewDto dto = new UserReviewDto();
         dto.setReviewId(review.getReviewId());
         dto.setUserId(review.getUserId());

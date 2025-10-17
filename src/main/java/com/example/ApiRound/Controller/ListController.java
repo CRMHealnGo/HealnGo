@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.example.ApiRound.Service.ItemListService;
+import com.example.ApiRound.crm.hyeonah.review.UserReviewService;
 import com.example.ApiRound.entity.ItemList;
 import com.example.ApiRound.repository.ItemListRepository;
 
@@ -28,6 +29,7 @@ public class ListController {
 
     private final ItemListService itemListService;
     private final ItemListRepository itemListRepository;
+    private final UserReviewService userReviewService;
 
     /** "전국" / "전체" / "" / null  -> 검색조건 미적용(null)로 통일 */
     private String norm(String v) {
@@ -183,15 +185,19 @@ public class ListController {
     }
 
     /**
-     * 업체의 모든 리뷰 조회 (아이템 관계 없이)
+     * 업체의 모든 리뷰 조회 (user_review.booking_id -> reservations.id -> reservations.company_id)
      * GET /api/review/company-reviews/{companyId}
      */
     @GetMapping("/api/review/company-reviews/{companyId}")
     @ResponseBody
     public ResponseEntity<List<Object[]>> getCompanyReviews(@PathVariable Integer companyId) {
-        // 업체의 아이템들에 대한 모든 리뷰를 조회
-        List<Object[]> reviews = itemListRepository.findReviewsByCompanyId(companyId);
-        return ResponseEntity.ok(reviews);
+        try {
+            // user_review.booking_id를 통해 예약(reservations)과 연결하여 업체의 리뷰 조회
+            List<Object[]> reviews = userReviewService.getReviewsByCompanyId(companyId);
+            return ResponseEntity.ok(reviews);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
 }

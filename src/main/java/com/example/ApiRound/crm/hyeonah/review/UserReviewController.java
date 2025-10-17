@@ -26,18 +26,18 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @RequestMapping("/review")
 public class UserReviewController {
-    
+
     private final UserReviewService userReviewService;
-    
+
     // ========== 페이지 ==========
-    
+
     @GetMapping
     public String reviewPage(Model model) {
         return "crm/review";
     }
-    
+
     // ========== 리뷰 API ==========
-    
+
     // 리뷰 작성
     @PostMapping
     @ResponseBody
@@ -50,7 +50,7 @@ public class UserReviewController {
             @RequestParam(required = false) String content,
             @RequestParam(required = false) MultipartFile image,
             @RequestParam(defaultValue = "true") Boolean isPublic) {
-        
+
         try {
             UserReview review = new UserReview();
             review.setUserId(userId);
@@ -61,9 +61,9 @@ public class UserReviewController {
             review.setTitle(title);
             review.setContent(content);
             review.setIsPublic(isPublic);
-            
+
             UserReview createdReview = userReviewService.createReview(review, image);
-            
+
             // DTO로 변환하여 반환 (직렬화 문제 방지)
             UserReviewDto dto = userReviewService.getReviewById(createdReview.getReviewId());
             return ResponseEntity.ok(dto);
@@ -71,7 +71,7 @@ public class UserReviewController {
             throw new RuntimeException("리뷰 등록 중 오류가 발생했습니다: " + e.getMessage(), e);
         }
     }
-    
+
     // 리뷰 수정
     @PutMapping("/{reviewId}")
     @ResponseBody
@@ -82,16 +82,16 @@ public class UserReviewController {
             @RequestParam(required = false) String content,
             @RequestParam(required = false) MultipartFile image,
             @RequestParam(defaultValue = "true") Boolean isPublic) {
-        
+
         try {
             UserReview review = new UserReview();
             review.setRating(rating);
             review.setTitle(title);
             review.setContent(content);
             review.setIsPublic(isPublic);
-            
+
             UserReview updatedReview = userReviewService.updateReview(reviewId, review, image);
-            
+
             // DTO로 변환하여 반환 (직렬화 문제 방지)
             UserReviewDto dto = userReviewService.getReviewById(updatedReview.getReviewId());
             return ResponseEntity.ok(dto);
@@ -99,7 +99,7 @@ public class UserReviewController {
             throw new RuntimeException("리뷰 수정 중 오류가 발생했습니다: " + e.getMessage(), e);
         }
     }
-    
+
     // 리뷰 삭제
     @DeleteMapping("/{reviewId}")
     @ResponseBody
@@ -107,7 +107,7 @@ public class UserReviewController {
         userReviewService.deleteReview(reviewId);
         return ResponseEntity.ok().build();
     }
-    
+
     // 리뷰 상세 조회
     @GetMapping("/{reviewId}")
     @ResponseBody
@@ -115,7 +115,7 @@ public class UserReviewController {
         UserReviewDto review = userReviewService.getReviewById(reviewId);
         return ResponseEntity.ok(review);
     }
-    
+
     // 아이템별 리뷰 목록 조회
     @GetMapping("/item/{itemId}")
     @ResponseBody
@@ -123,7 +123,7 @@ public class UserReviewController {
         List<UserReviewDto> reviews = userReviewService.getReviewsByItemId(itemId);
         return ResponseEntity.ok(reviews);
     }
-    
+
     // 사용자별 리뷰 목록 조회
     @GetMapping("/user/{userId}")
     @ResponseBody
@@ -131,18 +131,19 @@ public class UserReviewController {
         List<UserReviewDto> reviews = userReviewService.getReviewsByUserId(userId);
         return ResponseEntity.ok(reviews);
     }
-    
+
     // 예약 ID로 리뷰 조회 (reservations.id 사용)
     @GetMapping("/booking/{reservationId}")
     @ResponseBody
-    public ResponseEntity<UserReview> getReviewByBooking(@PathVariable Long reservationId) {
+    public ResponseEntity<UserReviewDto> getReviewByBooking(@PathVariable Long reservationId) {
         UserReview review = userReviewService.getReviewByReservationId(reservationId);
         if (review != null) {
-            return ResponseEntity.ok(review);
+            UserReviewDto dto = userReviewService.convertToDto(review);
+            return ResponseEntity.ok(dto);
         }
         return ResponseEntity.notFound().build();
     }
-    
+
     // 리뷰 작성 가능 여부 확인 (reservations.id 사용)
     @GetMapping("/booking/{reservationId}/can-write")
     @ResponseBody
@@ -150,7 +151,7 @@ public class UserReviewController {
         boolean canWrite = userReviewService.canWriteReview(reservationId);
         return ResponseEntity.ok(canWrite);
     }
-    
+
     // 아이템 평균 평점 조회
     @GetMapping("/item/{itemId}/average-rating")
     @ResponseBody
@@ -158,7 +159,7 @@ public class UserReviewController {
         Double average = userReviewService.getAverageRatingByItemId(itemId);
         return ResponseEntity.ok(average);
     }
-    
+
     // 아이템 리뷰 개수 조회
     @GetMapping("/item/{itemId}/count")
     @ResponseBody
@@ -166,7 +167,7 @@ public class UserReviewController {
         Long count = userReviewService.getReviewCountByItemId(itemId);
         return ResponseEntity.ok(count);
     }
-    
+
     // 아이템 평점별 통계 조회
     @GetMapping("/item/{itemId}/rating-stats")
     @ResponseBody
@@ -174,8 +175,8 @@ public class UserReviewController {
         Map<Byte, Long> stats = userReviewService.getRatingStatsByItemId(itemId);
         return ResponseEntity.ok(stats);
     }
-    
-    
+
+
     // 리뷰 공개/비공개 설정
     @PatchMapping("/{reviewId}/toggle-visibility")
     @ResponseBody
@@ -183,8 +184,8 @@ public class UserReviewController {
         userReviewService.toggleReviewVisibility(reviewId);
         return ResponseEntity.ok().build();
     }
-    
-    
+
+
     // 리뷰 이미지 조회
     @GetMapping("/{reviewId}/image")
     @ResponseBody
@@ -194,11 +195,11 @@ public class UserReviewController {
             if (imageData != null && imageData.length > 0) {
                 UserReviewDto review = userReviewService.getReviewById(reviewId);
                 String mimeType = review.getImageMime() != null ? review.getImageMime() : "image/jpeg";
-                
+
                 HttpHeaders headers = new HttpHeaders();
                 headers.setContentType(MediaType.parseMediaType(mimeType));
                 headers.setContentLength(imageData.length);
-                
+
                 return new ResponseEntity<>(imageData, headers, HttpStatus.OK);
             } else {
                 return ResponseEntity.notFound().build();
@@ -207,5 +208,7 @@ public class UserReviewController {
             return ResponseEntity.notFound().build();
         }
     }
+
+
 }
 

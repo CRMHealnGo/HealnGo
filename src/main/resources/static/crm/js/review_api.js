@@ -220,6 +220,18 @@ window.ReviewAPI = {
             console.error('Error checking review availability:', error);
             return false;
         }
+    },
+
+    // 특정 리뷰의 답글 조회
+    async getRepliesByReview(reviewId) {
+        try {
+            const response = await fetch(`/review/reply/review/${reviewId}`);
+            if (!response.ok) throw new Error('Failed to fetch replies');
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching replies:', error);
+            return [];
+        }
     }
 };
 

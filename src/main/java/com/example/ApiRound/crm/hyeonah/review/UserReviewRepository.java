@@ -32,5 +32,23 @@ public interface UserReviewRepository extends JpaRepository<UserReview, Integer>
     
     // booking_id로 리뷰 존재 여부 확인
     boolean existsByBookingId(Long bookingId);
+    
+    // 업체별 리뷰 조회 (reservations 경로, 프론트 매핑과 동일한 13컬럼 순서)
+    @Query(value =
+    "SELECT ur.review_id, ur.user_id, ur.item_id, ur.booking_id, ur.rating, " +
+    "       ur.title, ur.content, ur.image_mime, ur.is_public, ur.created_at, ur.updated_at, " +
+    "       il.name AS item_name, su.name AS user_name " +
+    "FROM user_review ur " +
+    "JOIN reservations r ON r.id = ur.booking_id " +   
+    "LEFT JOIN item_list il ON il.id = ur.item_id " +
+    "LEFT JOIN social_users su ON su.user_id = ur.user_id " +
+    "WHERE r.company_id = :companyId " +
+    "ORDER BY ur.created_at DESC",
+    nativeQuery = true)
+List<Object[]> findByCompanyId(@Param("companyId") Integer companyId);
+
+
+
+
 }
 
