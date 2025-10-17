@@ -399,15 +399,9 @@ function closeReservationModal() {
 function updateModalContent() {
     const selectedProcedures = document.querySelectorAll('.procedure-checkbox:checked');
     
-    // Update reservation name to "Yoyo"
-    const reservationNameElement = document.querySelector('.info-card .info-row .value');
-    if (reservationNameElement) {
-        reservationNameElement.textContent = 'Yoyo';
-    }
-    
     // 서비스명 업데이트
     if (serviceData) {
-        const serviceNameElement = document.querySelector('.info-card:nth-child(4) .info-row:first-child .value');
+        const serviceNameElement = document.getElementById('serviceName');
         if (serviceNameElement) {
             serviceNameElement.textContent = serviceData.name || '서비스';
         }
@@ -415,10 +409,28 @@ function updateModalContent() {
     
     // 병원명 업데이트
     if (hospitalData) {
-        const hospitalNameElement = document.querySelector('.info-card:nth-child(4) .info-row:nth-child(3) .value');
+        const hospitalNameElement = document.getElementById('hospitalName');
         if (hospitalNameElement) {
             hospitalNameElement.textContent = hospitalData.name || '병원';
         }
+    }
+    
+    // 예약 일시 업데이트 (현재 날짜와 선택된 시간)
+    const selectedDate = document.getElementById('reservationDate');
+    const selectedTime = document.querySelector('.time-slot.selected');
+    const reservationDateTimeElement = document.getElementById('reservationDateTime');
+    
+    if (selectedDate && selectedTime && reservationDateTimeElement) {
+        const date = new Date(selectedDate.value);
+        const time = selectedTime.textContent;
+        const formattedDate = date.toLocaleDateString('ko-KR', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            weekday: 'short'
+        }).replace(/\./g, '.').replace(/\s/g, '');
+        
+        reservationDateTimeElement.textContent = `${formattedDate} ${time}`;
     }
     
     // Update total amount in modal

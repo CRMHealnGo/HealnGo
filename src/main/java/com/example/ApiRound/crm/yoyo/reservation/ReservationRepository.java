@@ -1,6 +1,7 @@
 package com.example.ApiRound.crm.yoyo.reservation;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
@@ -81,4 +82,10 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     // 업체별 전체 예약 수 조회
     @Query("SELECT COUNT(r) FROM Reservation r WHERE r.company = :company")
     Long countByCompany(@Param("company") CompanyUser company);
+    
+    // 생성일(created_at) 기준 날짜 범위별 예약 조회
+    @Query("SELECT r FROM Reservation r WHERE r.company = :company AND r.createdAt BETWEEN :startDateTime AND :endDateTime ORDER BY r.createdAt ASC")
+    List<Reservation> findByCompanyAndCreatedAtBetween(@Param("company") CompanyUser company, 
+                                                        @Param("startDateTime") LocalDateTime startDateTime, 
+                                                        @Param("endDateTime") LocalDateTime endDateTime);
 }

@@ -496,3 +496,63 @@ function deleteReservation(button) {
         }, 300);
     }
 }
+
+// 예약 완료 처리 관련 변수
+let currentReservationId = null;
+
+// 예약 완료 처리 확인 모달 열기
+function completeReservation(reservationId) {
+    currentReservationId = reservationId;
+    const modal = document.getElementById('completeConfirmModal');
+    if (modal) {
+        modal.style.display = 'block';
+    }
+}
+
+// 예약 완료 확인 모달 닫기
+function closeCompleteModal() {
+    const modal = document.getElementById('completeConfirmModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    currentReservationId = null;
+}
+
+// 예약 완료 처리 확인
+function confirmComplete() {
+    if (!currentReservationId) {
+        alert('예약 정보를 찾을 수 없습니다.');
+        return;
+    }
+    
+    // API 호출로 예약 완료 처리
+    fetch(`/company/api/reservations/${currentReservationId}/complete`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('예약이 완료 처리되었습니다.');
+            closeCompleteModal();
+            // 페이지 새로고침
+            location.reload();
+        } else {
+            alert(data.message || '예약 완료 처리에 실패했습니다.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('예약 완료 처리 중 오류가 발생했습니다.');
+    });
+}
+
+// 모달 외부 클릭 시 닫기
+window.onclick = function(event) {
+    const completeModal = document.getElementById('completeConfirmModal');
+    if (event.target === completeModal) {
+        closeCompleteModal();
+    }
+}

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HealnGo Admin Dashboard</title>
-
+    
     <!-- CSS 파일들 -->
     <link rel="stylesheet" href="/crm/css/admin_sidebar.css">
     <link rel="stylesheet" href="/crm/css/admin_header.css">
@@ -12,308 +12,255 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-
+    
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 </head>
 <body>
-<div class="dashboard-container">
-    <!-- 사이드바 -->
-    <div th:replace="~{common/admin_sidebar :: admin_sidebar}"></div>
-
-    <!-- 메인 콘텐츠 -->
-    <div class="main-content">
-        <!-- 헤더 -->
-        <div th:replace="~{common/admin_header :: admin_header}"></div>
-
-        <!-- 대시보드 콘텐츠 -->
-        <div class="admin-content">
-            <h1 class="page-title">관리자 모드</h1>
-            <h2 class="page-subtitle">Dashboard</h2>
-
-            <!-- 카드 그리드 -->
-            <div class="cards-grid">
-                <!-- 사용자 관리 카드 -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">사용자 관리</h3>
-                        <a href="/admin/users" class="view-all-link">View all ></a>
-                    </div>
-                    <div class="user-stats-container">
-                        <div class="stat-item">
-                            <div class="stat-label">총 사용자</div>
-                            <div class="stat-value" th:text="${stats.totalUsers}">0</div>
+    <div class="dashboard-container">
+        <!-- 사이드바 -->
+        <div th:replace="~{common/admin_sidebar :: admin_sidebar}"></div>
+        
+        <!-- 메인 콘텐츠 -->
+        <div class="main-content">
+            <!-- 헤더 -->
+            <div th:replace="~{common/admin_header :: admin_header}"></div>
+            
+            <!-- 대시보드 콘텐츠 -->
+            <div class="admin-content">
+                <h1 class="page-title">관리자 모드</h1>
+                <h2 class="page-subtitle">Dashboard</h2>
+                
+                <!-- 카드 그리드 -->
+                <div class="cards-grid">
+                    <!-- 사용자 관리 카드 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">사용자 관리</h3>
+                            <a href="/admin/users" class="view-all-link">View all ></a>
                         </div>
-                        <div class="stat-item">
-                            <div class="stat-label">활성 사용자</div>
-                            <div class="stat-value" th:text="${stats.activeUsers != null ? stats.activeUsers : 0}">0</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-label">정지 사용자</div>
-                            <div class="stat-value" th:text="${stats.suspendedUsers != null ? stats.suspendedUsers : 0}">0</div>
-                        </div>
-                    </div>
-                    <div class="user-chart-container">
-                        <canvas id="userChart"></canvas>
-                    </div>
-                    <!-- 월별 데이터를 JavaScript에서 사용할 수 있도록 숨김 -->
-                    <script th:inline="javascript">
-                        /*<![CDATA[*/
-                        window.monthlyData = /*[[${stats.monthlyData}]]*/ [];
-                        /*]]>*/
-                    </script>
-                </div>
-
-                <!-- 10월 캘린더 카드 -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">10월</h3>
-                    </div>
-                    <div class="calendar-container">
-                        <div class="calendar-grid">
-                            <div class="calendar-header">
-                                <div class="calendar-day-header">일</div>
-                                <div class="calendar-day-header">월</div>
-                                <div class="calendar-day-header">화</div>
-                                <div class="calendar-day-header">수</div>
-                                <div class="calendar-day-header">목</div>
-                                <div class="calendar-day-header">금</div>
-                                <div class="calendar-day-header">토</div>
+                        <div class="user-stats-container">
+                            <div class="stat-item">
+                                <div class="stat-label">총 사용자</div>
+                                <div class="stat-value" th:text="${stats.totalUsers}">0</div>
                             </div>
-                            <div class="calendar-days">
-                                <!-- 10월 1주차 -->
-                                <div class="calendar-day"></div>
-                                <div class="calendar-day">01</div>
-                                <div class="calendar-day has-event">02</div>
-                                <div class="calendar-day">03</div>
-                                <div class="calendar-day">04</div>
-                                <div class="calendar-day">05</div>
-                                <div class="calendar-day">06</div>
-
-                                <!-- 10월 2주차 -->
-                                <div class="calendar-day">07</div>
-                                <div class="calendar-day has-event">08</div>
-                                <div class="calendar-day has-event">09</div>
-                                <div class="calendar-day has-event">10</div>
-                                <div class="calendar-day">11</div>
-                                <div class="calendar-day">12</div>
-                                <div class="calendar-day">13</div>
-
-                                <!-- 10월 3주차 -->
-                                <div class="calendar-day">14</div>
-                                <div class="calendar-day">15</div>
-                                <div class="calendar-day">16</div>
-                                <div class="calendar-day has-event">17</div>
-                                <div class="calendar-day">18</div>
-                                <div class="calendar-day today">19</div>
-                                <div class="calendar-day">20</div>
-
-                                <!-- 10월 4주차 -->
-                                <div class="calendar-day">21</div>
-                                <div class="calendar-day">22</div>
-                                <div class="calendar-day">23</div>
-                                <div class="calendar-day">24</div>
-                                <div class="calendar-day">25</div>
-                                <div class="calendar-day">26</div>
-                                <div class="calendar-day">27</div>
-
-                                <!-- 10월 5주차 -->
-                                <div class="calendar-day">28</div>
-                                <div class="calendar-day">29</div>
-                                <div class="calendar-day">30</div>
-                                <div class="calendar-day">31</div>
-                                <div class="calendar-day"></div>
-                                <div class="calendar-day"></div>
-                                <div class="calendar-day"></div>
+                            <div class="stat-item">
+                                <div class="stat-label">활성 사용자</div>
+                                <div class="stat-value" th:text="${stats.activeUsers != null ? stats.activeUsers : 0}">0</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">정지 사용자</div>
+                                <div class="stat-value" th:text="${stats.suspendedUsers != null ? stats.suspendedUsers : 0}">0</div>
                             </div>
                         </div>
-                        <div class="schedule-section">
-                            <div class="schedule-date">10/13</div>
-                            <div class="schedule-item">밝은미소 패키지 예약</div>
-                            <div class="schedule-item">반짝피부과 입점</div>
-                            <div class="schedule-item">반짝피부과 광고일(13-16)</div>
-                            <div class="schedule-item">공지사항</div>
-                            <div style="margin-left: 10px; font-size: 12px; color: #7f8c8d;">
-                                -업데이트 공지 올라감.<br>
-                                -고객 신고 처리 공지 올라감
-                            </div>
-
-                            <div class="schedule-date" style="margin-top: 20px;">10/16</div>
-                            <div class="schedule-item">입점 업체 결제처리</div>
-                            <div class="schedule-item">해맑치과 입점</div>
-                            <div class="schedule-item">해맑치과 광고일(16~19)</div>
-                            <div class="schedule-item">공지사항</div>
-                            <div style="margin-left: 10px; font-size: 12px; color: #7f8c8d;">
-                                -고객 신고 처리 공지 올라감
-                            </div>
-
-                            <div class="timeline">
-                                <div class="timeline-dot"></div>
-                                <div class="timeline-line"></div>
-                                <div class="timeline-dot"></div>
-                                <div class="timeline-line"></div>
-                                <div class="timeline-dot"></div>
-                                <div class="timeline-line"></div>
-                                <div class="timeline-dot"></div>
-                                <div class="timeline-line"></div>
-                                <div class="timeline-dot"></div>
-                            </div>
+                        <div class="user-chart-container">
+                            <canvas id="userChart"></canvas>
                         </div>
+                        <!-- 월별 데이터를 JavaScript에서 사용할 수 있도록 숨김 -->
+                        <script th:inline="javascript">
+                            /*<![CDATA[*/
+                            window.monthlyData = /*[[${stats.monthlyData}]]*/ [];
+                            /*]]>*/
+                        </script>
                     </div>
-                </div>
-
-                <!-- 업체 관리 카드 -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">업체 관리</h3>
-                        <a href="/admin/companies" class="view-all-link">View all ></a>
-                    </div>
-                    <div class="company-list">
-                        <div class="company-item">
-                            <div class="company-icon" style="background: linear-gradient(135deg, #ff6b9d, #4ecdc4);">123</div>
-                            <div class="company-info">
-                                <div class="company-name">123성형외과</div>
-                                <div class="company-id">PN0001265</div>
-                                <div class="company-date">계약일 Sep 12, 2021</div>
-                                <div class="company-data">
-                                    <div class="data-item">
-                                        <span class="data-label">상담</span>
-                                        <span class="data-value">947</span>
-                                    </div>
-                                    <div class="data-item">
-                                        <span class="data-label">이벤트</span>
-                                        <span class="data-value">13</span>
-                                    </div>
-                                    <div class="data-item">
-                                        <span class="data-label">예약건</span>
-                                        <div class="profile-avatars">
-                                            <div class="profile-avatar">A</div>
-                                            <div class="profile-avatar">B</div>
-                                            <div class="profile-avatar">C</div>
-                                            <span style="margin-left: 5px; font-size: 12px; color: #7f8c8d;">+2</span>
-                                        </div>
-                                    </div>
+                    
+                    <!-- 10월 캘린더 카드 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">10월</h3>
+                        </div>
+                        <div class="calendar-container">
+                            <div class="calendar-grid">
+                                <div class="calendar-header">
+                                    <div class="calendar-day-header">일</div>
+                                    <div class="calendar-day-header">월</div>
+                                    <div class="calendar-day-header">화</div>
+                                    <div class="calendar-day-header">수</div>
+                                    <div class="calendar-day-header">목</div>
+                                    <div class="calendar-day-header">금</div>
+                                    <div class="calendar-day-header">토</div>
+                                </div>
+                                <div class="calendar-days">
+                                    <!-- 10월 1주차 -->
+                                    <div class="calendar-day"></div>
+                                    <div class="calendar-day">01</div>
+                                    <div class="calendar-day has-event">02</div>
+                                    <div class="calendar-day">03</div>
+                                    <div class="calendar-day">04</div>
+                                    <div class="calendar-day">05</div>
+                                    <div class="calendar-day">06</div>
+                                    
+                                    <!-- 10월 2주차 -->
+                                    <div class="calendar-day">07</div>
+                                    <div class="calendar-day has-event">08</div>
+                                    <div class="calendar-day has-event">09</div>
+                                    <div class="calendar-day has-event">10</div>
+                                    <div class="calendar-day">11</div>
+                                    <div class="calendar-day">12</div>
+                                    <div class="calendar-day">13</div>
+                                    
+                                    <!-- 10월 3주차 -->
+                                    <div class="calendar-day">14</div>
+                                    <div class="calendar-day">15</div>
+                                    <div class="calendar-day">16</div>
+                                    <div class="calendar-day has-event">17</div>
+                                    <div class="calendar-day">18</div>
+                                    <div class="calendar-day today">19</div>
+                                    <div class="calendar-day">20</div>
+                                    
+                                    <!-- 10월 4주차 -->
+                                    <div class="calendar-day">21</div>
+                                    <div class="calendar-day">22</div>
+                                    <div class="calendar-day">23</div>
+                                    <div class="calendar-day">24</div>
+                                    <div class="calendar-day">25</div>
+                                    <div class="calendar-day">26</div>
+                                    <div class="calendar-day">27</div>
+                                    
+                                    <!-- 10월 5주차 -->
+                                    <div class="calendar-day">28</div>
+                                    <div class="calendar-day">29</div>
+                                    <div class="calendar-day">30</div>
+                                    <div class="calendar-day">31</div>
+                                    <div class="calendar-day"></div>
+                                    <div class="calendar-day"></div>
+                                    <div class="calendar-day"></div>
                                 </div>
                             </div>
-                            <div class="company-rating">
-                                <div class="rating-stars">↑4.8★(288)</div>
-                            </div>
-                        </div>
-
-                        <div class="company-item">
-                            <div class="company-icon" style="background: linear-gradient(135deg, #4ecdc4, #45b7d1);">하</div>
-                            <div class="company-info">
-                                <div class="company-name">하나한의원</div>
-                                <div class="company-id">PN0001221</div>
-                                <div class="company-date">계약일 Sep 10, 2020</div>
-                                <div class="company-data">
-                                    <div class="data-item">
-                                        <span class="data-label">상담</span>
-                                        <span class="data-value">1075</span>
-                                    </div>
-                                    <div class="data-item">
-                                        <span class="data-label">이벤트</span>
-                                        <span class="data-value">4</span>
-                                    </div>
-                                    <div class="data-item">
-                                        <span class="data-label">예약건</span>
-                                        <div class="profile-avatars">
-                                            <div class="profile-avatar">D</div>
-                                            <div class="profile-avatar">E</div>
-                                            <div class="profile-avatar">F</div>
-                                            <span style="margin-left: 5px; font-size: 12px; color: #7f8c8d;">+1</span>
-                                        </div>
-                                    </div>
+                            <div class="schedule-section">
+                                <div class="schedule-date">10/13</div>
+                                <div class="schedule-item">밝은미소 패키지 예약</div>
+                                <div class="schedule-item">반짝피부과 입점</div>
+                                <div class="schedule-item">반짝피부과 광고일(13-16)</div>
+                                <div class="schedule-item">공지사항</div>
+                                <div style="margin-left: 10px; font-size: 12px; color: #7f8c8d;">
+                                    -업데이트 공지 올라감.<br>
+                                    -고객 신고 처리 공지 올라감
                                 </div>
-                            </div>
-                            <div class="company-rating">
-                                <div class="rating-stars">↑4.7★(312)</div>
-                            </div>
-                        </div>
-
-                        <div class="company-item">
-                            <div class="company-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">새</div>
-                            <div class="company-info">
-                                <div class="company-name">새하얀피부과</div>
-                                <div class="company-id">PN0001290</div>
-                                <div class="company-date">계약일 May 28, 2024</div>
-                                <div class="company-data">
-                                    <div class="data-item">
-                                        <span class="data-label">상담</span>
-                                        <span class="data-value">966</span>
-                                    </div>
-                                    <div class="data-item">
-                                        <span class="data-label">이벤트</span>
-                                        <span class="data-value">20</span>
-                                    </div>
-                                    <div class="data-item">
-                                        <span class="data-label">예약건</span>
-                                        <div class="profile-avatars">
-                                            <div class="profile-avatar">G</div>
-                                            <div class="profile-avatar">H</div>
-                                            <div class="profile-avatar">I</div>
-                                            <span style="margin-left: 5px; font-size: 12px; color: #7f8c8d;">+5</span>
-                                        </div>
-                                    </div>
+                                
+                                <div class="schedule-date" style="margin-top: 20px;">10/16</div>
+                                <div class="schedule-item">입점 업체 결제처리</div>
+                                <div class="schedule-item">해맑치과 입점</div>
+                                <div class="schedule-item">해맑치과 광고일(16~19)</div>
+                                <div class="schedule-item">공지사항</div>
+                                <div style="margin-left: 10px; font-size: 12px; color: #7f8c8d;">
+                                    -고객 신고 처리 공지 올라감
                                 </div>
-                            </div>
-                            <div class="company-rating">
-                                <div class="rating-stars" style="color: #e74c3c;">↓4.2★(162)</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 문의 & 신고 접수 카드 -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">문의 & 신고 접수</h3>
-                    </div>
-                    <div class="inquiry-list">
-                        <div class="inquiry-item">
-                            <div class="inquiry-avatar">기</div>
-                            <div class="inquiry-content">
-                                <div class="inquiry-name">기쁨 성형외과</div>
-                                <div class="inquiry-role">눈 전문 성형외과</div>
-                                <div class="inquiry-message">
-                                    <i class="fas fa-comment" style="color: #3498db; margin-right: 5px;"></i>
-                                    병원에서 진행하는 프로모션을 광고하고 싶어요.
-                                </div>
-                                <div class="inquiry-actions">
-                                    <i class="fas fa-paperclip attachment-icon"></i>
-                                    <span style="font-size: 12px; color: #7f8c8d;">Attached files to the task.</span>
+                                
+                                <div class="timeline">
+                                    <div class="timeline-dot"></div>
+                                    <div class="timeline-line"></div>
+                                    <div class="timeline-dot"></div>
+                                    <div class="timeline-line"></div>
+                                    <div class="timeline-dot"></div>
+                                    <div class="timeline-line"></div>
+                                    <div class="timeline-dot"></div>
+                                    <div class="timeline-line"></div>
+                                    <div class="timeline-dot"></div>
                                 </div>
                             </div>
                         </div>
-
-                        <div class="inquiry-item">
-                            <div class="inquiry-avatar">E</div>
-                            <div class="inquiry-content">
-                                <div class="inquiry-name">Emily Tyler</div>
-                                <div class="inquiry-role">사용자</div>
-                                <div class="inquiry-message">
-                                    <i class="fas fa-comment" style="color: #3498db; margin-right: 5px;"></i>
-                                    바밤바피부과에서 이상한 연락을 보내서 신고하고 싶어요.
-                                </div>
+                    </div>
+                    
+                    <!-- 업체 관리 카드 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">업체 관리 (예약 많은 순)</h3>
+                            <a href="/admin/companies" class="view-all-link">View all ></a>
+                        </div>
+                        <div class="company-stats-container">
+                            <div class="stat-item">
+                                <div class="stat-label">전체 업체</div>
+                                <div class="stat-value" th:text="${stats.totalCompanies}">0</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">이번달 신규</div>
+                                <div class="stat-value" th:text="${stats.newThisMonth}">0</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">신고 접수</div>
+                                <div class="stat-value" th:text="${stats.reportsReceived}">0</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">제재 중</div>
+                                <div class="stat-value" th:text="${stats.underSanction}">0</div>
                             </div>
                         </div>
-
-                        <div style="text-align: center; margin-top: 20px;">
-                            <a href="#" class="view-more">
-                                View more
-                                <i class="fas fa-chevron-down"></i>
-                            </a>
+                        
+                        <!-- 업체 리스트 -->
+                        <div class="company-list-container">
+                            <div th:if="${topCompanies != null and !topCompanies.isEmpty()}">
+                                <div class="company-list-item" th:each="company, iterStat : ${topCompanies}">
+                                    <div class="company-rank">
+                                        <span th:text="${iterStat.index + 1}">1</span>
+                                    </div>
+                                    <div class="company-info-section">
+                                        <div class="company-name-text" th:text="${company.companyName}">업체명</div>
+                                        <div class="company-category" th:text="${company.category}">카테고리</div>
+                                    </div>
+                                    <div class="company-reservation-count">
+                                        <span class="reservation-count-label">예약</span>
+                                        <span class="reservation-count-value" th:text="${company.reservationCount}">0</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div th:if="${topCompanies == null or topCompanies.isEmpty()}" class="no-data-message">
+                                <i class="fas fa-building"></i>
+                                <p>등록된 업체가 없습니다.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 문의 & 신고 접수 카드 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">문의 & 신고 접수</h3>
+                        </div>
+                        <div class="inquiry-list">
+                            <div class="inquiry-item">
+                                <div class="inquiry-avatar">기</div>
+                                <div class="inquiry-content">
+                                    <div class="inquiry-name">기쁨 성형외과</div>
+                                    <div class="inquiry-role">눈 전문 성형외과</div>
+                                    <div class="inquiry-message">
+                                        <i class="fas fa-comment" style="color: #3498db; margin-right: 5px;"></i>
+                                        병원에서 진행하는 프로모션을 광고하고 싶어요.
+                                    </div>
+                                    <div class="inquiry-actions">
+                                        <i class="fas fa-paperclip attachment-icon"></i>
+                                        <span style="font-size: 12px; color: #7f8c8d;">Attached files to the task.</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="inquiry-item">
+                                <div class="inquiry-avatar">E</div>
+                                <div class="inquiry-content">
+                                    <div class="inquiry-name">Emily Tyler</div>
+                                    <div class="inquiry-role">사용자</div>
+                                    <div class="inquiry-message">
+                                        <i class="fas fa-comment" style="color: #3498db; margin-right: 5px;"></i>
+                                        바밤바피부과에서 이상한 연락을 보내서 신고하고 싶어요.
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div style="text-align: center; margin-top: 20px;">
+                                <a href="#" class="view-more">
+                                    View more
+                                    <i class="fas fa-chevron-down"></i>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- JavaScript -->
-<script src="/crm/js/admin_dashboard.js"></script>
+    <!-- JavaScript -->
+    <script src="/crm/js/admin_dashboard.js"></script>
 
 </body>
 </html>
