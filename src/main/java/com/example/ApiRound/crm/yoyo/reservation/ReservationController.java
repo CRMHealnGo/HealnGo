@@ -87,29 +87,29 @@ public class ReservationController {
                             } else {
                                 log.error("itemId {}의 ownerCompany가 null입니다. 예약할 수 없습니다.", itemId);
                                 return ResponseEntity.status(400).body(Map.of(
-                                    "success", false,
-                                    "message", "해당 상품의 업체 정보를 찾을 수 없습니다. 관리자에게 문의해주세요."
+                                        "success", false,
+                                        "message", "해당 상품의 업체 정보를 찾을 수 없습니다. 관리자에게 문의해주세요."
                                 ));
                             }
                         } else {
                             log.error("itemId {}에 해당하는 ItemList를 찾을 수 없습니다.", itemId);
                             return ResponseEntity.status(400).body(Map.of(
-                                "success", false,
-                                "message", "존재하지 않는 상품입니다. 페이지를 새로고침해주세요."
+                                    "success", false,
+                                    "message", "존재하지 않는 상품입니다. 페이지를 새로고침해주세요."
                             ));
                         }
                     } catch (Exception e) {
                         log.error("itemId 처리 오류: ", e);
                         return ResponseEntity.status(500).body(Map.of(
-                            "success", false,
-                            "message", "예약 처리 중 오류가 발생했습니다. 다시 시도해주세요."
+                                "success", false,
+                                "message", "예약 처리 중 오류가 발생했습니다. 다시 시도해주세요."
                         ));
                     }
                 } else {
                     log.error("예약 요청에 itemId가 없습니다.");
                     return ResponseEntity.status(400).body(Map.of(
-                        "success", false,
-                        "message", "예약할 상품 정보가 없습니다. 페이지를 새로고침해주세요."
+                            "success", false,
+                            "message", "예약할 상품 정보가 없습니다. 페이지를 새로고침해주세요."
                     ));
                 }
             }
@@ -118,8 +118,8 @@ public class ReservationController {
             if (companyId == null) {
                 log.error("업체 정보를 찾을 수 없습니다. 예약할 수 없습니다.");
                 return ResponseEntity.status(400).body(Map.of(
-                    "success", false,
-                    "message", "예약할 병원 정보를 찾을 수 없습니다. 페이지를 새로고침해주세요."
+                        "success", false,
+                        "message", "예약할 병원 정보를 찾을 수 없습니다. 페이지를 새로고침해주세요."
                 ));
             }
 
@@ -145,21 +145,21 @@ public class ReservationController {
             log.info("생성된 ReservationDto: {}", reservationDto);
 
             ReservationDto savedReservation = reservationService.createReservation(reservationDto);
-            
+
             log.info("예약 생성 성공 - reservationId: {}", savedReservation.getId());
             log.info("========== 예약 생성 요청 완료 ==========");
-            
+
             return ResponseEntity.ok().body(Map.of(
-                "success", true,
-                "message", "예약이 완료되었습니다.",
-                "reservationId", savedReservation.getId()
+                    "success", true,
+                    "message", "예약이 완료되었습니다.",
+                    "reservationId", savedReservation.getId()
             ));
 
         } catch (Exception e) {
             log.error("예약 처리 중 오류 발생: ", e);
             return ResponseEntity.status(500).body(Map.of(
-                "success", false,
-                "message", "예약 처리 중 오류가 발생했습니다: " + e.getMessage()
+                    "success", false,
+                    "message", "예약 처리 중 오류가 발생했습니다: " + e.getMessage()
             ));
         }
     }

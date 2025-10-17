@@ -84,7 +84,6 @@ public class AdminManageController {
                 }
             }
 
-
             // 검색 및 필터 정보
             model.addAttribute("search", search);
             model.addAttribute("status", status);
@@ -174,7 +173,7 @@ public class AdminManageController {
             return ResponseEntity.status(500).body(errorResponse);
         }
     }
-    
+
     /**
      * 업체별 예약내역 조회 API
      */
@@ -184,10 +183,10 @@ public class AdminManageController {
             @PathVariable Integer companyId,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size) {
-        
+
         log.info("====== AdminManageController.getCompanyReservations 호출 ======");
         log.info("Company ID: {}, Page: {}, Size: {}", companyId, page, size);
-        
+
         try {
             // 업체 존재 확인 (AdminManageService를 통해)
             boolean companyExists = adminManageService.checkCompanyExists(companyId);

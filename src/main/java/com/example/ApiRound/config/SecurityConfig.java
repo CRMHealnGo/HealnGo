@@ -85,7 +85,7 @@ public class SecurityConfig {
                     // 공개 페이지(고객)
                     "/", "/index", "/main",
                     "/login", "/signup", "/user-signup",
-                    "/location", "/community", "/list",
+                    "/location", "/notice", "/list",
                     "/detail/**",
                     "/category/**",
                     "/search", "/lang",
@@ -103,7 +103,7 @@ public class SecurityConfig {
                     "/css/**", "/js/**", "/images/**",
                     "/resources/**", "/static/**",
                     // 세션 기반 인증 페이지 (컨트롤러에서 체크)
-                    "/mypage/**", "/favorite/**", "/reservation/**"
+                    "/mypage/**", "/favorite/**", "/reservation/**", "/review/**", "/chat/**", "/inquiry/**"
                 ).permitAll()
                 .anyRequest().permitAll()  // 나머지는 공개
             )

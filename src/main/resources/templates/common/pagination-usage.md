@@ -62,7 +62,7 @@ model.addAttribute("baseUrl", "/your-page-url"); // 기본 URL 설정
 
 ### Controller에서 baseUrl 설정
 ```java
-@GetMapping("/community")
+@GetMapping("/notice")
 public String community(Model model, 
                        @RequestParam(defaultValue = "1") int pageNo,
                        @RequestParam(defaultValue = "10") int amount) {
@@ -73,9 +73,9 @@ public String community(Model model,
     model.addAttribute("startPage", startPage);
     model.addAttribute("endPage", endPage);
     model.addAttribute("amount", amount);
-    model.addAttribute("baseUrl", "/community");
+    model.addAttribute("baseUrl", "/notice");
     
-    return "community";
+    return "notice";
 }
 ```
 

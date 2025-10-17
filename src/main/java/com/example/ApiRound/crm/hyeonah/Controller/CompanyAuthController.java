@@ -380,5 +380,30 @@ public class CompanyAuthController {
             return ResponseEntity.internalServerError().body(response);
         }
     }
+    
+    // ========== 리뷰 시스템용 API ==========
+    
+    /**
+     * 현재 로그인한 업체 정보 조회
+     * GET /api/current-company
+     */
+    @GetMapping("/api/current-company")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getCurrentCompany(HttpSession session) {
+        Map<String, Object> response = new HashMap<>();
+        
+        CompanyUser companyUser = (CompanyUser) session.getAttribute("companyUser");
+        
+        if (companyUser == null) {
+            response.put("error", "로그인이 필요합니다.");
+            return ResponseEntity.status(401).body(response);
+        }
+        
+        response.put("companyId", companyUser.getCompanyId());
+        response.put("companyName", companyUser.getCompanyName());
+        response.put("email", companyUser.getEmail());
+        
+        return ResponseEntity.ok(response);
+    }
 }
 

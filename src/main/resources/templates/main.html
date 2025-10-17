@@ -316,31 +316,33 @@
         <section class="popular-section">
             <div class="container">
                 <div class="popular-content-wrapper">
-                    <!-- 왼쪽: 커뮤니티 코멘트 (디자인 전용) -->
+                    <!-- 왼쪽: 공지사항 -->
                     <div class="community-comments">
                         <div class="community-header">
-                            <div class="title">커뮤니티</div>
-                            <a href="/community" class="more-link">더보기<i class="fas fa-chevron-right"></i></a>
+                            <div class="title">공지사항</div>
+                            <a href="/notice" class="more-link">더보기<i class="fas fa-chevron-right"></i></a>
                         </div>
 
                         <div class="comments-list">
-                            <div th:each="post : ${posts}" th:if="${postStat.index < 5}" class="comment-card">
-                                <div class="user">
-                                    <img class="avatar" th:src="${post.profileImage != null ? post.profileImage : 'https://i.pravatar.cc/72?img=1'}" 
-                                         alt="프로필 이미지" 
-                                         onerror="this.onerror=null;this.src='https://i.pravatar.cc/72?img=1';">
-                                    <div class="meta">
-                                        <div class="nickname" th:text="${post.userId}">사용자</div>
-                                        <div class="date" th:text="${#temporals.format(post.createAt, 'yyyy-MM-dd')}">2024-01-01</div>
-                                    </div>
-                                </div>
+                            <div th:each="notice : ${notices}" class="comment-card" 
+                                 th:onclick="'location.href=\'/notice/view/' + ${notice.noticeId} + '\''"
+                                 style="cursor: pointer;">
                                 <div class="content">
-                                    <span class="tag" th:text="${post.category}">카테고리</span>
-                                    <div class="text" th:text="${post.content}">댓글 내용</div>
+                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                        <span th:if="${notice.isPinned}" class="tag" style="background: #ff6b6b; color: white;">공지</span>
+                                        <span th:if="${notice.audience.name() == 'ALL'}" class="tag" style="background: #4dabf7;">전체</span>
+                                        <span th:if="${notice.audience.name() == 'SOCIAL'}" class="tag" style="background: #51cf66;">사용자</span>
+                                        <span th:if="${notice.audience.name() == 'COMPANY'}" class="tag" style="background: #ff922b;">업체</span>
+                                    </div>
+                                    <div class="text" style="font-weight: 600; font-size: 14px; color: #2c3e50; margin-bottom: 4px;" th:text="${notice.title}">공지사항 제목</div>
+                                    <div class="date" style="font-size: 12px; color: #868e96;" th:text="${#temporals.format(notice.publishAt, 'yyyy-MM-dd HH:mm')}">2025-10-17</div>
                                 </div>
-                                <div class="actions">
-                                    <span><i class="far fa-thumbs-up"></i> <span th:text="${post.likeCount}">0</span></span>
-                                </div>
+                            </div>
+                            
+                            <!-- 공지사항이 없을 때 -->
+                            <div th:if="${notices == null or notices.isEmpty()}" class="comment-card" style="text-align: center; color: #adb5bd;">
+                                <i class="fas fa-inbox" style="font-size: 24px; margin-bottom: 8px;"></i>
+                                <p style="margin: 0;">등록된 공지사항이 없습니다.</p>
                             </div>
                         </div>
                     </div>

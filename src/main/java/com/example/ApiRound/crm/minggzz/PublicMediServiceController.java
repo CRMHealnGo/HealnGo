@@ -36,7 +36,7 @@ public class PublicMediServiceController {
                 .collect(Collectors.toList());
         return ResponseEntity.ok(list);
     }
-    
+
     /** 단일 서비스 조회 (공개, 세션 불필요) */
     @GetMapping("/services/{serviceId}")
     public ResponseEntity<MediServiceDetailDto> getServiceById(@PathVariable Long serviceId) {
@@ -45,7 +45,7 @@ public class PublicMediServiceController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-    
+
     /** 단일 아이템(병원) 조회 (공개, 세션 불필요) */
     @GetMapping("/{itemId}")
     public ResponseEntity<ItemDto> getItemById(@PathVariable Long itemId) {
@@ -85,7 +85,7 @@ public class PublicMediServiceController {
             return d;
         }
     }
-    
+
     /** 서비스 상세 조회용 DTO (itemId 포함) */
     public static class MediServiceDetailDto {
         public Long serviceId;
@@ -122,7 +122,7 @@ public class PublicMediServiceController {
             return d;
         }
     }
-    
+
     /** 아이템(병원) 조회용 DTO */
     public static class ItemDto {
         public Long id;
@@ -133,7 +133,7 @@ public class PublicMediServiceController {
         public String region;
         public String subregion;
         public String category;
-        
+
         public static ItemDto from(ItemList item) {
             ItemDto dto = new ItemDto();
             dto.id = item.getId();
