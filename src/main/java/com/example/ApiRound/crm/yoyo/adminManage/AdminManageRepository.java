@@ -1,7 +1,9 @@
 package com.example.ApiRound.crm.yoyo.adminManage;
 
+import com.example.ApiRound.crm.hyeonah.entity.CompanyUser;
 import com.example.ApiRound.entity.ItemList;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -52,10 +54,24 @@ public interface AdminManageRepository extends JpaRepository<ItemList, Long> {
             "ORDER BY i.createdAt DESC")
     List<ItemList> searchCompaniesByName(@Param("search") String search);
 
-    // 상태별 업체 조회
+    // 상태별 업체 조회 (ItemList가 없는 경우도 포함)
     @Query("SELECT i FROM ItemList i " +
             "JOIN FETCH i.ownerCompany c " +
             "WHERE c.approvalStatus = :status " +
             "ORDER BY i.createdAt DESC")
     List<ItemList> findCompaniesByStatus(@Param("status") String status);
+    
+    // 상태별 업체 조회 (CompanyUser만으로도 조회 가능)
+    @Query("SELECT c FROM CompanyUser c " +
+           "WHERE c.approvalStatus = :status " +
+           "ORDER BY c.createdAt DESC")
+    List<CompanyUser> findCompaniesByStatusOnly(@Param("status") String status);
+    
+    // 업체 승인 상태 업데이트
+    @Modifying
+    @Query("UPDATE CompanyUser c SET c.approvalStatus = :newStatus, c.approvedAt = :approvedAt " +
+           "WHERE c.companyId = :companyId")
+    int updateCompanyApprovalStatus(@Param("companyId") Integer companyId, 
+                                   @Param("newStatus") String newStatus, 
+                                   @Param("approvedAt") LocalDateTime approvedAt);
 }

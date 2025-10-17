@@ -12,8 +12,13 @@ document.addEventListener('DOMContentLoaded', function() {
 function initializePage() {
     console.log('업체 관리 페이지 초기화');
     
-    // 첫 번째 업체를 기본 선택으로 설정
-    selectCompany(document.querySelector('.company-item'));
+    // 첫 번째 업체를 기본 선택으로 설정 (null 체크 추가)
+    const firstCompany = document.querySelector('.company-item');
+    if (firstCompany) {
+        selectCompany(firstCompany);
+    } else {
+        console.log('업체 데이터가 없습니다.');
+    }
     
     // 로딩 애니메이션
     showLoadingAnimation();
