@@ -13,5 +13,6 @@ public interface ChatThreadRepository extends JpaRepository<ChatThread, Long> {
     Page<ChatThread> findByCompanyIdOrderByLastMsgAtDescThreadIdDesc(Integer companyId, Pageable pageable);
     Page<ChatThread> findByCompanyIdAndStatusOrderByLastMsgAtDescThreadIdDesc(Integer companyId, String status, Pageable pageable);
     Optional<ChatThread> findFirstByUserIdAndCompanyIdAndItemId(Integer userId, Integer companyId, Long itemId);
+    Optional<ChatThread> findFirstByUserIdAndCompanyId(Integer userId, Integer companyId);
 
 }

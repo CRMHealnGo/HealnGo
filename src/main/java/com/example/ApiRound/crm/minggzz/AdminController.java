@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.example.ApiRound.crm.hyeonah.Repository.CompanyUserRepository;
 import com.example.ApiRound.crm.hyeonah.Repository.SocialUsersRepository;
 import com.example.ApiRound.crm.hyeonah.entity.SocialUsers;
 
@@ -34,6 +35,7 @@ import lombok.RequiredArgsConstructor;
 public class AdminController {
 
     private final SocialUsersRepository usersRepo;
+    private final CompanyUserRepository companyRepo;
 
     /**
      * 관리자 대시보드 메인 페이지
@@ -48,7 +50,6 @@ public class AdminController {
         } else if (managerIdObj instanceof Long) {
             managerId = (Long) managerIdObj;
         }
-        Integer managerId = (Integer) session.getAttribute("managerId");
         String userType = (String) session.getAttribute("userType");
 
         if (managerId == null || !"manager".equals(userType)) {
@@ -59,7 +60,8 @@ public class AdminController {
         model.addAttribute("managerId", managerId);
         model.addAttribute("managerName", session.getAttribute("managerName"));
         model.addAttribute("managerEmail", session.getAttribute("managerEmail"));
-        // 대시보드 통계 데이터 (실제로는 서비스에서 가져와야 함)
+
+        // 실제 DB 통계 데이터
         Map<String, Object> stats = new HashMap<>();
         stats.put("totalUsers", usersRepo.countByIsDeletedFalse());
         stats.put("activeUsers", usersRepo.countByStatusAndIsDeletedFalse("ACTIVE"));

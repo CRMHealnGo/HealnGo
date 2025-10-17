@@ -47,6 +47,14 @@
     border: 1px solid transparent;
 }
 
+/* 선택된 병원 아이템 */
+.hospital-item.selected {
+    background: #e3f2fd;
+    border: 2px solid #2196f3;
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2);
+    transform: translateY(-1px);
+}
+
 .hospital-item:hover {
     background-color: #f8f9fa;
 }

@@ -29,12 +29,12 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
             } else if (result.status === 'INACTIVE') {
                 showApprovalModal('비활성화된 계정입니다', result.detail || '관리자에게 문의하시기 바랍니다.', 'inactive');
             } else {
-                showAlert(result.message || '로그인에 실패했습니다.', 'error');
+                showAlert(result.message || '아이디 또는 비밀번호를 확인해주세요.', 'error');
             }
         }
     } catch (error) {
         console.error('Error:', error);
-        showAlert('로그인 처리 중 오류가 발생했습니다.', 'error');
+        showAlert('아이디 또는 비밀번호를 확인해주세요.', 'error');
     }
 });
 

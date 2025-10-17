@@ -28,7 +28,7 @@ public class SecurityConfig {
     @Order(1)
     public SecurityFilterChain companyChain(HttpSecurity http) throws Exception {
         http
-            .securityMatcher("/crm/**", "/company/**", "/admin/**", "/api/crm/**")
+            .securityMatcher("/crm/**", "/company/**", "/admin/**", "/api/crm/**", "/ws/**")
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
@@ -38,6 +38,8 @@ public class SecurityConfig {
                     "/crm/forgot-password",
                     "/crm/forgot-crm-password",
                     "/crm/forgot-crm-email",
+                    // WebSocket
+                    "/ws/**",
                     // API (공개)
                     "/crm/check-email",
                     "/crm/send-code",
@@ -92,6 +94,8 @@ public class SecurityConfig {
                     "/forget-password", "/forgot-password",
                     // OAuth
                     "/oauth/**",
+                    // WebSocket
+                    "/ws/**",
                     // API (공개)
                     "/api/user/**",
                     "/api/**",
