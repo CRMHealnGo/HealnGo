@@ -1,20 +1,33 @@
 package com.example.ApiRound.Controller;
 
+import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
 import com.example.ApiRound.Service.ItemListService;
 import com.example.ApiRound.entity.ItemList;
+import com.example.ApiRound.repository.ItemListRepository;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.*;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequiredArgsConstructor
 public class ListController {
 
     private final ItemListService itemListService;
+    private final ItemListRepository itemListRepository;
 
     /** "전국" / "전체" / "" / null  -> 검색조건 미적용(null)로 통일 */
     private String norm(String v) {
@@ -139,5 +152,30 @@ public class ListController {
         private int startPage;
         private int endPage;
         private int amount;
+    }
+    
+    // ========== 리뷰 시스템용 API ==========
+    
+    /**
+     * 업체의 아이템 목록 조회
+     * GET /api/review/company-items/{companyId}
+     */
+    @GetMapping("/api/review/company-items/{companyId}")
+    @ResponseBody
+    public ResponseEntity<List<ItemList>> getItemsByCompany(@PathVariable Integer companyId) {
+        List<ItemList> items = itemListRepository.findByOwnerCompany_CompanyId(companyId);
+        return ResponseEntity.ok(items);
+    }
+    
+    /**
+     * 아이템 상세 조회 (리뷰용)
+     * GET /api/review/item/{itemId}
+     */
+    @GetMapping("/api/review/item/{itemId}")
+    @ResponseBody
+    public ResponseEntity<ItemList> getItemByIdForReview(@PathVariable Long itemId) {
+        return itemListRepository.findById(itemId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }

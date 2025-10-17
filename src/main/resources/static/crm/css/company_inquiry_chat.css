@@ -360,6 +360,7 @@ body {
     box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
     display: flex !important;
     flex-direction: column !important;
+    overflow: hidden !important;
 }
 
 .inquiry-chat-header {
@@ -438,12 +439,26 @@ body {
     padding: 20px !important;
     display: flex !important;
     flex-direction: column !important;
-    gap: 15px !important;
+    gap: 16px !important;
+    background: #f8f9fa !important;
 }
 
 .inquiry-chat-message {
     display: flex !important;
-    gap: 10px !important;
+    gap: 12px !important;
+    align-items: flex-end !important;
+    animation: messageSlideIn 0.3s ease-out !important;
+}
+
+@keyframes messageSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .inquiry-chat-message.user {
@@ -451,46 +466,63 @@ body {
 }
 
 .inquiry-chat-message-avatar {
-    width: 35px !important;
-    height: 35px !important;
+    width: 36px !important;
+    height: 36px !important;
     border-radius: 50% !important;
-    background: #e9ecef !important;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    color: #6c757d !important;
-    font-size: 12px !important;
+    color: white !important;
+    font-size: 14px !important;
     font-weight: 600 !important;
     flex-shrink: 0 !important;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
 }
 
 .inquiry-chat-message.user .inquiry-chat-message-avatar {
-    background: #3498db !important;
-    color: white !important;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4) !important;
 }
 
 .inquiry-chat-message-content {
-    max-width: 70% !important;
+    max-width: 65% !important;
+    display: flex !important;
+    flex-direction: column !important;
 }
 
 .inquiry-chat-message-bubble {
-    background: #f8f9fa !important;
+    background: white !important;
     padding: 12px 16px !important;
-    border-radius: 18px !important;
+    border-radius: 18px 18px 18px 4px !important;
     font-size: 14px !important;
-    line-height: 1.4 !important;
+    line-height: 1.5 !important;
     color: #2c3e50 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+    word-wrap: break-word !important;
+    transition: all 0.2s ease !important;
+}
+
+.inquiry-chat-message-bubble:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
 }
 
 .inquiry-chat-message.user .inquiry-chat-message-bubble {
-    background: #3498db !important;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
     color: white !important;
+    border-radius: 18px 18px 4px 18px !important;
+    box-shadow: 0 2px 12px rgba(102, 126, 234, 0.4) !important;
+}
+
+.inquiry-chat-message.user .inquiry-chat-message-bubble:hover {
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.5) !important;
 }
 
 .inquiry-chat-message-time {
     font-size: 11px !important;
-    color: #7f8c8d !important;
+    color: #95a5a6 !important;
     margin-top: 4px !important;
+    padding: 0 4px !important;
     text-align: right !important;
 }
 
@@ -502,44 +534,60 @@ body {
     padding: 20px !important;
     border-top: 1px solid #eee !important;
     display: flex !important;
-    gap: 10px !important;
+    gap: 12px !important;
     align-items: flex-end !important;
+    background: white !important;
 }
 
 .inquiry-chat-input {
     flex: 1 !important;
     padding: 12px 16px !important;
-    border: 1px solid #ddd !important;
-    border-radius: 20px !important;
+    border: 2px solid #e9ecef !important;
+    border-radius: 24px !important;
     font-size: 14px !important;
     resize: none !important;
-    min-height: 40px !important;
+    min-height: 44px !important;
     max-height: 120px !important;
     outline: none !important;
+    transition: all 0.3s ease !important;
+    font-family: inherit !important;
 }
 
 .inquiry-chat-input:focus {
-    border-color: #3498db !important;
+    border-color: #667eea !important;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
 }
 
 .inquiry-chat-send-btn {
-    padding: 12px 20px !important;
-    background: #3498db !important;
+    padding: 12px 24px !important;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
     color: white !important;
     border: none !important;
-    border-radius: 20px !important;
+    border-radius: 24px !important;
     font-size: 14px !important;
+    font-weight: 600 !important;
     cursor: pointer !important;
-    transition: background-color 0.3s !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
 }
 
 .inquiry-chat-send-btn:hover {
-    background: #2980b9 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4) !important;
+}
+
+.inquiry-chat-send-btn:active {
+    transform: translateY(0) !important;
 }
 
 .inquiry-chat-send-btn:disabled {
     background: #bdc3c7 !important;
     cursor: not-allowed !important;
+    transform: none !important;
+    box-shadow: none !important;
 }
 
 /* 빈 상태 */
@@ -565,6 +613,34 @@ body {
 .inquiry-empty-state p {
     font-size: 14px !important;
     text-align: center !important;
+}
+
+/* 기존 단순한 메시지 스타일 제거 및 새로운 디자인 적용 */
+.msg {
+    display: none !important; /* 기존 스타일 숨김 */
+}
+
+.inquiry-empty {
+    text-align: center !important;
+    padding: 40px 20px !important;
+    color: #95a5a6 !important;
+    font-style: italic !important;
+}
+
+/* 날짜 구분선 */
+.date-sep {
+    text-align: center !important;
+    margin: 20px 0 !important;
+    padding: 8px 16px !important;
+    background: #f8f9fa !important;
+    color: #6c757d !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    border-radius: 12px !important;
+    display: inline-block !important;
+    position: relative !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
 }
 
 

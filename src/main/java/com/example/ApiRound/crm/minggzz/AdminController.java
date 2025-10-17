@@ -1,5 +1,6 @@
 package com.example.ApiRound.crm.minggzz;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,6 +28,8 @@ import com.example.ApiRound.crm.hyeonah.Repository.CompanyUserRepository;
 import com.example.ApiRound.crm.hyeonah.Repository.SocialUsersRepository;
 import com.example.ApiRound.crm.hyeonah.entity.CompanyUser;
 import com.example.ApiRound.crm.hyeonah.entity.SocialUsers;
+import com.example.ApiRound.crm.hyeonah.notice.Notice;
+import com.example.ApiRound.crm.hyeonah.notice.NoticeService;
 import com.example.ApiRound.crm.yoyo.reservation.ReservationRepository;
 import com.example.ApiRound.entity.UserInquiry;
 
@@ -41,6 +44,7 @@ public class AdminController {
     private final SocialUsersRepository usersRepo;
     private final CompanyUserRepository companyRepo;
     private final ReservationRepository reservationRepo;
+    private final NoticeService noticeService;
     private final UserInquiryService userInquiryService;
 
     /**
@@ -72,7 +76,18 @@ public class AdminController {
         stats.put("totalUsers", usersRepo.countByIsDeletedFalse());
         stats.put("activeUsers", usersRepo.countByStatusAndIsDeletedFalse("ACTIVE"));
         stats.put("suspendedUsers", usersRepo.countByStatusAndIsDeletedFalse("SUSPENDED"));
-        
+        stats.put("totalCompanies", companyRepo.count());
+        stats.put("totalReservations", 0); // TODO: 예약 테이블 연동
+        stats.put("totalRevenue", 0); // TODO: 결제 테이블 연동
+
+        // 월별 가입자 데이터 (1월~12월) - 실제 DB 데이터 사용
+        List<Map<String, Object>> monthlyData = getMonthlyUserData();
+        stats.put("monthlyData", monthlyData);
+
+        stats.put("totalUsers", usersRepo.countByIsDeletedFalse());
+        stats.put("activeUsers", usersRepo.countByStatusAndIsDeletedFalse("ACTIVE"));
+        stats.put("suspendedUsers", usersRepo.countByStatusAndIsDeletedFalse("SUSPENDED"));
+
         // 업체 관련 통계 - 실제 DB 데이터 사용
         stats.put("totalCompanies", companyRepo.countByApprovalStatus("APPROVED")); // 승인된 업체 수
         stats.put("newThisMonth", companyRepo.countNewCompaniesThisMonth(
@@ -84,10 +99,6 @@ public class AdminController {
         
         stats.put("totalReservations", 0); // TODO: 예약 테이블 연동
         stats.put("totalRevenue", 0); // TODO: 결제 테이블 연동
-
-        // 월별 가입자 데이터 (1월~12월) - 실제 DB 데이터 사용
-        List<Map<String, Object>> monthlyData = getMonthlyUserData();
-        stats.put("monthlyData", monthlyData);
 
         model.addAttribute("stats", stats);
 
@@ -102,7 +113,7 @@ public class AdminController {
         // 예약 많은 순으로 업체 리스트 (상위 5개)
         List<Map<String, Object>> topCompanies = getTopCompaniesByReservations();
         model.addAttribute("topCompanies", topCompanies);
-        
+
         // 최근 문의/신고 데이터 (최대 3건)
         List<UserInquiry> recentInquiries = userInquiryService.getAdminPagedList(1, 3, null).getContent();
         model.addAttribute("recentInquiries", recentInquiries);
@@ -220,6 +231,23 @@ public class AdminController {
     }
 
     /**
+     * 리포트 & 통계 페이지
+     */
+    @GetMapping("/report")
+    public String report(Model model, HttpSession session) {
+        model.addAttribute("managerName", session.getAttribute("managerName"));
+
+        // 통계 데이터 (실제로는 서비스에서 가져와야 함)
+        Map<String, Object> reportStats = new HashMap<>();
+        reportStats.put("totalRevenue", 0);
+        reportStats.put("totalReservations", 0);
+        reportStats.put("totalUsers", 0);
+        model.addAttribute("reportStats", reportStats);
+
+        return "admin/report";
+    }
+
+    /**
      * 문의/신고 접수 페이지 (관리자용)
      */
     @GetMapping("/inquiry-report")
@@ -263,7 +291,7 @@ public class AdminController {
 
         return "crm/inquiry_detail";
     }
-    
+
     /**
      * 문의/신고 상세 조회 API (관리자용)
      */
@@ -272,18 +300,18 @@ public class AdminController {
     public ResponseEntity<UserInquiry> getInquiryDetail(@PathVariable Integer id) {
         try {
             List<UserInquiry> inquiries = userInquiryService.getAdminPagedList(1, 1000, null).getContent();
-            
+
             UserInquiry inquiry = inquiries.stream()
                     .filter(i -> i.getInquiryId().equals(id))
                     .findFirst()
                     .orElseThrow(() -> new IllegalArgumentException("문의/신고를 찾을 수 없습니다."));
-            
+
             return ResponseEntity.ok(inquiry);
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
     }
-    
+
     /**
      * 문의/신고 목록 조회 API (관리자용)
      */
@@ -298,7 +326,7 @@ public class AdminController {
             return ResponseEntity.internalServerError().build();
         }
     }
-    
+
     /**
      * 문의/신고 상태 변경 API (관리자용)
      */
@@ -308,9 +336,9 @@ public class AdminController {
             @PathVariable Integer id,
             @RequestBody Map<String, String> request,
             HttpSession session) {
-        
+
         Map<String, Object> response = new HashMap<>();
-        
+
         try {
             String newStatus = request.get("status");
             Object managerIdObj = session.getAttribute("managerId");
@@ -320,20 +348,20 @@ public class AdminController {
             } else if (managerIdObj instanceof Long) {
                 adminId = ((Long) managerIdObj).intValue();
             }
-            
+
             userInquiryService.updateStatus(id, newStatus, adminId);
-            
+
             response.put("success", true);
             response.put("message", "상태가 변경되었습니다.");
             return ResponseEntity.ok(response);
-            
+
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", e.getMessage());
             return ResponseEntity.badRequest().body(response);
         }
     }
-    
+
     /**
      * 문의/신고 답변 작성 API (관리자용)
      */
@@ -343,18 +371,18 @@ public class AdminController {
             @PathVariable Integer id,
             @RequestBody Map<String, String> request,
             HttpSession session) {
-        
+
         Map<String, Object> response = new HashMap<>();
-        
+
         try {
             String replyText = request.get("reply");
-            
+
             if (replyText == null || replyText.trim().isEmpty()) {
                 response.put("success", false);
                 response.put("message", "답변 내용을 입력해주세요.");
                 return ResponseEntity.badRequest().body(response);
             }
-            
+
             Object managerIdObj = session.getAttribute("managerId");
             Integer adminId = null;
             if (managerIdObj instanceof Integer) {
@@ -362,13 +390,13 @@ public class AdminController {
             } else if (managerIdObj instanceof Long) {
                 adminId = ((Long) managerIdObj).intValue();
             }
-            
+
             userInquiryService.answer(id, replyText, adminId);
-            
+
             response.put("success", true);
             response.put("message", "답변이 전송되었습니다.");
             return ResponseEntity.ok(response);
-            
+
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", e.getMessage());
@@ -453,21 +481,21 @@ public class AdminController {
 
     private List<Map<String, Object>> getInquiryReports() {
         List<Map<String, Object>> reports = new ArrayList<>();
-        
+
         try {
             // DB에서 모든 문의/신고 조회 (최신순)
             List<UserInquiry> inquiries = userInquiryService.getAdminPagedList(1, 100, null).getContent();
-            
+
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-            
+
             for (UserInquiry inquiry : inquiries) {
                 Map<String, Object> report = new HashMap<>();
                 report.put("id", inquiry.getInquiryId());
-                
+
                 // subject에서 [문의:xxx] 또는 [신고:xxx] 패턴 제거
-                String cleanSubject = inquiry.getSubject() != null ? 
+                String cleanSubject = inquiry.getSubject() != null ?
                     inquiry.getSubject().replaceAll("^\\[(?:문의|신고):[^\\]]+\\]\\s*", "") : "제목 없음";
-                
+
                 // subject에 [문의] 또는 [신고]가 포함되어 있으면 type 결정
                 String type = "inquiry";
                 if (inquiry.getSubject() != null && inquiry.getSubject().contains("[신고:")) {
@@ -480,7 +508,7 @@ public class AdminController {
                 report.put("reporterEmail", "-");
                 report.put("companyName", "-");
                 report.put("description", inquiry.getContent() != null ? inquiry.getContent() : "");
-                
+
                 // 상태 매핑
                 String status = "pending";
                 if (inquiry.getStatus() == UserInquiry.Status.ANSWERED) {
@@ -490,16 +518,16 @@ public class AdminController {
                 }
                 report.put("status", status);
                 report.put("priority", "medium");
-                report.put("createdDate", inquiry.getCreatedAt() != null ? 
+                report.put("createdDate", inquiry.getCreatedAt() != null ?
                     inquiry.getCreatedAt().format(formatter) : "-");
-                
+
                 reports.add(report);
             }
         } catch (Exception e) {
             System.err.println("문의/신고 목록 조회 실패: " + e.getMessage());
             e.printStackTrace();
         }
-        
+
         return reports;
     }
 
@@ -507,24 +535,24 @@ public class AdminController {
         try {
             // DB에서 특정 문의/신고 조회
             List<UserInquiry> inquiries = userInquiryService.getAdminPagedList(1, 1000, null).getContent();
-            
+
             UserInquiry inquiry = inquiries.stream()
                     .filter(i -> i.getInquiryId().equals(id.intValue()))
                     .findFirst()
                     .orElse(null);
-            
+
             if (inquiry == null) {
                 return new HashMap<>();
             }
-            
+
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-            
+
             Map<String, Object> report = new HashMap<>();
             report.put("id", inquiry.getInquiryId());
-            
-            String cleanSubject = inquiry.getSubject() != null ? 
+
+            String cleanSubject = inquiry.getSubject() != null ?
                 inquiry.getSubject().replaceAll("^\\[(?:문의|신고):[^\\]]+\\]\\s*", "") : "제목 없음";
-            
+
             String type = "inquiry";
             if (inquiry.getSubject() != null && inquiry.getSubject().contains("[신고:")) {
                 type = "report";
@@ -536,7 +564,7 @@ public class AdminController {
             report.put("reporterEmail", "-");
             report.put("companyName", "-");
             report.put("description", inquiry.getContent() != null ? inquiry.getContent() : "");
-            
+
             String status = "pending";
             if (inquiry.getStatus() == UserInquiry.Status.ANSWERED) {
                 status = "resolved";
@@ -545,9 +573,9 @@ public class AdminController {
             }
             report.put("status", status);
             report.put("priority", "medium");
-            report.put("createdDate", inquiry.getCreatedAt() != null ? 
+            report.put("createdDate", inquiry.getCreatedAt() != null ?
                 inquiry.getCreatedAt().format(formatter) : "-");
-            
+
             return report;
         } catch (Exception e) {
             System.err.println("문의/신고 상세 조회 실패: " + e.getMessage());
@@ -560,15 +588,31 @@ public class AdminController {
      * 공지사항 & 알림 관리 페이지
      */
     @GetMapping("/notice-notify")
-    public String noticeNotify(Model model, HttpSession session) {
+    public String noticeNotify(
+            @RequestParam(defaultValue = "1") int page,
+            Model model,
+            HttpSession session) {
 
+        // 다른 admin 페이지와 동일한 세션 처리
         model.addAttribute("managerName", session.getAttribute("managerName"));
 
-        // 공지사항 목록 (실제로는 서비스에서 가져와야 함)
-        List<Map<String, Object>> notices = getNotices();
-        model.addAttribute("notices", notices);
+        // 실제 공지사항 목록 조회 (페이지네이션)
+        Pageable pageable = PageRequest.of(page - 1, 10);
+        Page<Notice> noticePage = noticeService.getAllNotices(pageable);
 
-        // 알림 목록 (실제로는 서비스에서 가져와야 함)
+        int totalPages = Math.max(noticePage.getTotalPages(), 1);
+        int startPage = Math.max(1, page - 2);
+        int endPage = Math.min(totalPages, page + 2);
+
+        model.addAttribute("notices", noticePage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("startPage", startPage);
+        model.addAttribute("endPage", endPage);
+        model.addAttribute("totalCount", noticePage.getTotalElements());
+        model.addAttribute("now", LocalDateTime.now()); // 현재 시각 추가
+
+        // 알림 목록 (더미 데이터 - 나중에 구현)
         List<Map<String, Object>> notifications = getNotifications();
         model.addAttribute("notifications", notifications);
 
@@ -583,8 +627,60 @@ public class AdminController {
         return "admin/admin_notice_notify";
     }
 
-    private List<Map<String, Object>> getNotices() {
-        List<Map<String, Object>> notices = new ArrayList<>();
+    /**
+     * 공지사항 작성 API
+     */
+    @PostMapping("/notice-notify/create")
+    @ResponseBody
+    public String createNotice(
+            @RequestParam String title,
+            @RequestParam String content,
+            @RequestParam(defaultValue = "ALL") String audience,
+            @RequestParam(defaultValue = "false") Boolean topFixed,
+            HttpSession session) {
+
+        // 관리자 ID 가져오기
+        Object managerIdObj = session.getAttribute("managerId");
+        Integer managerId = null;
+        if (managerIdObj instanceof Integer) {
+            managerId = (Integer) managerIdObj;
+        } else if (managerIdObj instanceof Long) {
+            managerId = ((Long) managerIdObj).intValue();
+        }
+
+        if (managerId == null) {
+            return "login_required";
+        }
+
+        try {
+            Notice notice = new Notice();
+            notice.setTitle(title);
+            notice.setBody(content);
+            notice.setAudience(Notice.Audience.valueOf(audience));
+            notice.setIsPinned(topFixed);
+            notice.setCreatedBy(managerId);
+            notice.setPublishAt(LocalDateTime.now()); // 즉시 게시
+
+            noticeService.createNotice(notice);
+            return "success";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "fail";
+        }
+    }
+
+    /**
+     * 공지사항 수정 API
+     */
+    @PostMapping("/notice-notify/update")
+    @ResponseBody
+    public String updateNotice(
+            @RequestParam Integer noticeId,
+            @RequestParam String title,
+            @RequestParam String content,
+            @RequestParam(defaultValue = "ALL") String audience,
+            @RequestParam(defaultValue = "false") Boolean topFixed,
+            HttpSession session) {
 
         Map<String, Object> notice1 = new HashMap<>();
         notice1.put("id", 1);
@@ -610,6 +706,30 @@ public class AdminController {
 
         return notices;
     }
+
+    /**
+     * 공지사항 삭제 API
+     */
+    @PostMapping("/notice-notify/delete")
+    @ResponseBody
+    public String deleteNotice(
+            @RequestParam Integer noticeId,
+            HttpSession session) {
+
+        // 관리자 권한 확인 (간단히)
+        if (session.getAttribute("managerId") == null) {
+            return "login_required";
+        }
+
+        try {
+            noticeService.deleteNotice(noticeId);
+            return "success";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "fail";
+        }
+    }
+
 
     private List<Map<String, Object>> getNotifications() {
         List<Map<String, Object>> notifications = new ArrayList<>();
