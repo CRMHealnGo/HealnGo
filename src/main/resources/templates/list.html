@@ -229,10 +229,10 @@
             window.location.href = '/login';
             return;
         }
-        
+
         // 현재 선택된 병원 정보 가져오기 (여러 방법으로 시도)
         let hospitalItem = button.closest('.hospital-item');
-        
+
         // hospital-item을 찾지 못했다면 다른 방법으로 시도
         if (!hospitalItem) {
             // 현재 선택된 병원 정보를 전역 변수에서 가져오기
@@ -243,25 +243,25 @@
                 hospitalItem = document.querySelector('.hospital-item.selected');
             }
         }
-        
+
         if (!hospitalItem) {
             alert('병원 정보를 찾을 수 없습니다. 병원을 먼저 선택해주세요.');
             return;
         }
-        
+
         const itemId = hospitalItem.getAttribute('data-item-id');
         const companyId = hospitalItem.getAttribute('data-company-id');
         const hospitalName = hospitalItem.getAttribute('data-hospital');
         const hospitalAddress = hospitalItem.getAttribute('data-address');
         const hospitalPhone = hospitalItem.getAttribute('data-phone');
-        
+
         console.log('병원 정보:', { itemId, companyId, hospitalName, hospitalAddress, hospitalPhone });
-        
+
         if (!companyId || companyId === 'null') {
             alert('이 병원은 아직 업체 등록이 되지 않아 채팅이 불가능합니다.');
             return;
         }
-        
+
         // 상담 신청 확인
         if (confirm(`${hospitalName}과 상담을 시작하시겠습니까?`)) {
             // 채팅 페이지로 이동하면서 업체 정보 전달
@@ -270,20 +270,20 @@
             window.location.href = chatUrl;
         }
     }
-    
+
     // 병원 선택 함수
     function selectHospital(hospitalElement) {
         // 이전 선택 해제
         document.querySelectorAll('.hospital-item').forEach(item => {
             item.classList.remove('selected');
         });
-        
+
         // 현재 선택된 병원 표시
         hospitalElement.classList.add('selected');
-        
+
         // 전역 변수에 저장
         window.selectedHospital = hospitalElement;
-        
+
         console.log('선택된 병원:', {
             id: hospitalElement.getAttribute('data-item-id'),
             name: hospitalElement.getAttribute('data-hospital'),
@@ -314,7 +314,7 @@
             return false;
         });
     }
-    
+
     // 쿠키에서 값 가져오기
     function getCookie(name) {
         const value = `; ${document.cookie}`;
@@ -322,7 +322,7 @@
         if (parts.length === 2) return parts.pop().split(';').shift();
         return null;
     }
-    
+
     // 세션 스토리지에서 값 가져오기
     function getSessionStorage(name) {
         return sessionStorage.getItem(name);

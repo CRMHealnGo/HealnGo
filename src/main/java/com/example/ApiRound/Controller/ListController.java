@@ -153,9 +153,9 @@ public class ListController {
         private int endPage;
         private int amount;
     }
-    
+
     // ========== 리뷰 시스템용 API ==========
-    
+
     /**
      * 업체의 아이템 목록 조회
      * GET /api/review/company-items/{companyId}
@@ -166,7 +166,7 @@ public class ListController {
         List<ItemList> items = itemListRepository.findByOwnerCompany_CompanyId(companyId);
         return ResponseEntity.ok(items);
     }
-    
+
     /**
      * 아이템 상세 조회 (리뷰용)
      * GET /api/review/item/{itemId}

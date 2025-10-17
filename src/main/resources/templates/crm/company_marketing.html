@@ -51,35 +51,40 @@
                         <div class="kpi-icon"><i class="fas fa-eye"></i></div>
                         <div class="kpi-content">
                             <div class="kpi-label">노출수</div>
-                            <div class="kpi-value" th:text="${#numbers.formatInteger(totalImpressions, 0, 'COMMA')}">125,000</div>
+                            <div class="kpi-value" th:text="${#numbers.formatInteger(totalImpressions, 0, 'COMMA')}">0</div>
+                            <div class="kpi-change" style="font-size: 12px; color: #999; margin-top: 5px;">
+                                승인된 노출 요청
+                            </div>
                         </div>
                     </div>
                     <div class="kpi-card">
                         <div class="kpi-icon"><i class="fas fa-mouse-pointer"></i></div>
                         <div class="kpi-content">
                             <div class="kpi-label">클릭수</div>
-                            <div class="kpi-value" th:text="${#numbers.formatInteger(totalClicks, 0, 'COMMA')}">8,500</div>
-                        </div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="kpi-icon"><i class="fas fa-comments"></i></div>
-                        <div class="kpi-content">
-                            <div class="kpi-label">문의수</div>
-                            <div class="kpi-value" th:text="${#numbers.formatInteger(totalInquiries, 0, 'COMMA')}">450</div>
+                            <div class="kpi-value" th:text="${#numbers.formatInteger(totalClicks, 0, 'COMMA')}">0</div>
+                            <div class="kpi-change" style="font-size: 12px; color: #27ae60; margin-top: 5px;">
+                                <i class="fas fa-arrow-up"></i> 최근 30일
+                            </div>
                         </div>
                     </div>
                     <div class="kpi-card">
                         <div class="kpi-icon"><i class="fas fa-calendar-check"></i></div>
                         <div class="kpi-content">
                             <div class="kpi-label">예약수</div>
-                            <div class="kpi-value" th:text="${#numbers.formatInteger(totalReservations, 0, 'COMMA')}">180</div>
+                            <div class="kpi-value" th:text="${#numbers.formatInteger(totalReservations, 0, 'COMMA')}">0</div>
+                            <div class="kpi-change" style="font-size: 12px; color: #999; margin-top: 5px;">
+                                전체 예약
+                            </div>
                         </div>
                     </div>
                     <div class="kpi-card">
-                        <div class="kpi-icon"><i class="fas fa-percentage"></i></div>
+                        <div class="kpi-icon"><i class="fas fa-hospital"></i></div>
                         <div class="kpi-content">
-                            <div class="kpi-label">전환율</div>
-                            <div class="kpi-value"><span th:text="${conversionRate}">2.12</span>%</div>
+                            <div class="kpi-label">의료서비스</div>
+                            <div class="kpi-value" th:text="${#numbers.formatInteger(totalMedicalServices, 0, 'COMMA')}">0</div>
+                            <div class="kpi-change" style="font-size: 12px; color: #999; margin-top: 5px;">
+                                등록된 서비스
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -87,29 +92,28 @@
                 <!-- 차트 및 리스트 -->
                 <div class="overview-grid">
                     <div class="chart-card">
-                        <h3 class="card-title">노출·클릭 추이</h3>
+                        <h3 class="card-title">클릭 추이 (최근 30일)</h3>
                         <canvas id="trendsChart"></canvas>
                     </div>
                     <div class="list-card">
-                        <h3 class="card-title">인기 노출 콘텐츠</h3>
+                        <h3 class="card-title">등록된 의료서비스</h3>
                         <div class="top-content-list">
-                            <div class="top-content-item">
-                                <span class="rank">1</span>
-                                <span class="name">브이라인 리프팅</span>
-                                <span class="clicks">2,450 클릭</span>
-                                <span class="conversion">3.2%</span>
+                            <div th:if="${medicalServices != null and !medicalServices.isEmpty()}">
+                                <div th:each="service, iterStat : ${medicalServices}" 
+                                     th:if="${iterStat.index < 5}" 
+                                     class="top-content-item">
+                                    <span class="rank" th:text="${iterStat.index + 1}">1</span>
+                                    <span class="name" th:text="${service.name}">서비스명</span>
+                                    <span class="clicks" th:text="${service.price != null ? #numbers.formatDecimal(service.price, 0, 0) + '원' : '-'}">0원</span>
+                                    <span class="conversion" 
+                                          th:text="${service.serviceCategory != null ? service.serviceCategory : '-'}"
+                                          style="font-size: 12px; color: #666;">카테고리</span>
+                                </div>
                             </div>
-                            <div class="top-content-item">
-                                <span class="rank">2</span>
-                                <span class="name">울쎄라피 프라임</span>
-                                <span class="clicks">1,890 클릭</span>
-                                <span class="conversion">2.8%</span>
-                            </div>
-                            <div class="top-content-item">
-                                <span class="rank">3</span>
-                                <span class="name">모공 주사</span>
-                                <span class="clicks">1,120 클릭</span>
-                                <span class="conversion">2.1%</span>
+                            <div th:if="${medicalServices == null or medicalServices.isEmpty()}" 
+                                 style="text-align: center; padding: 40px 20px; color: #999;">
+                                <i class="fas fa-hospital" style="font-size: 48px; margin-bottom: 10px; opacity: 0.3;"></i>
+                                <p style="margin: 0;">등록된 의료서비스가 없습니다.</p>
                             </div>
                         </div>
                     </div>
@@ -167,10 +171,10 @@
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th>제목</th>
-                                <th>슬롯 위치</th>
                                 <th>대상</th>
+                                <th>슬롯 위치</th>
                                 <th>기간</th>
+                                <th>랜딩 URL</th>
                                 <th>상태</th>
                                 <th>우선순위</th>
                                 <th>클릭수</th>
@@ -179,24 +183,24 @@
                         </thead>
                         <tbody>
                             <tr th:each="placement : ${placements}">
-                                <td th:text="${placement.title}">브이라인 리프팅 홈 배너</td>
-                                <td><span class="slot-badge" th:text="${placement.slot}">홈 히어로</span></td>
                                 <td th:text="${placement.target}">브이라인 리프팅</td>
+                                <td><span class="slot-badge" th:text="${placement.slot}">홈 히어로</span></td>
                                 <td><span th:text="${placement.startDate}">2025-10-01</span> ~ <span th:text="${placement.endDate}">2025-10-31</span></td>
+                                <td th:text="${placement.landingUrl}">https://example.com</td>
                                 <td>
                                     <span class="status-badge" 
-                                          th:classappend="${placement.status == '승인완료'} ? 'approved' : (${placement.status == '대기중'} ? 'pending' : 'rejected')"
-                                          th:text="${placement.status}">승인완료</span>
+                                          th:classappend="${placement.approvalStatus == T(com.example.ApiRound.entity.AdminEvent.ApprovalStatus).APPROVED} ? 'approved' : (${placement.approvalStatus == T(com.example.ApiRound.entity.AdminEvent.ApprovalStatus).PENDING} ? 'pending' : 'rejected')"
+                                          th:text="${placement.approvalStatus}">승인완료</span>
                                 </td>
                                 <td>
                                     <span class="priority-badge" 
-                                          th:classappend="${placement.priority == '높음'} ? 'high' : 'normal'"
+                                          th:classappend="${placement.priority == T(com.example.ApiRound.entity.AdminEvent.Priority).HIGH} ? 'high' : 'normal'"
                                           th:text="${placement.priority}">높음</span>
                                 </td>
                                 <td th:text="${#numbers.formatInteger(placement.clicks, 0, 'COMMA')}">2,450</td>
                                 <td>
-                                    <button class="btn-sm" onclick="alert('미리보기')"><i class="fas fa-eye"></i></button>
-                                    <button class="btn-sm" onclick="alert('수정')"><i class="fas fa-edit"></i></button>
+                                    <button class="btn-sm" th:onclick="'viewPlacement(' + ${placement.id} + ')'"><i class="fas fa-eye"></i></button>
+                                    <button class="btn-sm" th:onclick="'editPlacement(' + ${placement.id} + ')'"><i class="fas fa-edit"></i></button>
                                 </td>
                             </tr>
                         </tbody>
@@ -221,12 +225,10 @@
                             <tr>
                                 <th>쿠폰명</th>
                                 <th>유형</th>
-                                <th>할인</th>
-                                <th>대상</th>
+                                <th>할인값</th>
+                                <th>최소결제금액</th>
                                 <th>유효기간</th>
-                                <th>발급수</th>
-                                <th>사용수</th>
-                                <th>사용률</th>
+                                <th>발급한도</th>
                                 <th>상태</th>
                                 <th>관리</th>
                             </tr>
@@ -234,22 +236,22 @@
                         <tbody>
                             <tr th:each="coupon : ${coupons}">
                                 <td class="font-weight-bold" th:text="${coupon.name}">가을맞이 10% 할인</td>
-                                <td th:text="${coupon.type}">정율</td>
-                                <td th:text="${coupon.discount}">10%</td>
-                                <td th:text="${coupon.target}">전체 서비스</td>
-                                <td th:text="${coupon.validUntil}">2025-10-31</td>
-                                <td th:text="${#numbers.formatInteger(coupon.issued, 0, 'COMMA')}">500</td>
-                                <td th:text="${#numbers.formatInteger(coupon.used, 0, 'COMMA')}">87</td>
+                                <td th:text="${coupon.couponType}">PERCENT</td>
+                                <td th:text="${coupon.discountValue}">10</td>
+                                <td th:text="${coupon.minPaymentAmount != null ? #numbers.formatInteger(coupon.minPaymentAmount, 0, 'COMMA') + '원' : '-'}">-</td>
                                 <td>
-                                    <div class="progress-bar">
-                                        <div class="progress-fill" th:style="|width: ${coupon.used * 100 / coupon.issued}%|"></div>
-                                    </div>
-                                    <span th:text="${#numbers.formatDecimal(coupon.used * 100.0 / coupon.issued, 1, 1)}">17.4</span>%
+                                    <span th:text="${coupon.validFrom}">2025-10-01</span> ~ 
+                                    <span th:text="${coupon.validUntil}">2025-10-31</span>
                                 </td>
-                                <td><span class="status-badge approved" th:text="${coupon.status}">진행중</span></td>
+                                <td th:text="${coupon.issueLimit != null ? #numbers.formatInteger(coupon.issueLimit, 0, 'COMMA') : '무제한'}">500</td>
                                 <td>
-                                    <button class="btn-sm" onclick="alert('수정')"><i class="fas fa-edit"></i></button>
-                                    <button class="btn-sm danger" onclick="alert('종료')"><i class="fas fa-stop"></i></button>
+                                    <span class="status-badge" 
+                                          th:classappend="${coupon.approvalStatus == T(com.example.ApiRound.entity.Marketing.ApprovalStatus).APPROVED} ? 'approved' : (${coupon.approvalStatus == T(com.example.ApiRound.entity.Marketing.ApprovalStatus).PENDING} ? 'pending' : 'rejected')"
+                                          th:text="${coupon.approvalStatus}">PENDING</span>
+                                </td>
+                                <td>
+                                    <button class="btn-sm" th:onclick="'editCoupon(' + ${coupon.id} + ')'"><i class="fas fa-edit"></i></button>
+                                    <button class="btn-sm danger" th:onclick="'deleteCoupon(' + ${coupon.id} + ')'"><i class="fas fa-trash"></i></button>
                                 </td>
                             </tr>
                         </tbody>
@@ -352,18 +354,61 @@
                 
                 <!-- 에셋 그리드 -->
                 <div class="assets-grid" id="imagesTab">
-                    <div class="asset-item">
-                        <div class="asset-thumbnail">
-                            <img src="/crm/images/sample-banner.jpg" alt="Banner" onerror="this.src='/resources/images/default-banner.jpg'">
+                    <!-- 이미지: placement의 배너 이미지만 표시 -->
+                    <div th:each="placement : ${placements}" th:if="${placement.bannerImagePath != null}">
+                        <div class="asset-item">
+                            <div class="asset-thumbnail">
+                                <img th:src="${placement.bannerImagePath}" alt="Banner" onerror="this.src='/resources/images/default-banner.jpg'">
+                            </div>
+                            <div class="asset-info">
+                                <div class="asset-name" th:text="${placement.target + ' - ' + placement.slot}">브이라인 - 홈 히어로</div>
+                                <div class="asset-meta" th:text="${placement.slot + ' • ' + placement.startDate}">홈 히어로 • 2025-10-01</div>
+                            </div>
+                            <div class="asset-actions">
+                                <button class="btn-icon" th:onclick="'viewPlacement(' + ${placement.id} + ')'"><i class="fas fa-eye"></i></button>
+                                <button class="btn-icon" th:onclick="'deleteAsset(' + ${placement.id} + ', \\'placement\\')'"><i class="fas fa-trash"></i></button>
+                            </div>
                         </div>
-                        <div class="asset-info">
-                            <div class="asset-name">브이라인배너.jpg</div>
-                            <div class="asset-meta">1920×560 • 홈 히어로</div>
+                    </div>
+                    <!-- 데이터가 없을 때 -->
+                    <div th:if="${placements.isEmpty()}" class="empty-state">
+                        <i class="fas fa-image" style="font-size: 48px; color: #ccc; margin-bottom: 10px;"></i>
+                        <p>등록된 이미지가 없습니다.</p>
+                        <p style="font-size: 14px; color: #999;">노출 요청 시 배너 이미지를 업로드하세요.</p>
+                    </div>
+                </div>
+                
+                <!-- 동영상 탭 (추후 구현) -->
+                <div class="assets-grid" id="videosTab" style="display:none;">
+                    <div class="empty-state">
+                        <i class="fas fa-video" style="font-size: 48px; color: #ccc; margin-bottom: 10px;"></i>
+                        <p>등록된 동영상이 없습니다.</p>
+                    </div>
+                </div>
+                
+                <!-- 문구 템플릿 탭 -->
+                <div class="assets-grid" id="templatesTab" style="display:none;">
+                    <!-- 쿠폰 설명 템플릿 -->
+                    <div th:each="coupon : ${coupons}" th:if="${coupon.description != null && !#strings.isEmpty(coupon.description)}">
+                        <div class="asset-item template-item">
+                            <div class="template-preview">
+                                <i class="fas fa-file-alt" style="font-size: 40px; color: #3498db;"></i>
+                            </div>
+                            <div class="asset-info">
+                                <div class="asset-name" th:text="${coupon.name}">쿠폰 템플릿</div>
+                                <div class="asset-meta" th:text="${#strings.abbreviate(coupon.description, 50)}">설명...</div>
+                            </div>
+                            <div class="asset-actions">
+                                <button class="btn-icon" th:onclick="'viewCouponTemplate(' + ${coupon.id} + ')'"><i class="fas fa-eye"></i></button>
+                                <button class="btn-icon" th:onclick="'editCoupon(' + ${coupon.id} + ')'"><i class="fas fa-edit"></i></button>
+                            </div>
                         </div>
-                        <div class="asset-actions">
-                            <button class="btn-icon"><i class="fas fa-download"></i></button>
-                            <button class="btn-icon"><i class="fas fa-trash"></i></button>
-                        </div>
+                    </div>
+                    <!-- 데이터가 없을 때 -->
+                    <div th:if="${coupons.isEmpty()}" class="empty-state">
+                        <i class="fas fa-file-alt" style="font-size: 48px; color: #ccc; margin-bottom: 10px;"></i>
+                        <p>등록된 문구 템플릿이 없습니다.</p>
+                        <p style="font-size: 14px; color: #999;">쿠폰 생성 시 설명을 입력하세요.</p>
                     </div>
                 </div>
             </div>
@@ -399,7 +444,6 @@
                                 <th>슬롯</th>
                                 <th>조회</th>
                                 <th>클릭</th>
-                                <th>문의</th>
                                 <th>예약</th>
                                 <th>전환율</th>
                                 <th>쿠폰 사용</th>
@@ -411,7 +455,6 @@
                                 <td>홈 히어로</td>
                                 <td>78,450</td>
                                 <td>2,450</td>
-                                <td>156</td>
                                 <td>78</td>
                                 <td>3.2%</td>
                                 <td>23</td>
@@ -519,47 +562,50 @@
                 <button class="modal-close" onclick="closePlacementModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <form id="placementForm">
+                <form id="placementForm" onsubmit="submitPlacement(event)">
                     <div class="form-group">
                         <label class="form-label">대상 선택</label>
-                        <input type="text" class="form-input" placeholder="서비스/이벤트 검색...">
+                        <input type="text" class="form-input" name="target" 
+                               placeholder="서비스/이벤트 검색..." required>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">노출 슬롯</label>
-                        <select class="form-select">
-                            <option>홈 히어로</option>
-                            <option>홈 카드</option>
-                            <option>카테고리</option>
-                            <option>상세</option>
+                        <label class="form-label">노출 슬롯 *</label>
+                        <select class="form-select" name="slot" required>
+                            <option value="">선택해주세요</option>
+                            <option value="HOME_HERO">홈 히어로</option>
+                            <option value="HOME_CARD">홈 카드</option>
+                            <option value="CATEGORY">카테고리</option>
+                            <option value="DETAIL">상세</option>
                         </select>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label class="form-label">시작일</label>
-                            <input type="date" class="form-input">
+                            <label class="form-label">시작일 *</label>
+                            <input type="date" class="form-input" name="startDate" required>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">종료일</label>
-                            <input type="date" class="form-input">
+                            <label class="form-label">종료일 *</label>
+                            <input type="date" class="form-input" name="endDate" required>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">우선순위</label>
-                        <select class="form-select">
-                            <option>보통</option>
-                            <option>높음</option>
+                        <label class="form-label">우선순위 *</label>
+                        <select class="form-select" name="priority" required>
+                            <option value="NORMAL">보통</option>
+                            <option value="HIGH">높음</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label class="form-label">랜딩 URL</label>
-                        <input type="url" class="form-input" placeholder="https://">
+                        <input type="url" class="form-input" name="landingUrl" placeholder="https://">
                     </div>
                     <div class="form-group">
                         <label class="form-label">배너 이미지</label>
-                        <input type="file" class="form-input" accept="image/*">
+                        <input type="file" class="form-input" name="bannerImage" 
+                               id="bannerImageInput" accept="image/*">
                     </div>
                     <div class="form-actions">
-                        <button type="button" class="btn-secondary">임시저장</button>
+                        <button type="button" class="btn-secondary" onclick="closePlacementModal()">취소</button>
                         <button type="submit" class="btn-primary">승인요청</button>
                     </div>
                 </form>
@@ -575,48 +621,50 @@
                 <button class="modal-close" onclick="closeCouponModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <form id="couponForm">
+                <form id="couponForm" onsubmit="submitCoupon(event)">
                     <div class="form-group">
-                        <label class="form-label">쿠폰명</label>
-                        <input type="text" class="form-input">
+                        <label class="form-label">쿠폰명 *</label>
+                        <input type="text" class="form-input" name="name" required>
                     </div>
                     <div class="form-group">
                         <label class="form-label">설명</label>
-                        <input type="text" class="form-input">
+                        <input type="text" class="form-input" name="description">
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label class="form-label">유형</label>
-                            <select class="form-select">
-                                <option>정율 (%)</option>
-                                <option>정액 (원)</option>
+                            <label class="form-label">유형 *</label>
+                            <select class="form-select" name="couponType" required>
+                                <option value="PERCENT">정율 (%)</option>
+                                <option value="AMOUNT">정액 (원)</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">할인값</label>
-                            <input type="number" class="form-input">
+                            <label class="form-label">할인값 *</label>
+                            <input type="number" class="form-input" name="discountValue" 
+                                   step="0.01" min="0" required>
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">최소 결제 금액</label>
-                        <input type="number" class="form-input">
+                        <input type="number" class="form-input" name="minPaymentAmount" min="0">
                     </div>
                     <div class="form-group">
                         <label class="form-label">발급 한도</label>
-                        <input type="number" class="form-input" placeholder="전체 발급 수">
+                        <input type="number" class="form-input" name="issueLimit" 
+                               placeholder="전체 발급 수" min="1">
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label class="form-label">유효 시작일</label>
-                            <input type="date" class="form-input">
+                            <label class="form-label">유효 시작일 *</label>
+                            <input type="date" class="form-input" name="validFrom" required>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">유효 종료일</label>
-                            <input type="date" class="form-input">
+                            <label class="form-label">유효 종료일 *</label>
+                            <input type="date" class="form-input" name="validUntil" required>
                         </div>
                     </div>
                     <div class="form-actions">
-                        <button type="button" class="btn-secondary">취소</button>
+                        <button type="button" class="btn-secondary" onclick="closeCouponModal()">취소</button>
                         <button type="submit" class="btn-primary">쿠폰 생성</button>
                     </div>
                 </form>
@@ -624,7 +672,197 @@
         </div>
     </div>
 
+    <!-- Placement 미리보기 모달 -->
+    <div id="placementViewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>노출 요청 상세</h2>
+                <button class="modal-close" onclick="closePlacementViewModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="view-section">
+                    <div class="view-row">
+                        <span class="view-label">대상:</span>
+                        <span class="view-value" id="view-target"></span>
+                    </div>
+                    <div class="view-row">
+                        <span class="view-label">슬롯 위치:</span>
+                        <span class="view-value" id="view-slot"></span>
+                    </div>
+                    <div class="view-row">
+                        <span class="view-label">시작일:</span>
+                        <span class="view-value" id="view-startDate"></span>
+                    </div>
+                    <div class="view-row">
+                        <span class="view-label">종료일:</span>
+                        <span class="view-value" id="view-endDate"></span>
+                    </div>
+                    <div class="view-row">
+                        <span class="view-label">우선순위:</span>
+                        <span class="view-value" id="view-priority"></span>
+                    </div>
+                    <div class="view-row">
+                        <span class="view-label">랜딩 URL:</span>
+                        <span class="view-value" id="view-landingUrl"></span>
+                    </div>
+                    <div class="view-row">
+                        <span class="view-label">배너 이미지:</span>
+                        <span class="view-value" id="view-bannerImage"></span>
+                    </div>
+                    <div class="view-row">
+                        <span class="view-label">상태:</span>
+                        <span class="view-value" id="view-status"></span>
+                    </div>
+                    <div class="view-row">
+                        <span class="view-label">클릭수:</span>
+                        <span class="view-value" id="view-clicks"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn-secondary" onclick="closePlacementViewModal()">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Placement 수정 모달 -->
+    <div id="placementEditModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>노출 요청 수정</h2>
+                <button class="modal-close" onclick="closePlacementEditModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="placementEditForm" onsubmit="updatePlacement(event)">
+                    <input type="hidden" id="edit-id" name="id">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">대상 *</label>
+                            <select class="form-select" id="edit-target" name="target" required>
+                                <option value="">선택하세요</option>
+                                <option value="브이라인 리프팅">브이라인 리프팅</option>
+                                <option value="콧대 성형">콧대 성형</option>
+                                <option value="눈썹 문신">눈썹 문신</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">슬롯 위치 *</label>
+                            <select class="form-select" id="edit-slot" name="slot" required>
+                                <option value="">선택하세요</option>
+                                <option value="HOME_HERO">홈 히어로</option>
+                                <option value="HOME_CARD">홈 카드</option>
+                                <option value="CATEGORY">카테고리</option>
+                                <option value="DETAIL">상세 페이지</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">시작일 *</label>
+                            <input type="date" class="form-input" id="edit-startDate" name="startDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">종료일 *</label>
+                            <input type="date" class="form-input" id="edit-endDate" name="endDate" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">우선순위 *</label>
+                            <select class="form-select" id="edit-priority" name="priority" required>
+                                <option value="NORMAL">일반</option>
+                                <option value="HIGH">높음</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">랜딩 URL</label>
+                            <input type="url" class="form-input" id="edit-landingUrl" name="landingUrl" 
+                                   placeholder="https://example.com/landing">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" onclick="closePlacementEditModal()">취소</button>
+                        <button type="submit" class="btn-primary">수정 완료</button>
+                        <button type="button" class="btn-danger" onclick="deletePlacement()">삭제</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Coupon 수정 모달 -->
+    <div id="couponEditModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>쿠폰 수정</h2>
+                <button class="modal-close" onclick="closeCouponEditModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="couponEditForm" onsubmit="updateCoupon(event)">
+                    <input type="hidden" id="coupon-edit-id" name="id">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">쿠폰명 *</label>
+                            <input type="text" class="form-input" id="coupon-edit-name" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">쿠폰 유형 *</label>
+                            <select class="form-select" id="coupon-edit-type" name="couponType" required>
+                                <option value="PERCENT">정율 할인</option>
+                                <option value="AMOUNT">정액 할인</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">할인값 *</label>
+                            <input type="number" class="form-input" id="coupon-edit-discount" name="discountValue" 
+                                   placeholder="정율: 10 (%), 정액: 5000 (원)" min="0" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">최소 결제 금액</label>
+                            <input type="number" class="form-input" id="coupon-edit-minPayment" name="minPaymentAmount" 
+                                   placeholder="예: 30000" min="0">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">설명</label>
+                        <textarea class="form-input" id="coupon-edit-description" name="description" rows="3" 
+                                  placeholder="쿠폰 설명을 입력하세요"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">발급 한도</label>
+                        <input type="number" class="form-input" id="coupon-edit-issueLimit" name="issueLimit" 
+                               placeholder="전체 발급 수" min="1">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">유효 시작일 *</label>
+                            <input type="date" class="form-input" id="coupon-edit-validFrom" name="validFrom" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">유효 종료일 *</label>
+                            <input type="date" class="form-input" id="coupon-edit-validUntil" name="validUntil" required>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" onclick="closeCouponEditModal()">취소</button>
+                        <button type="submit" class="btn-primary">수정 완료</button>
+                        <button type="button" class="btn-danger" onclick="deleteCoupon()">삭제</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- JavaScript -->
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        // 서버에서 전달받은 클릭 차트 데이터
+        const serverClickChartData = /*[[${clickChartData}]]*/ [];
+        console.log('클릭 차트 데이터:', serverClickChartData);
+        /*]]>*/
+    </script>
     <script src="/crm/js/company_sidebar.js"></script>
     <script src="/crm/js/company_header.js"></script>
     <script src="/crm/js/company_marketing.js"></script>

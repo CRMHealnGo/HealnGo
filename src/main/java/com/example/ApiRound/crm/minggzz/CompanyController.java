@@ -1,32 +1,41 @@
 package com.example.ApiRound.crm.minggzz;
 
 import java.math.BigDecimal;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import java.time.format.DateTimeFormatter;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.example.ApiRound.Service.ClickLogService;
 import com.example.ApiRound.Service.UserInquiryService;
 import com.example.ApiRound.crm.hyeonah.Service.CompanyUserService;
 import com.example.ApiRound.crm.hyeonah.entity.CompanyUser;
+import com.example.ApiRound.crm.yoyo.medi.MediServiceRepository;
 import com.example.ApiRound.crm.yoyo.reservation.Reservation;
 import com.example.ApiRound.crm.yoyo.reservation.ReservationRepository;
 import com.example.ApiRound.dto.InquirySubmitRequest;
+import com.example.ApiRound.entity.AdminEvent;
+import com.example.ApiRound.entity.Marketing;
 import com.example.ApiRound.entity.UserInquiry;
+import com.example.ApiRound.repository.AdminEventRepository;
+import com.example.ApiRound.repository.MarketingRepository;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -37,14 +46,26 @@ public class CompanyController {
     private final CompanyUserService companyUserService;
     private final ReservationRepository reservationRepo;
     private final UserInquiryService userInquiryService;
-    
+    private final AdminEventRepository adminEventRepository;
+    private final MarketingRepository marketingRepository;
+    private final ClickLogService clickLogService;
+    private final MediServiceRepository mediServiceRepository;
+
     @Autowired
     public CompanyController(CompanyUserService companyUserService, 
                             ReservationRepository reservationRepo,
-                            UserInquiryService userInquiryService) {
+                            UserInquiryService userInquiryService,
+                            AdminEventRepository adminEventRepository,
+                            MarketingRepository marketingRepository,
+                            ClickLogService clickLogService,
+                            MediServiceRepository mediServiceRepository) {
         this.companyUserService = companyUserService;
         this.reservationRepo = reservationRepo;
         this.userInquiryService = userInquiryService;
+        this.adminEventRepository = adminEventRepository;
+        this.marketingRepository = marketingRepository;
+        this.clickLogService = clickLogService;
+        this.mediServiceRepository = mediServiceRepository;
     }
 
     /**
@@ -168,23 +189,501 @@ public class CompanyController {
     @GetMapping("/marketing")
     public String marketing(Model model, HttpSession session) {
         Integer companyId = (Integer) session.getAttribute("companyId");
-        model.addAttribute("totalImpressions", 125000);
-        model.addAttribute("totalClicks", 8500);
-        model.addAttribute("totalInquiries", 450);
-        model.addAttribute("totalReservations", 180);
-        model.addAttribute("conversionRate", 2.12);
+
+        // DB에서 실제 통계 데이터 조회
+        long totalImpressions = 0;  // 노출수
+        long totalClicks = 0;
+        long totalReservations = 0;
+        int totalMedicalServices = 0;
+        List<Map<String, Object>> clickChartData = new ArrayList<>();
+
+        if (companyId != null) {
+            // 노출수 조회 (승인된 AdminEvent 개수)
+            totalImpressions = adminEventRepository.countByCompanyIdAndApprovalStatus(
+                companyId, com.example.ApiRound.entity.AdminEvent.ApprovalStatus.APPROVED);
+            
+            // 클릭 수 조회 (최근 30일)
+            java.time.LocalDateTime thirtyDaysAgo = java.time.LocalDateTime.now().minusDays(30);
+            totalClicks = clickLogService.getClickCountByCompanyIdSince(companyId.longValue(), thirtyDaysAgo);
+
+            // 예약 수 조회
+            Optional<CompanyUser> companyOpt = companyUserService.findById(companyId);
+            if (companyOpt.isPresent()) {
+                totalReservations = reservationRepo.countByCompany(companyOpt.get());
+            }
+            
+            // 의료서비스 개수 조회
+            totalMedicalServices = mediServiceRepository.countActiveServicesByCompanyId(companyId);
+            
+            // 클릭 추이 차트 데이터 (최근 30일)
+            clickChartData = clickLogService.getDailyClicksByCompany(companyId.longValue(), 30);
+        }
+
+        model.addAttribute("totalImpressions", totalImpressions);
+        model.addAttribute("totalClicks", totalClicks);
+        model.addAttribute("totalReservations", totalReservations);
+        model.addAttribute("totalMedicalServices", totalMedicalServices);
+        model.addAttribute("clickChartData", clickChartData);
         model.addAttribute("companyName", session.getAttribute("companyName"));
         model.addAttribute("companyId", companyId);
 
-        List<Map<String, Object>> placements = getPlacementRequests();
-        model.addAttribute("placements", placements);
+        // 이벤트/광고 배치 목록 (admin_event 테이블)
+        List<AdminEvent> events = companyId != null ?
+            adminEventRepository.findByCompanyIdOrderByCreatedAtDesc(companyId) : new ArrayList<>();
+        model.addAttribute("placements", events);
 
-        List<Map<String, Object>> coupons = getCoupons();
-        model.addAttribute("coupons", coupons);
+        // 쿠폰/마케팅 목록 (marketing 테이블)
+        List<Marketing> marketingList = companyId != null ?
+            marketingRepository.findByCompanyIdOrderByCreatedAtDesc(companyId) : new ArrayList<>();
+        model.addAttribute("coupons", marketingList);
+        
+        // 의료서비스 목록 조회 (인기 콘텐츠 표시용)
+        List<com.example.ApiRound.crm.yoyo.medi.MediServiceEntity> medicalServices = companyId != null ?
+            mediServiceRepository.findActiveByCompanyIdWithFetch(companyId) : new ArrayList<>();
+        model.addAttribute("medicalServices", medicalServices);
 
         model.addAttribute("sidebarType", "company");
         addAvatarInfo(model, companyId);
         return "crm/company_marketing";
+    }
+
+    /**
+     * 마케팅 통계 API - 클릭 수 추이 (최근 30일)
+     */
+    @GetMapping("/api/marketing/click-stats")
+    @ResponseBody
+    public ResponseEntity<?> getClickStats(HttpSession session) {
+        try {
+            Integer companyId = (Integer) session.getAttribute("companyId");
+            if (companyId == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "로그인 필요"));
+            }
+
+            // 최근 30일간의 클릭 수 데이터
+            List<Map<String, Object>> clickStats = clickLogService.getDailyClicksByCompany(companyId.longValue(), 30);
+
+            return ResponseEntity.ok(clickStats);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * 마케팅 통계 API - 예약 수 추이 (최근 30일)
+     */
+    @GetMapping("/api/marketing/reservation-stats")
+    @ResponseBody
+    public ResponseEntity<?> getReservationStats(HttpSession session) {
+        try {
+            Integer companyId = (Integer) session.getAttribute("companyId");
+            if (companyId == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "로그인 필요"));
+            }
+
+            Optional<CompanyUser> companyOpt = companyUserService.findById(companyId);
+            if (!companyOpt.isPresent()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "업체 정보 없음"));
+            }
+
+            // 최근 30일간의 예약 수 데이터
+            List<Map<String, Object>> reservationStats = new ArrayList<>();
+
+            for (int i = 29; i >= 0; i--) {
+                java.time.LocalDate date = java.time.LocalDate.now().minusDays(i);
+                // TODO: countByCompanyAndDate 메서드 구현 필요
+                long count = 0;
+
+                Map<String, Object> stat = new HashMap<>();
+                stat.put("date", date.toString());
+                stat.put("count", count);
+                reservationStats.add(stat);
+            }
+
+            return ResponseEntity.ok(reservationStats);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * 새 노출 요청 제출 API
+     */
+    @PostMapping("/api/marketing/placement/submit")
+    @ResponseBody
+    public ResponseEntity<?> submitPlacement(
+            @RequestParam String target,
+            @RequestParam String slot,
+            @RequestParam String startDate,
+            @RequestParam String endDate,
+            @RequestParam String priority,
+            @RequestParam(required = false) String landingUrl,
+            @RequestParam(required = false) org.springframework.web.multipart.MultipartFile bannerImage,
+            HttpSession session) {
+
+        try {
+            Integer companyId = (Integer) session.getAttribute("companyId");
+            if (companyId == null) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "로그인이 필요합니다."));
+            }
+
+            // AdminEvent 엔티티 생성
+            AdminEvent event = AdminEvent.builder()
+                    .companyId(companyId)
+                    .target(target)
+                    .slot(AdminEvent.Slot.valueOf(slot))
+                    .startDate(java.time.LocalDate.parse(startDate))
+                    .endDate(java.time.LocalDate.parse(endDate))
+                    .priority(AdminEvent.Priority.valueOf(priority))
+                    .landingUrl(landingUrl)
+                    .approvalStatus(AdminEvent.ApprovalStatus.PENDING)
+                    .clicks(0)
+                    .build();
+
+            // TODO: 배너 이미지 파일 저장 로직 (필요시 구현)
+            // if (bannerImage != null && !bannerImage.isEmpty()) {
+            //     String path = saveFile(bannerImage);
+            //     event.setBannerImagePath(path);
+            // }
+
+            AdminEvent saved = adminEventRepository.save(event);
+
+            return ResponseEntity.ok(Map.of("success", true, "id", saved.getId()));
+        } catch (Exception e) {
+            System.err.println("노출 요청 제출 에러: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError()
+                .body(Map.of("success", false, "message", "제출 실패: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Placement 조회 API
+     */
+    @GetMapping("/api/marketing/placement/{id}")
+    @ResponseBody
+    public ResponseEntity<?> getPlacement(@PathVariable Integer id, HttpSession session) {
+        try {
+            Integer companyId = (Integer) session.getAttribute("companyId");
+            if (companyId == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "로그인이 필요합니다."));
+            }
+
+            Optional<AdminEvent> eventOpt = adminEventRepository.findById(id);
+            if (!eventOpt.isPresent()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            AdminEvent event = eventOpt.get();
+            
+            // 본인의 placement만 조회 가능
+            if (!event.getCompanyId().equals(companyId)) {
+                return ResponseEntity.status(403).body(Map.of("error", "권한이 없습니다."));
+            }
+
+            return ResponseEntity.ok(event);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Placement 업데이트 API
+     */
+    @PutMapping("/api/marketing/placement/{id}")
+    @ResponseBody
+    public ResponseEntity<?> updatePlacement(
+            @PathVariable Integer id,
+            @RequestBody Map<String, Object> updates,
+            HttpSession session) {
+        try {
+            Integer companyId = (Integer) session.getAttribute("companyId");
+            if (companyId == null) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "로그인이 필요합니다."));
+            }
+
+            Optional<AdminEvent> eventOpt = adminEventRepository.findById(id);
+            if (!eventOpt.isPresent()) {
+                return ResponseEntity.status(404)
+                    .body(Map.of("success", false, "message", "항목을 찾을 수 없습니다."));
+            }
+
+            AdminEvent event = eventOpt.get();
+            
+            // 본인의 placement만 수정 가능
+            if (!event.getCompanyId().equals(companyId)) {
+                return ResponseEntity.status(403)
+                    .body(Map.of("success", false, "message", "권한이 없습니다."));
+            }
+
+            // 업데이트 적용
+            if (updates.containsKey("target")) {
+                event.setTarget((String) updates.get("target"));
+            }
+            if (updates.containsKey("slot")) {
+                event.setSlot(AdminEvent.Slot.valueOf((String) updates.get("slot")));
+            }
+            if (updates.containsKey("startDate")) {
+                event.setStartDate(java.time.LocalDate.parse((String) updates.get("startDate")));
+            }
+            if (updates.containsKey("endDate")) {
+                event.setEndDate(java.time.LocalDate.parse((String) updates.get("endDate")));
+            }
+            if (updates.containsKey("priority")) {
+                event.setPriority(AdminEvent.Priority.valueOf((String) updates.get("priority")));
+            }
+            if (updates.containsKey("landingUrl")) {
+                event.setLandingUrl((String) updates.get("landingUrl"));
+            }
+
+            adminEventRepository.save(event);
+
+            return ResponseEntity.ok(Map.of("success", true));
+        } catch (Exception e) {
+            System.err.println("Placement 업데이트 에러: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError()
+                .body(Map.of("success", false, "message", "수정 실패: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Placement 삭제 API
+     */
+    @DeleteMapping("/api/marketing/placement/{id}")
+    @ResponseBody
+    public ResponseEntity<?> deletePlacement(@PathVariable Integer id, HttpSession session) {
+        try {
+            Integer companyId = (Integer) session.getAttribute("companyId");
+            if (companyId == null) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "로그인이 필요합니다."));
+            }
+
+            Optional<AdminEvent> eventOpt = adminEventRepository.findById(id);
+            if (!eventOpt.isPresent()) {
+                return ResponseEntity.status(404)
+                    .body(Map.of("success", false, "message", "항목을 찾을 수 없습니다."));
+            }
+
+            AdminEvent event = eventOpt.get();
+            
+            // 본인의 placement만 삭제 가능
+            if (!event.getCompanyId().equals(companyId)) {
+                return ResponseEntity.status(403)
+                    .body(Map.of("success", false, "message", "권한이 없습니다."));
+            }
+
+            adminEventRepository.delete(event);
+
+            return ResponseEntity.ok(Map.of("success", true));
+        } catch (Exception e) {
+            System.err.println("Placement 삭제 에러: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError()
+                .body(Map.of("success", false, "message", "삭제 실패: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * 새 쿠폰 생성 제출 API
+     */
+    @PostMapping("/api/marketing/coupon/submit")
+    @ResponseBody
+    public ResponseEntity<?> submitCoupon(
+            @RequestParam String name,
+            @RequestParam String description,
+            @RequestParam String couponType,
+            @RequestParam String discountValue,
+            @RequestParam(required = false) String minPaymentAmount,
+            @RequestParam(required = false) String issueLimit,
+            @RequestParam String validFrom,
+            @RequestParam String validUntil,
+            HttpSession session) {
+
+        try {
+            Integer companyId = (Integer) session.getAttribute("companyId");
+            if (companyId == null) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "로그인이 필요합니다."));
+            }
+
+            // Marketing 엔티티 생성
+            Marketing marketing = Marketing.builder()
+                    .companyId(companyId)
+                    .name(name)
+                    .description(description)
+                    .couponType(Marketing.CouponType.valueOf(couponType))
+                    .discountValue(new java.math.BigDecimal(discountValue))
+                    .minPaymentAmount(minPaymentAmount != null ? Integer.parseInt(minPaymentAmount) : null)
+                    .issueLimit(issueLimit != null ? Integer.parseInt(issueLimit) : null)
+                    .validFrom(java.time.LocalDate.parse(validFrom))
+                    .validUntil(java.time.LocalDate.parse(validUntil))
+                    .approvalStatus(Marketing.ApprovalStatus.PENDING)
+                    .build();
+
+            Marketing saved = marketingRepository.save(marketing);
+
+            return ResponseEntity.ok(Map.of("success", true, "id", saved.getId()));
+        } catch (Exception e) {
+            System.err.println("쿠폰 생성 에러: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError()
+                .body(Map.of("success", false, "message", "제출 실패: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Coupon 조회 API
+     */
+    @GetMapping("/api/marketing/coupon/{id}")
+    @ResponseBody
+    public ResponseEntity<?> getCoupon(@PathVariable Integer id, HttpSession session) {
+        try {
+            Integer companyId = (Integer) session.getAttribute("companyId");
+            if (companyId == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "로그인이 필요합니다."));
+            }
+
+            Optional<Marketing> marketingOpt = marketingRepository.findById(id);
+            if (!marketingOpt.isPresent()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            Marketing marketing = marketingOpt.get();
+            
+            // 본인의 coupon만 조회 가능
+            if (!marketing.getCompanyId().equals(companyId)) {
+                return ResponseEntity.status(403).body(Map.of("error", "권한이 없습니다."));
+            }
+
+            return ResponseEntity.ok(marketing);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Coupon 업데이트 API
+     */
+    @PutMapping("/api/marketing/coupon/{id}")
+    @ResponseBody
+    public ResponseEntity<?> updateCoupon(
+            @PathVariable Integer id,
+            @RequestBody Map<String, Object> updates,
+            HttpSession session) {
+        try {
+            Integer companyId = (Integer) session.getAttribute("companyId");
+            if (companyId == null) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "로그인이 필요합니다."));
+            }
+
+            Optional<Marketing> marketingOpt = marketingRepository.findById(id);
+            if (!marketingOpt.isPresent()) {
+                return ResponseEntity.status(404)
+                    .body(Map.of("success", false, "message", "항목을 찾을 수 없습니다."));
+            }
+
+            Marketing marketing = marketingOpt.get();
+            
+            // 본인의 coupon만 수정 가능
+            if (!marketing.getCompanyId().equals(companyId)) {
+                return ResponseEntity.status(403)
+                    .body(Map.of("success", false, "message", "권한이 없습니다."));
+            }
+
+            // 업데이트 적용
+            if (updates.containsKey("name")) {
+                marketing.setName((String) updates.get("name"));
+            }
+            if (updates.containsKey("couponType")) {
+                marketing.setCouponType(Marketing.CouponType.valueOf((String) updates.get("couponType")));
+            }
+            if (updates.containsKey("discountValue")) {
+                Object discountObj = updates.get("discountValue");
+                if (discountObj != null) {
+                    marketing.setDiscountValue(new java.math.BigDecimal(discountObj.toString()));
+                }
+            }
+            if (updates.containsKey("minPaymentAmount")) {
+                Object minPaymentObj = updates.get("minPaymentAmount");
+                if (minPaymentObj != null && !minPaymentObj.toString().isEmpty()) {
+                    marketing.setMinPaymentAmount(Integer.parseInt(minPaymentObj.toString()));
+                } else {
+                    marketing.setMinPaymentAmount(null);
+                }
+            }
+            if (updates.containsKey("description")) {
+                marketing.setDescription((String) updates.get("description"));
+            }
+            if (updates.containsKey("issueLimit")) {
+                Object issueLimitObj = updates.get("issueLimit");
+                if (issueLimitObj != null && !issueLimitObj.toString().isEmpty()) {
+                    marketing.setIssueLimit(Integer.parseInt(issueLimitObj.toString()));
+                } else {
+                    marketing.setIssueLimit(null);
+                }
+            }
+            if (updates.containsKey("validFrom")) {
+                marketing.setValidFrom(java.time.LocalDate.parse((String) updates.get("validFrom")));
+            }
+            if (updates.containsKey("validUntil")) {
+                marketing.setValidUntil(java.time.LocalDate.parse((String) updates.get("validUntil")));
+            }
+
+            marketingRepository.save(marketing);
+
+            return ResponseEntity.ok(Map.of("success", true));
+        } catch (Exception e) {
+            System.err.println("Coupon 업데이트 에러: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError()
+                .body(Map.of("success", false, "message", "수정 실패: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Coupon 삭제 API
+     */
+    @DeleteMapping("/api/marketing/coupon/{id}")
+    @ResponseBody
+    public ResponseEntity<?> deleteCoupon(@PathVariable Integer id, HttpSession session) {
+        try {
+            Integer companyId = (Integer) session.getAttribute("companyId");
+            if (companyId == null) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "로그인이 필요합니다."));
+            }
+
+            Optional<Marketing> marketingOpt = marketingRepository.findById(id);
+            if (!marketingOpt.isPresent()) {
+                return ResponseEntity.status(404)
+                    .body(Map.of("success", false, "message", "항목을 찾을 수 없습니다."));
+            }
+
+            Marketing marketing = marketingOpt.get();
+            
+            // 본인의 coupon만 삭제 가능
+            if (!marketing.getCompanyId().equals(companyId)) {
+                return ResponseEntity.status(403)
+                    .body(Map.of("success", false, "message", "권한이 없습니다."));
+            }
+
+            marketingRepository.delete(marketing);
+
+            return ResponseEntity.ok(Map.of("success", true));
+        } catch (Exception e) {
+            System.err.println("Coupon 삭제 에러: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError()
+                .body(Map.of("success", false, "message", "삭제 실패: " + e.getMessage()));
+        }
     }
 
     /**
@@ -353,43 +852,43 @@ public class CompanyController {
 
     private List<Map<String, Object>> getPopularEvents(Integer companyId) {
         List<Map<String, Object>> services = new ArrayList<>();
-        
+
         try {
             if (companyId == null) {
                 System.err.println("companyId가 null입니다. 인기 서비스를 조회할 수 없습니다.");
                 return services;
             }
-            
+
             System.out.println("=== 인기 서비스 조회 시작 ===");
             System.out.println("업체 ID: " + companyId);
-            
+
             // DB에서 예약 수 기준 인기 서비스 조회 (상위 5개)
             List<Object[]> topServices = reservationRepo.findTopServicesByCompany(companyId, 5);
             System.out.println("조회된 인기 서비스 수: " + topServices.size());
-            
+
             for (Object[] row : topServices) {
                 String serviceName = (String) row[0];
                 Long reservationCount = ((Number) row[1]).longValue();
                 BigDecimal avgPrice = row[2] != null ? new BigDecimal(row[2].toString()) : BigDecimal.ZERO;
-                
+
                 Map<String, Object> service = new HashMap<>();
                 service.put("name", serviceName);
                 service.put("price", String.format("%,d원", avgPrice.intValue()));
                 service.put("count", reservationCount + "건");
                 service.put("trend", "up"); // 예약 수만 표시하므로 trend는 up으로 고정
-                
+
                 services.add(service);
-                
+
                 System.out.println("서비스명: " + serviceName + ", 예약수: " + reservationCount + ", 평균가격: " + avgPrice);
             }
-            
+
             System.out.println("===============================");
-            
+
         } catch (Exception e) {
             System.err.println("인기 서비스 조회 실패: " + e.getMessage());
             e.printStackTrace();
         }
-        
+
         return services;
     }
 

@@ -893,7 +893,7 @@ async function loadListData() {
         // API 호출을 위한 URL 구성
         let apiUrl = '/api/list';
         const queryParams = new URLSearchParams();
-        
+
         if (region) queryParams.append('region', region);
         if (subRegion) queryParams.append('subRegion', subRegion);
         if (category) queryParams.append('category', category);
