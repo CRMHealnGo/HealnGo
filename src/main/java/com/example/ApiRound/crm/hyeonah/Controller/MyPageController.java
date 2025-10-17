@@ -47,7 +47,6 @@ public class MyPageController {
             
             model.addAttribute("userReservations", recentReservations);
             model.addAttribute("totalReservationCount", userReservations.size());
-            
         } catch (Exception e) {
             log.error("예약 내역 조회 중 오류 발생: ", e);
             model.addAttribute("userReservations", List.of());

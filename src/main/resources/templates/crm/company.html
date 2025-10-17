@@ -530,26 +530,46 @@
         document.addEventListener('DOMContentLoaded', function() {
             const ctx = document.getElementById('companyReservationChart');
             if (ctx) {
+                // Thymeleaf에서 전달받은 실제 DB 데이터
+                const reservationData = /*[[${reservationChartData}]]*/ null;
+                console.log('Thymeleaf raw data:', reservationData);
+                
+                const days = reservationData ? reservationData.days : ['1일', '2일', '3일'];
+                const reservations = reservationData ? reservationData.reservations : [0, 0, 0];
+                const currentMonth = reservationData ? reservationData.currentMonth : '10월';
+                
+                // 디버깅 로그 추가
+                console.log('=== 프론트엔드 차트 데이터 디버깅 ===');
+                console.log('days:', days);
+                console.log('reservations:', reservations);
+                console.log('currentMonth:', currentMonth);
+                console.log('=====================================');
+                
+                // x축 라벨: 중간 지점에만 현재 달 표시, 나머지는 빈 문자열
+                const middleIndex = Math.floor(days.length / 2);
+                const labels = days.map((day, index) => index === middleIndex ? currentMonth : '');
+                
+                // 최대값 계산 (여유있게 표시하기 위해)
+                const maxValue = Math.max(...reservations, 10);
+                const yAxisMax = Math.ceil(maxValue * 1.2);
+                
                 new Chart(ctx, {
                     type: 'line',
                     data: {
-                        labels: /*[[${reservationChartData.months}]]*/ ['4월', '5월', '6월', '7월', '8월', '9월', '10월'],
+                        labels: labels,
                         datasets: [{
-                            label: '외국인 사용객',
-                            data: /*[[${reservationChartData.foreignUsers}]]*/ [36, 24, 30, 44, 58, 77, 89],
-                            borderColor: '#e74c3c',
-                            backgroundColor: 'rgba(231, 76, 60, 0.1)',
-                            borderWidth: 2,
-                            fill: true,
-                            tension: 0.4
-                        }, {
-                            label: '한국인 사용객',
-                            data: /*[[${reservationChartData.koreanUsers}]]*/ [50, 60, 52, 59, 62, 80, 70],
+                            label: currentMonth + ' 예약 수',
+                            data: reservations,
                             borderColor: '#3498db',
                             backgroundColor: 'rgba(52, 152, 219, 0.1)',
-                            borderWidth: 2,
+                            borderWidth: 3,
                             fill: true,
-                            tension: 0.4
+                            tension: 0.4,
+                            pointBackgroundColor: '#3498db',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
                         }]
                     },
                     options: {
@@ -559,12 +579,25 @@
                             legend: {
                                 display: true,
                                 position: 'top'
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    title: function(context) {
+                                        // 툴팁에서는 정확한 날짜 표시
+                                        const index = context[0].dataIndex;
+                                        return currentMonth.replace('월', '') + '월 ' + (index + 1) + '일';
+                                    }
+                                }
                             }
                         },
                         scales: {
                             y: {
                                 beginAtZero: true,
-                                max: 100,
+                                max: yAxisMax,
+                                ticks: {
+                                    stepSize: Math.ceil(yAxisMax / 5),
+                                    precision: 0
+                                },
                                 grid: {
                                     color: 'rgba(0, 0, 0, 0.1)'
                                 }
