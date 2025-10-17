@@ -1,6 +1,7 @@
 package com.example.ApiRound.crm.yoyo.reservation;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -239,8 +240,12 @@ public class ReservationServiceImpl implements ReservationService {
         CompanyUser company = companyUserRepository.findById(companyId)
                 .orElseThrow(() -> new RuntimeException("업체를 찾을 수 없습니다."));
         
-        List<Reservation> reservations = reservationRepository.findByCompanyAndDateBetween(company, startDate, endDate);
-        return reservations.stream().map(this::convertToDto).collect(Collectors.toList());
+        // created_at 기준으로 조회 (최근 업데이트용)
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
+        
+        List<Reservation> reservations = reservationRepository.findByCompanyAndCreatedAtBetween(company, startDateTime, endDateTime);
+        return reservations.stream().map(this::convertToDtoWithDetails).collect(Collectors.toList());
     }
 
     @Override

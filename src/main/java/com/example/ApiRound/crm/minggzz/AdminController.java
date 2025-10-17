@@ -61,11 +61,11 @@ public class AdminController {
             managerId = (Long) managerIdObj;
         }
         String userType = (String) session.getAttribute("userType");
-
+        
         if (managerId == null || !"manager".equals(userType)) {
             return "redirect:/crm/crm_login";
         }
-
+        
         // 관리자 정보 추가
         model.addAttribute("managerId", managerId);
         model.addAttribute("managerName", session.getAttribute("managerName"));
@@ -91,32 +91,28 @@ public class AdminController {
         // 업체 관련 통계 - 실제 DB 데이터 사용
         stats.put("totalCompanies", companyRepo.countByApprovalStatus("APPROVED")); // 승인된 업체 수
         stats.put("newThisMonth", companyRepo.countNewCompaniesThisMonth(
-            java.time.LocalDate.now().getYear(), 
+            java.time.LocalDate.now().getYear(),
             java.time.LocalDate.now().getMonthValue()
         )); // 이번 달 신규 업체 수
         stats.put("reportsReceived", companyRepo.countByApprovalStatus("REPORTED")); // 신고 접수된 업체 수
         stats.put("underSanction", companyRepo.countByApprovalStatusAndIsActive("SUSPENDED", true)); // 제재 중인 업체 수
-        
+
         stats.put("totalReservations", 0); // TODO: 예약 테이블 연동
         stats.put("totalRevenue", 0); // TODO: 결제 테이블 연동
 
         model.addAttribute("stats", stats);
-
+        
         // 최근 활동 데이터
         List<Map<String, Object>> recentActivities = getRecentActivities();
         model.addAttribute("recentActivities", recentActivities);
-
+        
         // 차트 데이터
         Map<String, Object> chartData = getChartData();
         model.addAttribute("chartData", chartData);
-        
+
         // 예약 많은 순으로 업체 리스트 (상위 5개)
         List<Map<String, Object>> topCompanies = getTopCompaniesByReservations();
         model.addAttribute("topCompanies", topCompanies);
-
-        // 최근 문의/신고 데이터 (최대 3건)
-        List<UserInquiry> recentInquiries = userInquiryService.getAdminPagedList(1, 3, null).getContent();
-        model.addAttribute("recentInquiries", recentInquiries);
 
         return "admin/admin";
     }
@@ -158,7 +154,7 @@ public class AdminController {
 
         // DB에서 사용자 조회 (검색 + 상태 필터)
         Page<SocialUsers> userPage;
-
+        
         if (search != null && !search.trim().isEmpty() && statusFilter != null && !statusFilter.isEmpty()) {
             // 검색 + 상태 필터
             userPage = usersRepo.searchActiveByStatus(search.trim(), statusFilter, pageable);
@@ -217,16 +213,16 @@ public class AdminController {
         // 예약 목록 데이터 (실제로는 서비스에서 가져와야 함)
         List<Map<String, Object>> reservations = getReservations(page, size, search);
         model.addAttribute("reservations", reservations);
-
+        
         // 페이지네이션 정보
         int totalReservations = 320; // 실제로는 DB에서 조회
         int totalPages = (int) Math.ceil((double) totalReservations / size);
-
+        
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", totalPages);
         model.addAttribute("totalReservations", totalReservations);
         model.addAttribute("search", search);
-
+        
         return "admin/reservations";
     }
 
@@ -281,55 +277,24 @@ public class AdminController {
     }
 
     /**
-     * 문의/신고 상세 페이지 (관리자용)
-     */
-    @GetMapping("/inquiry-report/detail/{id}")
-    public String inquiryReportDetail(@PathVariable("id") Integer id, Model model, HttpSession session) {
-        model.addAttribute("reportId", id);
-        model.addAttribute("sidebarType", "admin");
-        model.addAttribute("managerName", session.getAttribute("managerName"));
-
-        return "crm/inquiry_detail";
-    }
-
-    /**
-     * 문의/신고 상세 조회 API (관리자용)
-     */
-    @GetMapping("/api/inquiry-reports/{id}")
-    @ResponseBody
-    public ResponseEntity<UserInquiry> getInquiryDetail(@PathVariable Integer id) {
-        try {
-            List<UserInquiry> inquiries = userInquiryService.getAdminPagedList(1, 1000, null).getContent();
-
-            UserInquiry inquiry = inquiries.stream()
-                    .filter(i -> i.getInquiryId().equals(id))
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException("문의/신고를 찾을 수 없습니다."));
-
-            return ResponseEntity.ok(inquiry);
-        } catch (Exception e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    /**
-     * 문의/신고 목록 조회 API (관리자용)
+     * 관리자용 - 모든 문의/신고 내역 조회 API
      */
     @GetMapping("/api/inquiry-reports")
     @ResponseBody
     public ResponseEntity<List<UserInquiry>> getAllInquiryReports(
             @RequestParam(value = "status", required = false) String status,
-            @RequestParam(value = "reporterType", required = false) String reporterType) {
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "100") int size) {
         try {
-            List<UserInquiry> inquiries = userInquiryService.getAdminPagedList(1, 100, status, reporterType).getContent();
-            return ResponseEntity.ok(inquiries);
+            Page<UserInquiry> inquiryPage = userInquiryService.getAdminPagedList(page, size, status);
+            return ResponseEntity.ok(inquiryPage.getContent());
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
     }
 
     /**
-     * 문의/신고 상태 변경 API (관리자용)
+     * 문의/신고 상태 변경 API
      */
     @PostMapping("/api/inquiry-reports/{id}/status")
     @ResponseBody
@@ -364,7 +329,7 @@ public class AdminController {
     }
 
     /**
-     * 문의/신고 답변 작성 API (관리자용)
+     * 문의/신고 답변 작성 API
      */
     @PostMapping("/api/inquiry-reports/{id}/reply")
     @ResponseBody
@@ -405,48 +370,62 @@ public class AdminController {
         }
     }
 
+    /**
+     * 문의/신고 상세 페이지 (관리자용)
+     */
+    @GetMapping("/inquiry-report/detail/{id}")
+    public String inquiryReportDetail(@PathVariable("id") Long id, Model model, HttpSession session) {
+        // 문의/신고 상세 데이터 (실제로는 서비스에서 가져와야 함)
+        Map<String, Object> report = getInquiryReportById(id);
+        model.addAttribute("report", report);
+        model.addAttribute("sidebarType", "admin");
+        model.addAttribute("managerName", session.getAttribute("managerName"));
+
+        return "crm/inquiry_detail";
+    }
+
     // 임시 데이터 생성 메서드들 (실제로는 서비스에서 구현)
     private List<Map<String, Object>> getRecentActivities() {
         List<Map<String, Object>> activities = new ArrayList<>();
-
+        
         Map<String, Object> activity1 = new HashMap<>();
         activity1.put("type", "user_registration");
         activity1.put("message", "새 사용자가 가입했습니다");
         activity1.put("time", "2분 전");
         activity1.put("icon", "fas fa-user-plus");
         activities.add(activity1);
-
+        
         Map<String, Object> activity2 = new HashMap<>();
         activity2.put("type", "reservation");
         activity2.put("message", "새로운 예약이 생성되었습니다");
         activity2.put("time", "5분 전");
         activity2.put("icon", "fas fa-calendar-plus");
         activities.add(activity2);
-
+        
         Map<String, Object> activity3 = new HashMap<>();
         activity3.put("type", "company_approval");
         activity3.put("message", "업체 승인이 완료되었습니다");
         activity3.put("time", "10분 전");
         activity3.put("icon", "fas fa-building");
         activities.add(activity3);
-
+        
         return activities;
     }
 
     private Map<String, Object> getChartData() {
         Map<String, Object> chartData = new HashMap<>();
-
+        
         // 월별 사용자 증가 데이터
         List<Integer> userGrowth = List.of(120, 150, 180, 200, 220, 250);
         chartData.put("userGrowth", userGrowth);
-
+        
         // 월별 예약 데이터
         List<Integer> reservationData = List.of(45, 60, 75, 90, 85, 95);
         chartData.put("reservations", reservationData);
-
+        
         return chartData;
     }
-
+    
     // 상태 레이블 헬퍼 메서드
     private String getStatusLabel(String status, Boolean isDeleted) {
         if (isDeleted != null && isDeleted) {
@@ -460,10 +439,10 @@ public class AdminController {
 
     private List<Map<String, Object>> getReservations(int page, int size, String search) {
         List<Map<String, Object>> reservations = new ArrayList<>();
-
+        
         // 임시 예약 데이터
         String[] services = {"진료", "미용", "마사지", "치과진료", "한의진료"};
-
+        
         for (int i = 1; i <= size; i++) {
             Map<String, Object> reservation = new HashMap<>();
             reservation.put("id", (page - 1) * size + i);
@@ -476,113 +455,99 @@ public class AdminController {
             reservation.put("amount", 50000 + (i * 10000));
             reservations.add(reservation);
         }
-
+        
         return reservations;
     }
 
     private List<Map<String, Object>> getInquiryReports() {
         List<Map<String, Object>> reports = new ArrayList<>();
-
-        try {
-            // DB에서 모든 문의/신고 조회 (최신순)
-            List<UserInquiry> inquiries = userInquiryService.getAdminPagedList(1, 100, null).getContent();
-
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-
-            for (UserInquiry inquiry : inquiries) {
-                Map<String, Object> report = new HashMap<>();
-                report.put("id", inquiry.getInquiryId());
-
-                // subject에서 [문의:xxx] 또는 [신고:xxx] 패턴 제거
-                String cleanSubject = inquiry.getSubject() != null ?
-                    inquiry.getSubject().replaceAll("^\\[(?:문의|신고):[^\\]]+\\]\\s*", "") : "제목 없음";
-
-                // subject에 [문의] 또는 [신고]가 포함되어 있으면 type 결정
-                String type = "inquiry";
-                if (inquiry.getSubject() != null && inquiry.getSubject().contains("[신고:")) {
-                    type = "report";
-                }
-                report.put("type", type);
-                report.put("title", cleanSubject);
-                report.put("reporterName", inquiry.getReporterType() == UserInquiry.ReporterType.COMPANY ? "업체" : "사용자");
-                report.put("reporterPhone", "-");
-                report.put("reporterEmail", "-");
-                report.put("companyName", "-");
-                report.put("description", inquiry.getContent() != null ? inquiry.getContent() : "");
-
-                // 상태 매핑
-                String status = "pending";
-                if (inquiry.getStatus() == UserInquiry.Status.ANSWERED) {
-                    status = "resolved";
-                } else if (inquiry.getStatus() == UserInquiry.Status.CLOSED) {
-                    status = "rejected";
-                }
-                report.put("status", status);
-                report.put("priority", "medium");
-                report.put("createdDate", inquiry.getCreatedAt() != null ?
-                    inquiry.getCreatedAt().format(formatter) : "-");
-
-                reports.add(report);
-            }
-        } catch (Exception e) {
-            System.err.println("문의/신고 목록 조회 실패: " + e.getMessage());
-            e.printStackTrace();
-        }
-
+        
+        // 시술 후 부작용 문의
+        Map<String, Object> report1 = new HashMap<>();
+        report1.put("id", 1);
+        report1.put("type", "inquiry");
+        report1.put("title", "시술 후 부작용 문의");
+        report1.put("reporterName", "김민수");
+        report1.put("reporterPhone", "010-1234-5678");
+        report1.put("reporterEmail", "kim@example.com");
+        report1.put("companyName", "힝거 피부과");
+        report1.put("description", "브이라인 리프팅 시술을 받은 후 얼굴이 부어오르고 통증이 있습니다. 정상적인 반응인지 확인하고 싶습니다.");
+        report1.put("status", "pending");
+        report1.put("priority", "high");
+        report1.put("createdDate", "2024-01-15 14:30");
+        reports.add(report1);
+        
+        // 의료진 태도 문제 신고
+        Map<String, Object> report2 = new HashMap<>();
+        report2.put("id", 2);
+        report2.put("type", "report");
+        report2.put("title", "의료진 태도 문제 신고");
+        report2.put("reporterName", "이영희");
+        report2.put("reporterPhone", "010-2345-6789");
+        report2.put("reporterEmail", "lee@example.com");
+        report2.put("companyName", "서울 성형외과");
+        report2.put("description", "시술 중 의료진이 불친절하고 무성의한 태도로 시술을 진행했습니다. 환자에 대한 기본적인 예의가 부족했습니다.");
+        report2.put("status", "processing");
+        report2.put("priority", "medium");
+        report2.put("createdDate", "2024-01-14 16:45");
+        reports.add(report2);
+        
+        // 예약 변경 요청
+        Map<String, Object> report3 = new HashMap<>();
+        report3.put("id", 3);
+        report3.put("type", "inquiry");
+        report3.put("title", "예약 변경 요청");
+        report3.put("reporterName", "박준호");
+        report3.put("reporterPhone", "010-3456-7890");
+        report3.put("reporterEmail", "park@example.com");
+        report3.put("companyName", "강남 치과");
+        report3.put("description", "개인 사정으로 인해 예약된 시술 일정을 다음 주로 변경하고 싶습니다. 가능한지 확인 부탁드립니다.");
+        report3.put("status", "resolved");
+        report3.put("priority", "low");
+        report3.put("createdDate", "2024-01-13 10:20");
+        reports.add(report3);
+        
+        // 시설 청결도 문제 신고
+        Map<String, Object> report4 = new HashMap<>();
+        report4.put("id", 4);
+        report4.put("type", "report");
+        report4.put("title", "시설 청결도 문제 신고");
+        report4.put("reporterName", "최수진");
+        report4.put("reporterPhone", "010-4567-8901");
+        report4.put("reporterEmail", "choi@example.com");
+        report4.put("companyName", "제주 한의원");
+        report4.put("description", "병원 내부 시설이 불결하고 위생상 문제가 있다고 생각됩니다. 정기적인 청소와 소독이 필요합니다.");
+        report4.put("status", "rejected");
+        report4.put("priority", "medium");
+        report4.put("createdDate", "2024-01-12 09:15");
+        reports.add(report4);
+        
+        // 시술 비용 환불 요청
+        Map<String, Object> report5 = new HashMap<>();
+        report5.put("id", 5);
+        report5.put("type", "inquiry");
+        report5.put("title", "시술 비용 환불 요청");
+        report5.put("reporterName", "정다은");
+        report5.put("reporterPhone", "010-5678-9012");
+        report5.put("reporterEmail", "jung@example.com");
+        report5.put("companyName", "부산 피부과");
+        report5.put("description", "시술 결과가 만족스럽지 않아 환불을 요청합니다. 계약서에 명시된 환불 정책에 따라 처리해주세요.");
+        report5.put("status", "pending");
+        report5.put("priority", "high");
+        report5.put("createdDate", "2024-01-11 15:30");
+        reports.add(report5);
+        
         return reports;
     }
 
     private Map<String, Object> getInquiryReportById(Long id) {
-        try {
-            // DB에서 특정 문의/신고 조회
-            List<UserInquiry> inquiries = userInquiryService.getAdminPagedList(1, 1000, null).getContent();
-
-            UserInquiry inquiry = inquiries.stream()
-                    .filter(i -> i.getInquiryId().equals(id.intValue()))
-                    .findFirst()
-                    .orElse(null);
-
-            if (inquiry == null) {
-                return new HashMap<>();
-            }
-
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-
-            Map<String, Object> report = new HashMap<>();
-            report.put("id", inquiry.getInquiryId());
-
-            String cleanSubject = inquiry.getSubject() != null ?
-                inquiry.getSubject().replaceAll("^\\[(?:문의|신고):[^\\]]+\\]\\s*", "") : "제목 없음";
-
-            String type = "inquiry";
-            if (inquiry.getSubject() != null && inquiry.getSubject().contains("[신고:")) {
-                type = "report";
-            }
-            report.put("type", type);
-            report.put("title", cleanSubject);
-            report.put("reporterName", inquiry.getReporterType() == UserInquiry.ReporterType.COMPANY ? "업체" : "사용자");
-            report.put("reporterPhone", "-");
-            report.put("reporterEmail", "-");
-            report.put("companyName", "-");
-            report.put("description", inquiry.getContent() != null ? inquiry.getContent() : "");
-
-            String status = "pending";
-            if (inquiry.getStatus() == UserInquiry.Status.ANSWERED) {
-                status = "resolved";
-            } else if (inquiry.getStatus() == UserInquiry.Status.CLOSED) {
-                status = "rejected";
-            }
-            report.put("status", status);
-            report.put("priority", "medium");
-            report.put("createdDate", inquiry.getCreatedAt() != null ?
-                inquiry.getCreatedAt().format(formatter) : "-");
-
-            return report;
-        } catch (Exception e) {
-            System.err.println("문의/신고 상세 조회 실패: " + e.getMessage());
-            e.printStackTrace();
-            return new HashMap<>();
-        }
+        // 실제로는 DB에서 조회해야 함
+        List<Map<String, Object>> reports = getInquiryReports();
+        
+        return reports.stream()
+                .filter(report -> report.get("id").equals(id.intValue()))
+                .findFirst()
+                .orElse(new HashMap<>());
     }
 
     /**
@@ -617,14 +582,14 @@ public class AdminController {
         List<Map<String, Object>> notifications = getNotifications();
         model.addAttribute("notifications", notifications);
 
-        // 알림 통계
+        // 알림 통계 (더미 데이터 - 나중에 구현)
         Map<String, Object> notifyStats = new HashMap<>();
         notifyStats.put("totalSent", 1234);
         notifyStats.put("delivered", 1180);
         notifyStats.put("pending", 54);
         notifyStats.put("failed", 12);
         model.addAttribute("notifyStats", notifyStats);
-
+        
         return "admin/admin_notice_notify";
     }
 
@@ -661,7 +626,7 @@ public class AdminController {
             notice.setIsPinned(topFixed);
             notice.setCreatedBy(managerId);
             notice.setPublishAt(LocalDateTime.now()); // 즉시 게시
-
+            
             noticeService.createNotice(notice);
             return "success";
         } catch (Exception e) {
@@ -675,7 +640,7 @@ public class AdminController {
      */
     @PostMapping("/notice-notify/update")
     @ResponseBody
-    public Map<String, Object> updateNotice(
+    public String updateNotice(
             @RequestParam Integer noticeId,
             @RequestParam String title,
             @RequestParam String content,
@@ -683,12 +648,24 @@ public class AdminController {
             @RequestParam(defaultValue = "false") Boolean topFixed,
             HttpSession session) {
 
-        // TODO: 실제 DB 업데이트 로직 구현
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("message", "공지사항이 수정되었습니다.");
-        
-        return response;
+        // 관리자 권한 확인 (간단히)
+        if (session.getAttribute("managerId") == null) {
+            return "login_required";
+        }
+
+        try {
+            Notice notice = noticeService.getNoticeById(noticeId);
+            notice.setTitle(title);
+            notice.setBody(content);
+            notice.setAudience(Notice.Audience.valueOf(audience));
+            notice.setIsPinned(topFixed);
+            
+            noticeService.updateNotice(notice);
+            return "success";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "fail";
+        }
     }
 
     /**
@@ -717,7 +694,7 @@ public class AdminController {
 
     private List<Map<String, Object>> getNotifications() {
         List<Map<String, Object>> notifications = new ArrayList<>();
-
+        
         Map<String, Object> notify1 = new HashMap<>();
         notify1.put("id", 1);
         notify1.put("title", "시스템 점검 안내");
@@ -727,12 +704,12 @@ public class AdminController {
         notify1.put("date", "2024-10-09 14:30");
         notify1.put("recipients", 5234);
         notifications.add(notify1);
-
+        
         return notifications;
     }
 
     // ===== REST API 엔드포인트 =====
-
+    
     /**
      * 사용자 상세 조회
      */
@@ -768,7 +745,7 @@ public class AdminController {
     public ResponseEntity<Map<String, Object>> updateUser(
             @PathVariable Integer userId,
             @RequestBody Map<String, String> updateData) {
-
+        
         return usersRepo.findByUserIdAndIsDeletedFalse(userId)
                 .map(user -> {
                     // 수정 가능한 필드 업데이트
@@ -797,7 +774,7 @@ public class AdminController {
                     return ResponseEntity.notFound().build();
                 });
     }
-
+    
     /**
      * 사용자 상태 토글 (활성 → 정지 → 비활성화)
      */
@@ -843,7 +820,7 @@ public class AdminController {
                     return ResponseEntity.notFound().build();
                 });
     }
-
+    
     /**
      * 일괄 정지 처리
      */
@@ -851,14 +828,14 @@ public class AdminController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> bulkSuspend(@RequestBody Map<String, List<Integer>> request) {
         List<Integer> userIds = request.get("userIds");
-
+        
         if (userIds == null || userIds.isEmpty()) {
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", "선택된 사용자가 없습니다.");
             return ResponseEntity.badRequest().body(response);
         }
-
+        
         int count = 0;
         for (Integer userId : userIds) {
             usersRepo.findById(userId).ifPresent(user -> {
@@ -868,7 +845,7 @@ public class AdminController {
             });
             count++;
         }
-
+        
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
         response.put("message", count + "명의 사용자가 정지되었습니다.");
@@ -903,48 +880,46 @@ public class AdminController {
 
         return monthlyData;
     }
-    
+
     // 예약 많은 순으로 업체 리스트 조회
     private List<Map<String, Object>> getTopCompaniesByReservations() {
         List<Map<String, Object>> topCompanies = new ArrayList<>();
-        
+
         try {
             // 승인된 업체 목록 조회 (상위 10개)
             Pageable pageable = PageRequest.of(0, 10);
             List<CompanyUser> companies = companyRepo.findTop5ApprovedCompanies(pageable);
-            
+
             // 각 업체별 예약 수를 계산하고 정렬
             List<Map<String, Object>> companyWithReservations = new ArrayList<>();
-            
+
             for (CompanyUser company : companies) {
                 Long reservationCount = reservationRepo.countByCompany(company);
-                
+
                 Map<String, Object> companyData = new HashMap<>();
                 companyData.put("companyId", company.getCompanyId());
                 companyData.put("companyName", company.getCompanyName());
                 companyData.put("category", company.getCategory());
                 companyData.put("reservationCount", reservationCount);
                 companyData.put("createdAt", company.getCreatedAt());
-                
+
                 companyWithReservations.add(companyData);
             }
-            
+
             // 예약 수로 정렬 (내림차순)
             companyWithReservations.sort((a, b) -> {
                 Long countA = (Long) a.get("reservationCount");
                 Long countB = (Long) b.get("reservationCount");
                 return countB.compareTo(countA);
             });
-            
+
             // 상위 5개만 추출
             topCompanies = companyWithReservations.subList(0, Math.min(5, companyWithReservations.size()));
-            
+
         } catch (Exception e) {
             System.err.println("업체 리스트 조회 실패: " + e.getMessage());
         }
-        
+
         return topCompanies;
     }
 }
-
-

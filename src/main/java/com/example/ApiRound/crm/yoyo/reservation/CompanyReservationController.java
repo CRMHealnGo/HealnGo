@@ -113,6 +113,46 @@ public class CompanyReservationController {
             model.addAttribute("cancelledCount", 0L);
             model.addAttribute("completedCount", 0L);
         }
+        
+        // 최근 업데이트 (최근 일주일간의 예약)
+        try {
+            LocalDate now = LocalDate.now();
+            LocalDate weekAgo = now.minusDays(7);
+            
+            List<ReservationDto> weekReservations = reservationService.getCompanyReservationsByDateRange(
+                companyId, weekAgo, now);
+            
+            model.addAttribute("recentReservations", weekReservations);
+            
+            log.info("========== 최근 업데이트 디버깅 ==========");
+            log.info("조회 기간: {} ~ {}", weekAgo, now);
+            log.info("일주일간 예약 수: {}", weekReservations.size());
+            weekReservations.forEach(r -> {
+                log.info("예약 ID: {}, 고객명: {}, 생성일: {}", r.getId(), r.getCustomerName(), r.getCreatedAt());
+            });
+            log.info("=========================================");
+            
+        } catch (Exception e) {
+            log.error("최근 예약 조회 중 오류 발생: ", e);
+            model.addAttribute("recentReservations", java.util.Collections.emptyList());
+        }
+        
+        // 현재 월의 모든 예약 데이터 (캘린더용)
+        try {
+            LocalDate now = LocalDate.now();
+            LocalDate startOfMonth = now.withDayOfMonth(1);
+            LocalDate endOfMonth = now.withDayOfMonth(now.lengthOfMonth());
+            
+            List<ReservationDto> monthReservations = reservationService.getCompanyReservationsByDateRange(
+                companyId, startOfMonth, endOfMonth);
+            
+            model.addAttribute("reservationList", monthReservations);
+            log.info("캘린더용 월간 예약 수: {}", monthReservations.size());
+            
+        } catch (Exception e) {
+            log.error("월간 예약 조회 중 오류 발생: ", e);
+            model.addAttribute("reservationList", java.util.Collections.emptyList());
+        }
 
         return "crm/company_reservation_management";
     }
