@@ -1,9 +1,22 @@
 package com.example.ApiRound.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
-
 import java.time.LocalDateTime;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @Setter
@@ -19,6 +32,7 @@ public class UserInquiry {
     @Column(name = "inquiry_id")
     private Integer inquiryId;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Target target = Target.ADMIN;  // ADMIN
@@ -43,13 +57,29 @@ public class UserInquiry {
     @Column(nullable = false)
     private String content;
 
+    @Column(name = "target_url", length = 1000)
+    private String targetUrl;              // 대상 URL
+
+    @Column(name = "attachment_path", length = 1024)
+    private String attachmentPath;         // 첨부파일 경로
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Priority priority = Priority.NORMAL;  // NORMAL, URGENT
+
     @Lob
     @Column(name = "admin_answer")
     private String adminAnswer;            // 관리자 답변
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status = Status.OPEN;   // OPEN, ANSWERED, CLOSED
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "request_type")
+    private RequestType requestType;       // PROMOTION, CUSTOMER_REPORT, TECH_SUPPORT, SETTLEMENT, ACCOUNT, OTHER
 
     @Column(name = "assigned_to")
     private Integer assignedTo;            // 담당자 관리자 ID
@@ -74,6 +104,19 @@ public class UserInquiry {
     public enum Status {
         OPEN, ANSWERED, CLOSED
     }
+
+    public enum Priority {
+        NORMAL, URGENT
+    }
+
+    public enum RequestType {
+        PROMOTION,          // 프로모션/광고 문의
+        CUSTOMER_REPORT,    // 고객 신고 처리
+        TECH_SUPPORT,       // 기술 지원
+        SETTLEMENT,         // 정산 문의
+        ACCOUNT,            // 계정 관련
+        OTHER               // 기타
+    }
     
     @PrePersist
     protected void onCreate() {
@@ -85,6 +128,9 @@ public class UserInquiry {
         }
         if (status == null) {
             status = Status.OPEN;
+        }
+        if (priority == null) {
+            priority = Priority.NORMAL;
         }
     }
 }

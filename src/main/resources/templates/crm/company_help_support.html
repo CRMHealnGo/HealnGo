@@ -119,36 +119,46 @@
                 <div class="requests-list-section">
                     <h2 class="section-title" style="margin-bottom: 24px;">📝 새 요청하기</h2>
                     
-                    <form class="new-request-form active" onsubmit="submitRequest(event)">
+                    <form class="new-request-form active" id="helpRequestForm" 
+                          action="/company/api/help-support/submit" method="POST" 
+                          enctype="multipart/form-data" 
+                          onsubmit="submitRequest(event)">
                         <div class="form-group">
                             <label class="form-label">요청 제목 *</label>
-                            <input type="text" class="form-input" placeholder="요청 제목을 입력하세요" required>
+                            <input type="text" class="form-input" name="subject" 
+                                   placeholder="요청 제목을 입력하세요" required>
                         </div>
                         
                         <div class="form-group">
                             <label class="form-label">요청 유형 *</label>
-                            <select class="form-select" required>
+                            <select class="form-select" name="requestType" required>
                                 <option value="">선택해주세요</option>
-                                <option value="프로모션">프로모션</option>
-                                <option value="고객신고">고객 신고</option>
-                                <option value="기술지원">기술 지원</option>
-                                <option value="정산">정산 문의</option>
-                                <option value="계정관리">계정 관리</option>
-                                <option value="기타">기타</option>
+                                <option value="CUSTOMER_REPORT">고객 신고</option>
+                                <option value="TECH_SUPPORT">기술 지원</option>
+                                <option value="SETTLEMENT">정산 문의</option>
+                                <option value="ACCOUNT">계정 관리</option>
+                                <option value="OTHER">기타</option>
                             </select>
                         </div>
                         
                         <div class="form-group">
                             <label class="form-label">우선순위 *</label>
-                            <select class="form-select" required>
-                                <option value="일반">일반</option>
-                                <option value="긴급">긴급</option>
+                            <select class="form-select" name="priority" required>
+                                <option value="NORMAL">일반</option>
+                                <option value="URGENT">긴급</option>
                             </select>
                         </div>
                         
                         <div class="form-group">
                             <label class="form-label">요청 내용 *</label>
-                            <textarea class="form-textarea" placeholder="요청 내용을 상세히 입력해주세요" required></textarea>
+                            <textarea class="form-textarea" name="content" 
+                                      placeholder="요청 내용을 상세히 입력해주세요" required></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">관련 URL (선택)</label>
+                            <input type="url" class="form-input" name="targetUrl" 
+                                   placeholder="관련 URL이 있으면 입력하세요">
                         </div>
                         
                         <div class="form-group">
@@ -160,7 +170,8 @@
                                 <p class="file-upload-text">클릭하거나 파일을 드래그하여 업로드</p>
                                 <p class="file-upload-text" style="font-size: 12px; color: #bdc3c7;">이미지, PDF (최대 10MB)</p>
                             </div>
-                            <input type="file" id="fileInput" style="display: none" accept="image/*,.pdf">
+                            <input type="file" id="fileInput" name="attachment" 
+                                   style="display: none" accept="image/*,.pdf">
                         </div>
                         
                         <button type="submit" class="submit-btn">

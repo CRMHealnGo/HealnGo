@@ -23,6 +23,20 @@
             <div class="report-filter-section">
                 <div class="report-filter-row">
                     <div class="report-filter-group">
+                        <label class="report-filter-label">구분:</label>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="reporter-type-btn active" data-type="ALL" onclick="filterByReporterType('ALL')">
+                                <i class="fas fa-list"></i> 전체
+                            </button>
+                            <button class="reporter-type-btn" data-type="SOCIAL" onclick="filterByReporterType('SOCIAL')">
+                                <i class="fas fa-user"></i> 사용자 문의/신고
+                            </button>
+                            <button class="reporter-type-btn" data-type="COMPANY" onclick="filterByReporterType('COMPANY')">
+                                <i class="fas fa-building"></i> 업체 문의/신고
+                            </button>
+                        </div>
+                    </div>
+                    <div class="report-filter-group">
                         <label class="report-filter-label">상태:</label>
                         <select class="report-filter-select" id="statusFilter">
                             <option value="">전체</option>

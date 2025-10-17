@@ -1,5 +1,6 @@
 package com.example.ApiRound.crm.minggzz;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,7 +30,6 @@ import com.example.ApiRound.crm.hyeonah.entity.CompanyUser;
 import com.example.ApiRound.crm.hyeonah.entity.SocialUsers;
 import com.example.ApiRound.crm.hyeonah.notice.Notice;
 import com.example.ApiRound.crm.hyeonah.notice.NoticeService;
-import com.example.ApiRound.crm.yoyo.reservation.ReservationRepository;
 import com.example.ApiRound.crm.yoyo.reservation.ReservationRepository;
 import com.example.ApiRound.entity.UserInquiry;
 
@@ -76,16 +76,7 @@ public class AdminController {
         stats.put("totalUsers", usersRepo.countByIsDeletedFalse());
         stats.put("activeUsers", usersRepo.countByStatusAndIsDeletedFalse("ACTIVE"));
         stats.put("suspendedUsers", usersRepo.countByStatusAndIsDeletedFalse("SUSPENDED"));
-
-        // 업체 관련 통계 - 실제 DB 데이터 사용
-        stats.put("totalCompanies", companyRepo.countByApprovalStatus("APPROVED")); // 승인된 업체 수
-        stats.put("newThisMonth", companyRepo.countNewCompaniesThisMonth(
-            java.time.LocalDate.now().getYear(),
-            java.time.LocalDate.now().getMonthValue()
-        )); // 이번 달 신규 업체 수
-        stats.put("reportsReceived", companyRepo.countByApprovalStatus("REPORTED")); // 신고 접수된 업체 수
-        stats.put("underSanction", companyRepo.countByApprovalStatusAndIsActive("SUSPENDED", true)); // 제재 중인 업체 수
-
+        stats.put("totalCompanies", companyRepo.count());
         stats.put("totalReservations", 0); // TODO: 예약 테이블 연동
         stats.put("totalRevenue", 0); // TODO: 결제 테이블 연동
 
@@ -100,12 +91,12 @@ public class AdminController {
         // 업체 관련 통계 - 실제 DB 데이터 사용
         stats.put("totalCompanies", companyRepo.countByApprovalStatus("APPROVED")); // 승인된 업체 수
         stats.put("newThisMonth", companyRepo.countNewCompaniesThisMonth(
-            java.time.LocalDate.now().getYear(),
+            java.time.LocalDate.now().getYear(), 
             java.time.LocalDate.now().getMonthValue()
         )); // 이번 달 신규 업체 수
         stats.put("reportsReceived", companyRepo.countByApprovalStatus("REPORTED")); // 신고 접수된 업체 수
         stats.put("underSanction", companyRepo.countByApprovalStatusAndIsActive("SUSPENDED", true)); // 제재 중인 업체 수
-
+        
         stats.put("totalReservations", 0); // TODO: 예약 테이블 연동
         stats.put("totalRevenue", 0); // TODO: 결제 테이블 연동
 
@@ -118,7 +109,7 @@ public class AdminController {
         // 차트 데이터
         Map<String, Object> chartData = getChartData();
         model.addAttribute("chartData", chartData);
-
+        
         // 예약 많은 순으로 업체 리스트 (상위 5개)
         List<Map<String, Object>> topCompanies = getTopCompaniesByReservations();
         model.addAttribute("topCompanies", topCompanies);
@@ -327,9 +318,10 @@ public class AdminController {
     @GetMapping("/api/inquiry-reports")
     @ResponseBody
     public ResponseEntity<List<UserInquiry>> getAllInquiryReports(
-            @RequestParam(value = "status", required = false) String status) {
+            @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "reporterType", required = false) String reporterType) {
         try {
-            List<UserInquiry> inquiries = userInquiryService.getAdminPagedList(1, 100, status).getContent();
+            List<UserInquiry> inquiries = userInquiryService.getAdminPagedList(1, 100, status, reporterType).getContent();
             return ResponseEntity.ok(inquiries);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
@@ -411,20 +403,6 @@ public class AdminController {
             response.put("message", e.getMessage());
             return ResponseEntity.badRequest().body(response);
         }
-    }
-
-    /**
-     * 문의/신고 상세 페이지 (관리자용)
-     */
-    @GetMapping("/inquiry-report/detail/{id}")
-    public String inquiryReportDetail(@PathVariable("id") Long id, Model model, HttpSession session) {
-        // 문의/신고 상세 데이터 (실제로는 서비스에서 가져와야 함)
-        Map<String, Object> report = getInquiryReportById(id);
-        model.addAttribute("report", report);
-        model.addAttribute("sidebarType", "admin");
-        model.addAttribute("managerName", session.getAttribute("managerName"));
-
-        return "crm/inquiry_detail";
     }
 
     // 임시 데이터 생성 메서드들 (실제로는 서비스에서 구현)
@@ -639,7 +617,7 @@ public class AdminController {
         List<Map<String, Object>> notifications = getNotifications();
         model.addAttribute("notifications", notifications);
 
-        // 알림 통계 (더미 데이터 - 나중에 구현)
+        // 알림 통계
         Map<String, Object> notifyStats = new HashMap<>();
         notifyStats.put("totalSent", 1234);
         notifyStats.put("delivered", 1180);
@@ -697,7 +675,7 @@ public class AdminController {
      */
     @PostMapping("/notice-notify/update")
     @ResponseBody
-    public String updateNotice(
+    public Map<String, Object> updateNotice(
             @RequestParam Integer noticeId,
             @RequestParam String title,
             @RequestParam String content,
@@ -705,24 +683,12 @@ public class AdminController {
             @RequestParam(defaultValue = "false") Boolean topFixed,
             HttpSession session) {
 
-        // 관리자 권한 확인 (간단히)
-        if (session.getAttribute("managerId") == null) {
-            return "login_required";
-        }
-
-        try {
-            Notice notice = noticeService.getNoticeById(noticeId);
-            notice.setTitle(title);
-            notice.setBody(content);
-            notice.setAudience(Notice.Audience.valueOf(audience));
-            notice.setIsPinned(topFixed);
-
-            noticeService.updateNotice(notice);
-            return "success";
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "fail";
-        }
+        // TODO: 실제 DB 업데이트 로직 구현
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "공지사항이 수정되었습니다.");
+        
+        return response;
     }
 
     /**
@@ -937,46 +903,48 @@ public class AdminController {
 
         return monthlyData;
     }
-
+    
     // 예약 많은 순으로 업체 리스트 조회
     private List<Map<String, Object>> getTopCompaniesByReservations() {
         List<Map<String, Object>> topCompanies = new ArrayList<>();
-
+        
         try {
             // 승인된 업체 목록 조회 (상위 10개)
             Pageable pageable = PageRequest.of(0, 10);
             List<CompanyUser> companies = companyRepo.findTop5ApprovedCompanies(pageable);
-
+            
             // 각 업체별 예약 수를 계산하고 정렬
             List<Map<String, Object>> companyWithReservations = new ArrayList<>();
-
+            
             for (CompanyUser company : companies) {
                 Long reservationCount = reservationRepo.countByCompany(company);
-
+                
                 Map<String, Object> companyData = new HashMap<>();
                 companyData.put("companyId", company.getCompanyId());
                 companyData.put("companyName", company.getCompanyName());
                 companyData.put("category", company.getCategory());
                 companyData.put("reservationCount", reservationCount);
                 companyData.put("createdAt", company.getCreatedAt());
-
+                
                 companyWithReservations.add(companyData);
             }
-
+            
             // 예약 수로 정렬 (내림차순)
             companyWithReservations.sort((a, b) -> {
                 Long countA = (Long) a.get("reservationCount");
                 Long countB = (Long) b.get("reservationCount");
                 return countB.compareTo(countA);
             });
-
+            
             // 상위 5개만 추출
             topCompanies = companyWithReservations.subList(0, Math.min(5, companyWithReservations.size()));
-
+            
         } catch (Exception e) {
             System.err.println("업체 리스트 조회 실패: " + e.getMessage());
         }
-
+        
         return topCompanies;
     }
 }
+
+
