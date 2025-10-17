@@ -576,3 +576,207 @@ select.form-control {
     font-size: 13px;
     color: #ef4444;
 }
+
+/* ===== 문의/신고 내역 탭 ===== */
+.history-loading {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6c757d;
+}
+
+.history-loading i {
+    font-size: 48px;
+    color: #667eea;
+    margin-bottom: 20px;
+    display: block;
+}
+
+.history-loading p {
+    font-size: 16px;
+}
+
+.history-empty {
+    text-align: center;
+    padding: 80px 20px;
+}
+
+.history-empty i {
+    font-size: 64px;
+    color: #d0d7de;
+    margin-bottom: 20px;
+    display: block;
+}
+
+.history-empty p {
+    font-size: 16px;
+    color: #6c757d;
+    margin-bottom: 0;
+}
+
+.history-list {
+    padding: 20px;
+}
+
+.history-item {
+    background: #fafbfc;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+}
+
+.history-item:hover {
+    border-color: #667eea;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+}
+
+.history-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.history-item-title-wrapper {
+    flex: 1;
+    min-width: 200px;
+}
+
+.history-item-type {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.history-item-type.report {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.history-item-type.inquiry {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.history-item-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.history-item-date {
+    font-size: 13px;
+    color: #6c757d;
+}
+
+.history-item-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.history-item-status.pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.history-item-status.pending i {
+    color: #f59e0b;
+}
+
+.history-item-status.answered {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.history-item-status.answered i {
+    color: #10b981;
+}
+
+.history-item-content {
+    padding: 15px;
+    background: white;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.history-item-label {
+    font-size: 13px;
+    color: #6c757d;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.history-item-text {
+    font-size: 14px;
+    color: #333;
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+.history-item-reply {
+    background: #f0f9ff;
+    border-left: 4px solid #667eea;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 15px;
+}
+
+.history-item-reply-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    color: #667eea;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.history-item-reply-header i {
+    font-size: 16px;
+}
+
+.history-item-reply-text {
+    font-size: 14px;
+    color: #2c3e50;
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+.history-item-reply-date {
+    font-size: 12px;
+    color: #6c757d;
+    margin-top: 8px;
+}
+
+.history-item-meta {
+    display: flex;
+    gap: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #e9ecef;
+    font-size: 13px;
+    color: #6c757d;
+}
+
+.history-item-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.history-item-meta-item i {
+    color: #667eea;
+    font-size: 12px;
+}
