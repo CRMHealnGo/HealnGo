@@ -61,15 +61,14 @@
         submitBtn.disabled = true;
         
         // 로그인 요청
-        fetch('/login', {
+        fetch('/api/user/login', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Type': 'application/json',
             },
-            body: new URLSearchParams({
+            body: JSON.stringify({
                 email: email,
-                password: password,
-                'remember-me': loginForm.querySelector('input[name="remember-me"]').checked
+                password: password
             })
         })
         .then(response => {
@@ -140,6 +139,8 @@
 
     // 에러 메시지 표시
     function showError(field, message) {
+        if (!field) return; // null 체크 추가
+        
         const errorElement = document.getElementById(field.id + '-error');
         if (errorElement) {
             errorElement.textContent = message;
@@ -152,6 +153,8 @@
 
     // 에러 메시지 제거
     function clearError(field) {
+        if (!field) return; // null 체크 추가
+        
         const errorElement = document.getElementById(field.id + '-error');
         if (errorElement) {
             errorElement.textContent = '';

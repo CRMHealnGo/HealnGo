@@ -40,9 +40,29 @@
                             <h3 class="card-title">사용자 관리</h3>
                             <a href="/admin/users" class="view-all-link">View all ></a>
                         </div>
+                        <div class="user-stats-container">
+                            <div class="stat-item">
+                                <div class="stat-label">총 사용자</div>
+                                <div class="stat-value" th:text="${stats.totalUsers}">0</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">활성 사용자</div>
+                                <div class="stat-value" th:text="${stats.activeUsers != null ? stats.activeUsers : 0}">0</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">정지 사용자</div>
+                                <div class="stat-value" th:text="${stats.suspendedUsers != null ? stats.suspendedUsers : 0}">0</div>
+                            </div>
+                        </div>
                         <div class="user-chart-container">
                             <canvas id="userChart"></canvas>
                         </div>
+                        <!-- 월별 데이터를 JavaScript에서 사용할 수 있도록 숨김 -->
+                        <script th:inline="javascript">
+                            /*<![CDATA[*/
+                            window.monthlyData = /*[[${stats.monthlyData}]]*/ [];
+                            /*]]>*/
+                        </script>
                     </div>
                     
                     <!-- 10월 캘린더 카드 -->
