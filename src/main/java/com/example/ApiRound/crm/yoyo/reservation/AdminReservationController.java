@@ -1,5 +1,8 @@
 package com.example.ApiRound.crm.yoyo.reservation;
 
+import java.time.LocalDate;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -14,12 +17,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.example.ApiRound.entity.AdminEvent;
+import com.example.ApiRound.entity.Marketing;
+import com.example.ApiRound.repository.AdminEventRepository;
+import com.example.ApiRound.repository.MarketingRepository;
+
 @Controller
 @RequestMapping("/admin")
 public class AdminReservationController {
 
     @Autowired
     private ReservationService reservationService;
+    
+    @Autowired
+    private AdminEventRepository adminEventRepository;
+    
+    @Autowired
+    private MarketingRepository marketingRepository;
 
     // 관리자 예약 관리 메인 페이지
     @GetMapping("/reservation-management")
@@ -47,6 +61,28 @@ public class AdminReservationController {
         model.addAttribute("confirmedCount", reservationService.getReservationsByStatus("CONFIRMED", PageRequest.of(0, 1)).getTotalElements());
         model.addAttribute("cancelledCount", reservationService.getReservationsByStatus("CANCELLED", PageRequest.of(0, 1)).getTotalElements());
         model.addAttribute("completedCount", reservationService.getReservationsByStatus("COMPLETED", PageRequest.of(0, 1)).getTotalElements());
+
+        // 이벤트/프로모션 데이터 조회 (승인된 것만)
+        LocalDate today = LocalDate.now();
+        List<AdminEvent> activeEvents = adminEventRepository.findByApprovalStatusOrderByCreatedAtDesc(AdminEvent.ApprovalStatus.APPROVED);
+        List<Marketing> activeCoupons = marketingRepository.findByApprovalStatusOrderByCreatedAtDesc(Marketing.ApprovalStatus.APPROVED);
+        
+        // 캘린더 통계
+        long ongoingEvents = activeEvents.stream()
+            .filter(e -> !e.getStartDate().isAfter(today) && !e.getEndDate().isBefore(today))
+            .count();
+        long ongoingPromotions = activeCoupons.stream()
+            .filter(c -> !c.getValidFrom().isAfter(today) && !c.getValidUntil().isBefore(today))
+            .count();
+        long upcomingEvents = activeEvents.stream()
+            .filter(e -> e.getStartDate().isAfter(today))
+            .count();
+        
+        model.addAttribute("placements", activeEvents);
+        model.addAttribute("coupons", activeCoupons);
+        model.addAttribute("ongoingEvents", ongoingEvents);
+        model.addAttribute("ongoingPromotions", ongoingPromotions);
+        model.addAttribute("upcomingEvents", upcomingEvents);
 
         return "admin/reservation-management";
     }

@@ -139,11 +139,18 @@ public class MediServiceController {
 
     /** 수정 */
     @PutMapping("/api/medical-services/{id}")
-    public ResponseEntity<MediServiceEntity> update(
+    public ResponseEntity<?> update(
             @PathVariable Long id,
             @RequestBody MediServiceEntity entity
     ) {
-        return ResponseEntity.ok(mediServiceService.update(id, entity));
+        MediServiceEntity updated = mediServiceService.update(id, entity);
+        // JSON 순환 참조 방지를 위해 간단한 응답 반환
+        return ResponseEntity.ok(new java.util.HashMap<String, Object>() {{
+            put("success", true);
+            put("serviceId", updated.getServiceId());
+            put("name", updated.getName());
+            put("message", "서비스가 성공적으로 수정되었습니다.");
+        }});
     }
 
     /** 삭제 */

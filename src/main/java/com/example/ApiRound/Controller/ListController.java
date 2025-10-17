@@ -153,9 +153,9 @@ public class ListController {
         private int endPage;
         private int amount;
     }
-    
+
     // ========== 리뷰 시스템용 API ==========
-    
+
     /**
      * 업체의 아이템 목록 조회
      * GET /api/review/company-items/{companyId}
@@ -169,7 +169,7 @@ public class ListController {
                 .collect(java.util.stream.Collectors.toList());
         return ResponseEntity.ok(itemDtos);
     }
-    
+
     /**
      * 아이템 상세 조회 (리뷰용)
      * GET /api/review/item/{itemId}
@@ -181,7 +181,7 @@ public class ListController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-    
+
     /**
      * 업체의 모든 리뷰 조회 (아이템 관계 없이)
      * GET /api/review/company-reviews/{companyId}
@@ -193,5 +193,5 @@ public class ListController {
         List<Object[]> reviews = itemListRepository.findReviewsByCompanyId(companyId);
         return ResponseEntity.ok(reviews);
     }
-    
+
 }

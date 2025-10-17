@@ -1,10 +1,12 @@
-// ===================== 사이드바 활성 표시 =====================
+// ===================== 사이드바 활성 표시 및 초기화 =====================
 document.addEventListener('DOMContentLoaded', async () => {
   const allNavLinks = document.querySelectorAll('.nav-link');
   allNavLinks.forEach(link => link.classList.remove('active'));
   const medicalServiceLink = document.querySelector('a[href="/company/medical-services"]');
   if (medicalServiceLink) medicalServiceLink.classList.add('active');
 
+  // 모달 태그 입력 기능 초기화
+  initializeEditModal();
 });
 
 // ===================== CSRF/메타/유틸 =====================
@@ -107,10 +109,11 @@ function renderList(rows) {
         body.appendChild(pill);
       });
     }
-
-    // 모달 태그 입력 기능 초기화
-    initializeEditModal();
-});
+    
+    card.appendChild(body);
+    wrap.appendChild(card);
+  });
+}
 
 // 수정 모달 초기화
 function initializeEditModal() {
@@ -377,10 +380,6 @@ function deleteService(serviceId) {
             alert('서비스 삭제 중 오류가 발생했습니다: ' + error.message);
         });
     }
-}
-    card.appendChild(body);
-    wrap.appendChild(card);
-  });
 }
 
 function escapeHtml(str) {
