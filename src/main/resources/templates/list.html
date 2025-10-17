@@ -41,8 +41,7 @@
                  th:data-homepage="${h.homepage}"
                  th:data-region="${h.region}"
                  th:data-subregion="${h.subregion}"
-                 th:data-category="${h.category}"
-                 onclick="selectHospital(this)">
+                 th:data-category="${h.category}">
                 <div class="hospital-heart" onclick="toggleFavorite(this)">
                     <i class="far fa-heart"></i>
                 </div>
@@ -134,6 +133,23 @@
 
                 const itemId = this.dataset.itemId;
                 const hospitalName = this.dataset.hospital;
+                
+                console.log('🟢🟢🟢 병원 클릭! 🟢🟢🟢');
+                console.log('itemId:', itemId, '| 병원명:', hospitalName);
+                
+                // 클릭 로그 전송
+                if (itemId) {
+                    try {
+                        const response = await fetch(`/api/clicks/item/${itemId}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' }
+                        });
+                        console.log('✅ 클릭 로그 전송 완료:', response.status);
+                    } catch (error) {
+                        console.error('❌ 클릭 로그 실패:', error);
+                    }
+                }
+                
                 await showHospitalDetail(itemId, hospitalName, this.dataset);
             });
         });
