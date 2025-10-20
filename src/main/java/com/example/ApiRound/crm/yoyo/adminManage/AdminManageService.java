@@ -1,20 +1,23 @@
 package com.example.ApiRound.crm.yoyo.adminManage;
 
-import com.example.ApiRound.crm.yoyo.medi.MediServiceRepository;
-import com.example.ApiRound.crm.yoyo.medi.MediServiceEntity;
-import com.example.ApiRound.entity.ItemList;
-import com.example.ApiRound.crm.hyeonah.entity.CompanyUser;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.example.ApiRound.crm.hyeonah.entity.CompanyUser;
+import com.example.ApiRound.crm.hyeonah.review.UserReviewRepository;
+import com.example.ApiRound.crm.yoyo.medi.MediServiceEntity;
+import com.example.ApiRound.crm.yoyo.medi.MediServiceRepository;
+import com.example.ApiRound.entity.ItemList;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +26,7 @@ public class AdminManageService {
     
     private final AdminManageRepository adminManageRepository;
     private final MediServiceRepository mediServiceRepository;
+    private final UserReviewRepository userReviewRepository;
     
     /**
      * 업체 관리 통계 데이터 조회
@@ -315,6 +319,27 @@ public class AdminManageService {
         } catch (Exception e) {
             log.error("업체명 조회 중 오류 발생: ", e);
             return "업체명 조회 실패";
+        }
+    }
+    
+    /**
+     * 업체별 리뷰 수 조회
+     */
+    public Long getReviewCountByCompanyId(Integer companyId) {
+        log.info("====== AdminManageService.getReviewCountByCompanyId 호출 ======");
+        log.info("업체 ID: {}", companyId);
+        
+        try {
+            // UserReviewRepository의 findByCompanyId 메서드를 사용하여 리뷰 수 계산
+            List<Object[]> reviews = userReviewRepository.findByCompanyId(companyId);
+            Long reviewCount = (long) reviews.size();
+            
+            log.info("업체 {}의 리뷰 수: {}", companyId, reviewCount);
+            return reviewCount;
+            
+        } catch (Exception e) {
+            log.error("리뷰 수 조회 중 오류 발생: ", e);
+            return 0L;
         }
     }
 }

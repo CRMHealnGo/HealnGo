@@ -137,7 +137,11 @@
                                         </div>
                                             <div class="data-item">
                                                 <span class="data-label">리뷰</span>
-                                                <span class="data-value">0</span>
+                                                <span class="data-value" 
+                                                      th:if="${company.name != null and !company.name.contains('(임시)')}"
+                                                      th:text="${#vars['reviewCount_' + company.ownerCompany.companyId]}">0</span>
+                                                <span class="data-value" 
+                                                      th:if="${company.name != null and company.name.contains('(임시)')}">-</span>
                                             </div>
                                         </div>
                                         <div class="sales-info">
