@@ -102,7 +102,7 @@
                                     th:data-target-country="${service.targetCountry}"
                                     th:data-vat-included="${service.vatIncluded}"
                                     th:data-refundable="${service.isRefundable}"
-                                    th:data-tags="${service.tags}"
+                                    th:data-tags="${service.tags != null ? service.tags : ''}"
                                     onclick="openEditModalFromButton(this)">
                                     <i class="fas fa-edit"></i> 수정
                                 </button>
