@@ -252,7 +252,7 @@ public class UserReviewServiceImpl implements UserReviewService {
         
         // 이미지가 있으면 URL 설정
         if (review.getImageBlob() != null) {
-            dto.setImageUrl("/review/image/" + review.getReviewId());
+            dto.setImageUrl("/review/" + review.getReviewId() + "/image");
         }
         
         // 답글 조회
