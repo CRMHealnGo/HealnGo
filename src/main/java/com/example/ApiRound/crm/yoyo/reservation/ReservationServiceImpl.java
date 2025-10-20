@@ -80,6 +80,8 @@ public class ReservationServiceImpl implements ReservationService {
                 .googleEventId(reservationDto.getGoogleEventId())
                 .googleSyncEnabled(reservationDto.getGoogleSyncEnabled() != null ? reservationDto.getGoogleSyncEnabled() : false)
                 .totalAmount(reservationDto.getTotalAmount())
+                .serviceId(reservationDto.getServiceId())  // serviceId 추가
+                .itemId(reservationDto.getItemId())  // itemId 추가
                 .user(user)
                 .company(company)
                 .build();
@@ -187,6 +189,8 @@ public class ReservationServiceImpl implements ReservationService {
         reservation.setGoogleEventId(reservationDto.getGoogleEventId());
         reservation.setGoogleSyncEnabled(reservationDto.getGoogleSyncEnabled());
         reservation.setTotalAmount(reservationDto.getTotalAmount());
+        reservation.setServiceId(reservationDto.getServiceId());  // serviceId 추가
+        reservation.setItemId(reservationDto.getItemId());  // itemId 추가
 
         Reservation savedReservation = reservationRepository.save(reservation);
         return convertToDto(savedReservation);
@@ -293,6 +297,8 @@ public class ReservationServiceImpl implements ReservationService {
                 .googleEventId(reservation.getGoogleEventId())
                 .googleSyncEnabled(reservation.getGoogleSyncEnabled())
                 .totalAmount(reservation.getTotalAmount())
+                .serviceId(reservation.getServiceId())  // serviceId 추가
+                .itemId(reservation.getItemId())  // itemId 추가
                 .createdAt(reservation.getCreatedAt())
                 .updatedAt(reservation.getUpdatedAt())
                 .userId(reservation.getUser().getUserId())

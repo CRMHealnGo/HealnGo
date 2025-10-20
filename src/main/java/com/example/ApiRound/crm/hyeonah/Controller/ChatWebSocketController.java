@@ -27,19 +27,19 @@ public class ChatWebSocketController {
         try {
             // 메시지 저장
             ChatMessageDto savedMessage = chatAppService.sendMessage(
-                messageDto.getThreadId(),
-                messageDto.getSenderRole(),
-                messageDto.getSenderUserId(),
-                messageDto.getSenderCompanyId(),
-                messageDto.getBody(),
-                null,
-                null
+                    messageDto.getThreadId(),
+                    messageDto.getSenderRole(),
+                    messageDto.getSenderUserId(),
+                    messageDto.getSenderCompanyId(),
+                    messageDto.getBody(),
+                    null,
+                    null
             );
 
             // 스레드별로 실시간 전송
             String destination = "/topic/chat/thread/" + messageDto.getThreadId();
             messagingTemplate.convertAndSend(destination, savedMessage);
-            
+
         } catch (Exception e) {
             // 에러 발생 시 에러 메시지 전송
             String errorDestination = "/queue/chat/error/" + messageDto.getThreadId();

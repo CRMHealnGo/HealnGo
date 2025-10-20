@@ -26,12 +26,26 @@ public class GoogleSocialUserServiceImpl {
                     SocialUsers u = new SocialUsers();
                     u.setEmail(email);
                     u.setIsDeleted(false);
+                    u.setStatus("ACTIVE"); // 신규 사용자는 ACTIVE로 설정
                     LocalDateTime now = LocalDateTime.now();
                     u.setCreatedAt(now);
                     u.setUpdatedAt(now);
                     u.setLastLoginAt(now);
                     return u;
                 });
+
+        // 기존 사용자 상태 검증
+        if (user.getUserId() != null) {
+            if (!"ACTIVE".equals(user.getStatus())) {
+                System.out.println("Google 로그인 거부: 사용자 상태가 ACTIVE가 아님 - " + user.getStatus());
+                throw new RuntimeException("계정이 비활성화되었습니다.");
+            }
+            
+            if (Boolean.TRUE.equals(user.getIsDeleted())) {
+                System.out.println("Google 로그인 거부: 삭제된 사용자");
+                throw new RuntimeException("계정이 삭제되었습니다.");
+            }
+        }
 
         // 이름 갱신(빈 문자열이면 기존 유지)
         if (name != null && !name.isBlank()) {

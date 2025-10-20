@@ -4,9 +4,12 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -22,8 +25,9 @@ public class UserReviewReply {
     @Column(name = "reply_id")
     private Integer replyId;
     
-    @Column(name = "review_id")
-    private Integer reviewId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "review_id", referencedColumnName = "review_id")
+    private UserReview review;
     
     @Column(name = "company_id")
     private Integer companyId;
@@ -32,7 +36,7 @@ public class UserReviewReply {
     private String body;
     
     @Column(name = "is_public")
-    private Boolean isPublic;
+    private Boolean isPublic = true;
     
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -44,9 +48,6 @@ public class UserReviewReply {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
-        if (isPublic == null) {
-            isPublic = true;
-        }
     }
     
     @PreUpdate
@@ -54,4 +55,3 @@ public class UserReviewReply {
         updatedAt = LocalDateTime.now();
     }
 }
-

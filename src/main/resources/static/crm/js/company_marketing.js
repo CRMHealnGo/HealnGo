@@ -28,7 +28,21 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.addEventListener('click', function() {
             document.querySelectorAll('.asset-tab-btn').forEach(b => b.classList.remove('active'));
             this.classList.add('active');
-            // 에셋 타입별 콘텐츠 표시 로직
+            
+            // 모든 에셋 그리드 숨기기
+            document.getElementById('imagesTab').style.display = 'none';
+            document.getElementById('videosTab').style.display = 'none';
+            document.getElementById('templatesTab').style.display = 'none';
+            
+            // 선택된 탭만 표시
+            const assetTab = this.getAttribute('data-asset-tab');
+            if (assetTab === 'images') {
+                document.getElementById('imagesTab').style.display = 'grid';
+            } else if (assetTab === 'videos') {
+                document.getElementById('videosTab').style.display = 'grid';
+            } else if (assetTab === 'templates') {
+                document.getElementById('templatesTab').style.display = 'grid';
+            }
         });
     });
     
@@ -59,28 +73,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // 차트 초기화
 function initCharts() {
-    // 노출·클릭 추이 차트
+    // 클릭 추이 차트
     const trendsCtx = document.getElementById('trendsChart');
     if (trendsCtx) {
+        // 서버 데이터 사용
+        const chartData = typeof serverClickChartData !== 'undefined' ? serverClickChartData : [];
+        
+        // 날짜 레이블과 클릭수 데이터 추출
+        const labels = chartData.map(item => {
+            const date = new Date(item.date);
+            return `${date.getMonth() + 1}/${date.getDate()}`;
+        });
+        const clickCounts = chartData.map(item => item.count || 0);
+        
+        console.log('차트 레이블:', labels);
+        console.log('클릭 데이터:', clickCounts);
+        
         new Chart(trendsCtx, {
             type: 'line',
             data: {
-                labels: ['1월', '2월', '3월', '4월', '5월', '6월'],
+                labels: labels.length > 0 ? labels : ['데이터 없음'],
                 datasets: [{
-                    label: '노출수',
-                    data: [85000, 92000, 98000, 105000, 118000, 125000],
+                    label: '클릭수',
+                    data: clickCounts.length > 0 ? clickCounts : [0],
                     borderColor: '#3498db',
                     backgroundColor: 'rgba(52, 152, 219, 0.1)',
-                    tension: 0.4,
-                    fill: true,
-                    borderWidth: 2,
-                    pointRadius: 4,
-                    pointHoverRadius: 6
-                }, {
-                    label: '클릭수',
-                    data: [5200, 5800, 6400, 7100, 7800, 8500],
-                    borderColor: '#27ae60',
-                    backgroundColor: 'rgba(39, 174, 96, 0.1)',
                     tension: 0.4,
                     fill: true,
                     borderWidth: 2,
@@ -305,4 +322,370 @@ window.addEventListener('click', function(event) {
         event.target.classList.remove('active');
     }
 });
+
+// 새 노출 요청 제출
+function submitPlacement(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const formData = new FormData(form);
+    
+    console.log('노출 요청 제출 시작...');
+    
+    fetch('/company/api/marketing/placement/submit', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('서버 응답:', data);
+        if (data.success) {
+            alert('노출 요청이 제출되었습니다. 관리자 승인 후 노출됩니다.');
+            closePlacementModal();
+            form.reset();
+            location.reload(); // 페이지 새로고침
+        } else {
+            alert('제출 실패: ' + (data.message || '알 수 없는 오류'));
+        }
+    })
+    .catch(error => {
+        console.error('제출 에러:', error);
+        alert('노출 요청 제출에 실패했습니다. 다시 시도해주세요.');
+    });
+}
+
+// 쿠폰 생성 제출
+function submitCoupon(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const formData = new FormData(form);
+    
+    console.log('쿠폰 생성 제출 시작...');
+    
+    fetch('/company/api/marketing/coupon/submit', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('서버 응답:', data);
+        if (data.success) {
+            alert('쿠폰이 생성되었습니다. 관리자 승인 후 사용 가능합니다.');
+            closeCouponModal();
+            form.reset();
+            location.reload(); // 페이지 새로고침
+        } else {
+            alert('제출 실패: ' + (data.message || '알 수 없는 오류'));
+        }
+    })
+    .catch(error => {
+        console.error('제출 에러:', error);
+        alert('쿠폰 생성에 실패했습니다. 다시 시도해주세요.');
+    });
+}
+
+// Placement 미리보기
+function viewPlacement(id) {
+    console.log('미리보기:', id);
+    
+    fetch(`/company/api/marketing/placement/${id}`)
+    .then(response => response.json())
+    .then(data => {
+        console.log('Placement 데이터:', data);
+        if (data) {
+            document.getElementById('view-target').textContent = data.target || '-';
+            document.getElementById('view-slot').textContent = data.slot || '-';
+            document.getElementById('view-startDate').textContent = data.startDate || '-';
+            document.getElementById('view-endDate').textContent = data.endDate || '-';
+            document.getElementById('view-priority').textContent = data.priority || '-';
+            document.getElementById('view-landingUrl').textContent = data.landingUrl || '-';
+            document.getElementById('view-bannerImage').textContent = data.bannerImagePath || '없음';
+            document.getElementById('view-status').textContent = data.approvalStatus || '-';
+            document.getElementById('view-clicks').textContent = (data.clicks || 0).toLocaleString();
+            
+            document.getElementById('placementViewModal').classList.add('active');
+        } else {
+            alert('데이터를 불러올 수 없습니다.');
+        }
+    })
+    .catch(error => {
+        console.error('조회 에러:', error);
+        alert('데이터 조회에 실패했습니다.');
+    });
+}
+
+function closePlacementViewModal() {
+    document.getElementById('placementViewModal').classList.remove('active');
+}
+
+// Placement 수정
+let currentPlacementId = null;
+
+function editPlacement(id) {
+    console.log('수정:', id);
+    currentPlacementId = id;
+    
+    fetch(`/company/api/marketing/placement/${id}`)
+    .then(response => response.json())
+    .then(data => {
+        console.log('Placement 데이터:', data);
+        if (data) {
+            document.getElementById('edit-id').value = data.id;
+            document.getElementById('edit-target').value = data.target || '';
+            document.getElementById('edit-slot').value = data.slot || '';
+            document.getElementById('edit-startDate').value = data.startDate || '';
+            document.getElementById('edit-endDate').value = data.endDate || '';
+            document.getElementById('edit-priority').value = data.priority || 'NORMAL';
+            document.getElementById('edit-landingUrl').value = data.landingUrl || '';
+            
+            document.getElementById('placementEditModal').classList.add('active');
+        } else {
+            alert('데이터를 불러올 수 없습니다.');
+        }
+    })
+    .catch(error => {
+        console.error('조회 에러:', error);
+        alert('데이터 조회에 실패했습니다.');
+    });
+}
+
+function closePlacementEditModal() {
+    document.getElementById('placementEditModal').classList.remove('active');
+    currentPlacementId = null;
+}
+
+// Placement 업데이트
+function updatePlacement(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const formData = new FormData(form);
+    const id = document.getElementById('edit-id').value;
+    
+    console.log('Placement 업데이트:', id);
+    
+    fetch(`/company/api/marketing/placement/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            target: formData.get('target'),
+            slot: formData.get('slot'),
+            startDate: formData.get('startDate'),
+            endDate: formData.get('endDate'),
+            priority: formData.get('priority'),
+            landingUrl: formData.get('landingUrl')
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('서버 응답:', data);
+        if (data.success) {
+            alert('노출 요청이 수정되었습니다.');
+            closePlacementEditModal();
+            location.reload();
+        } else {
+            alert('수정 실패: ' + (data.message || '알 수 없는 오류'));
+        }
+    })
+    .catch(error => {
+        console.error('수정 에러:', error);
+        alert('수정에 실패했습니다. 다시 시도해주세요.');
+    });
+}
+
+// Placement 삭제
+function deletePlacement() {
+    if (!currentPlacementId) {
+        alert('삭제할 항목을 찾을 수 없습니다.');
+        return;
+    }
+    
+    if (!confirm('정말 삭제하시겠습니까?')) {
+        return;
+    }
+    
+    console.log('Placement 삭제:', currentPlacementId);
+    
+    fetch(`/company/api/marketing/placement/${currentPlacementId}`, {
+        method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('서버 응답:', data);
+        if (data.success) {
+            alert('노출 요청이 삭제되었습니다.');
+            closePlacementEditModal();
+            location.reload();
+        } else {
+            alert('삭제 실패: ' + (data.message || '알 수 없는 오류'));
+        }
+    })
+    .catch(error => {
+        console.error('삭제 에러:', error);
+        alert('삭제에 실패했습니다. 다시 시도해주세요.');
+    });
+}
+
+// Coupon 수정
+let currentCouponId = null;
+
+function editCoupon(id) {
+    console.log('쿠폰 수정:', id);
+    currentCouponId = id;
+    
+    fetch(`/company/api/marketing/coupon/${id}`)
+    .then(response => response.json())
+    .then(data => {
+        console.log('Coupon 데이터:', data);
+        if (data) {
+            document.getElementById('coupon-edit-id').value = data.id;
+            document.getElementById('coupon-edit-name').value = data.name || '';
+            document.getElementById('coupon-edit-type').value = data.couponType || 'PERCENT';
+            document.getElementById('coupon-edit-discount').value = data.discountValue || '';
+            document.getElementById('coupon-edit-minPayment').value = data.minPaymentAmount || '';
+            document.getElementById('coupon-edit-description').value = data.description || '';
+            document.getElementById('coupon-edit-issueLimit').value = data.issueLimit || '';
+            document.getElementById('coupon-edit-validFrom').value = data.validFrom || '';
+            document.getElementById('coupon-edit-validUntil').value = data.validUntil || '';
+            
+            document.getElementById('couponEditModal').classList.add('active');
+        } else {
+            alert('데이터를 불러올 수 없습니다.');
+        }
+    })
+    .catch(error => {
+        console.error('조회 에러:', error);
+        alert('데이터 조회에 실패했습니다.');
+    });
+}
+
+function closeCouponEditModal() {
+    document.getElementById('couponEditModal').classList.remove('active');
+    currentCouponId = null;
+}
+
+// Coupon 업데이트
+function updateCoupon(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const formData = new FormData(form);
+    const id = document.getElementById('coupon-edit-id').value;
+    
+    console.log('Coupon 업데이트:', id);
+    
+    fetch(`/company/api/marketing/coupon/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            name: formData.get('name'),
+            couponType: formData.get('couponType'),
+            discountValue: formData.get('discountValue'),
+            minPaymentAmount: formData.get('minPaymentAmount'),
+            description: formData.get('description'),
+            issueLimit: formData.get('issueLimit'),
+            validFrom: formData.get('validFrom'),
+            validUntil: formData.get('validUntil')
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('서버 응답:', data);
+        if (data.success) {
+            alert('쿠폰이 수정되었습니다.');
+            closeCouponEditModal();
+            location.reload();
+        } else {
+            alert('수정 실패: ' + (data.message || '알 수 없는 오류'));
+        }
+    })
+    .catch(error => {
+        console.error('수정 에러:', error);
+        alert('수정에 실패했습니다. 다시 시도해주세요.');
+    });
+}
+
+// Coupon 삭제
+function deleteCoupon(id) {
+    // id가 파라미터로 전달된 경우 (버튼에서 직접 호출)
+    const couponId = id || currentCouponId;
+    
+    if (!couponId) {
+        alert('삭제할 항목을 찾을 수 없습니다.');
+        return;
+    }
+    
+    if (!confirm('정말 삭제하시겠습니까?')) {
+        return;
+    }
+    
+    console.log('Coupon 삭제:', couponId);
+    
+    fetch(`/company/api/marketing/coupon/${couponId}`, {
+        method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('서버 응답:', data);
+        if (data.success) {
+            alert('쿠폰이 삭제되었습니다.');
+            if (currentCouponId) {
+                closeCouponEditModal();
+            }
+            location.reload();
+        } else {
+            alert('삭제 실패: ' + (data.message || '알 수 없는 오류'));
+        }
+    })
+    .catch(error => {
+        console.error('삭제 에러:', error);
+        alert('삭제에 실패했습니다. 다시 시도해주세요.');
+    });
+}
+
+// 문구 템플릿 미리보기
+function viewCouponTemplate(id) {
+    console.log('쿠폰 템플릿 미리보기:', id);
+    
+    fetch(`/company/api/marketing/coupon/${id}`)
+    .then(response => response.json())
+    .then(data => {
+        console.log('Coupon 데이터:', data);
+        if (data) {
+            const message = `
+쿠폰명: ${data.name}
+유형: ${data.couponType === 'PERCENT' ? '정율 할인' : '정액 할인'}
+할인값: ${data.discountValue}${data.couponType === 'PERCENT' ? '%' : '원'}
+최소결제금액: ${data.minPaymentAmount ? data.minPaymentAmount.toLocaleString() + '원' : '없음'}
+발급한도: ${data.issueLimit || '무제한'}
+유효기간: ${data.validFrom} ~ ${data.validUntil}
+
+설명:
+${data.description || '설명 없음'}
+            `;
+            alert(message);
+        } else {
+            alert('데이터를 불러올 수 없습니다.');
+        }
+    })
+    .catch(error => {
+        console.error('조회 에러:', error);
+        alert('데이터 조회에 실패했습니다.');
+    });
+}
+
+// 에셋 삭제 (에셋 탭에서 호출)
+function deleteAsset(id, type) {
+    if (type === 'placement') {
+        currentPlacementId = id;
+        deletePlacement();
+    } else if (type === 'coupon') {
+        deleteCoupon(id);
+    }
+}
 

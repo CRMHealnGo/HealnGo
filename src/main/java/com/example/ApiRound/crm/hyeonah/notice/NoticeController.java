@@ -31,10 +31,10 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/notice")
 @RequiredArgsConstructor
 public class NoticeController {
-    
+
     private final NoticeService noticeService;
     private final CommunityPostService communityPostService;
-    
+
     /**
      * 공지사항 목록 페이지 (사용자용)
      * GET /notice
@@ -43,26 +43,26 @@ public class NoticeController {
     public String noticePage(
             @RequestParam(defaultValue = "1") int page,
             Model model) {
-        
+
         // 페이지네이션 설정 (한 페이지에 10개)
         Pageable pageable = PageRequest.of(page - 1, 10);
         Page<Notice> noticePage = noticeService.getPublishedNotices(pageable);
-        
+
         // 페이지네이션 정보 계산
         int totalPages = Math.max(noticePage.getTotalPages(), 1);
         int startPage = Math.max(1, page - 2);
         int endPage = Math.min(totalPages, page + 2);
-        
+
         model.addAttribute("notices", noticePage.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", totalPages);
         model.addAttribute("startPage", startPage);
         model.addAttribute("endPage", endPage);
         model.addAttribute("totalCount", noticePage.getTotalElements());
-        
+
         return "notice";
     }
-    
+
     /**
      * 공지사항 상세 페이지
      * GET /notice/view/{noticeId}
@@ -71,12 +71,12 @@ public class NoticeController {
     public String viewNotice(@PathVariable Integer noticeId, Model model) {
         Notice notice = noticeService.getNoticeById(noticeId);
         model.addAttribute("notice", notice);
-        
+
         return "notice_view";
     }
-    
+
     // ========== 커뮤니티 게시글 기능 (기존 CommunityPostController) ==========
-    
+
     /**
      * 커뮤니티 게시글 목록
      * GET /notice/posts

@@ -31,7 +31,11 @@ import com.example.ApiRound.crm.hyeonah.entity.SocialUsers;
 import com.example.ApiRound.crm.hyeonah.notice.Notice;
 import com.example.ApiRound.crm.hyeonah.notice.NoticeService;
 import com.example.ApiRound.crm.yoyo.reservation.ReservationRepository;
+import com.example.ApiRound.entity.AdminEvent;
+import com.example.ApiRound.entity.Marketing;
 import com.example.ApiRound.entity.UserInquiry;
+import com.example.ApiRound.repository.AdminEventRepository;
+import com.example.ApiRound.repository.MarketingRepository;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -46,6 +50,8 @@ public class AdminController {
     private final ReservationRepository reservationRepo;
     private final NoticeService noticeService;
     private final UserInquiryService userInquiryService;
+    private final AdminEventRepository adminEventRepository;
+    private final MarketingRepository marketingRepository;
 
     /**
      * 관리자 대시보드 메인 페이지
@@ -61,11 +67,11 @@ public class AdminController {
             managerId = (Long) managerIdObj;
         }
         String userType = (String) session.getAttribute("userType");
-
+        
         if (managerId == null || !"manager".equals(userType)) {
             return "redirect:/crm/crm_login";
         }
-
+        
         // 관리자 정보 추가
         model.addAttribute("managerId", managerId);
         model.addAttribute("managerName", session.getAttribute("managerName"));
@@ -101,11 +107,11 @@ public class AdminController {
         stats.put("totalRevenue", 0); // TODO: 결제 테이블 연동
 
         model.addAttribute("stats", stats);
-
+        
         // 최근 활동 데이터
         List<Map<String, Object>> recentActivities = getRecentActivities();
         model.addAttribute("recentActivities", recentActivities);
-
+        
         // 차트 데이터
         Map<String, Object> chartData = getChartData();
         model.addAttribute("chartData", chartData);
@@ -154,7 +160,7 @@ public class AdminController {
 
         // DB에서 사용자 조회 (검색 + 상태 필터)
         Page<SocialUsers> userPage;
-
+        
         if (search != null && !search.trim().isEmpty() && statusFilter != null && !statusFilter.isEmpty()) {
             // 검색 + 상태 필터
             userPage = usersRepo.searchActiveByStatus(search.trim(), statusFilter, pageable);
@@ -199,6 +205,187 @@ public class AdminController {
     }
 
     /**
+     * 이벤트/프로모션 관리 페이지
+     */
+    @GetMapping("/event-promotion")
+    public String eventPromotion(
+            @RequestParam(value = "status", required = false) String status,
+            Model model, HttpSession session) {
+
+        model.addAttribute("managerName", session.getAttribute("managerName"));
+
+        // 노출 요청 (admin_event) 목록 조회
+        List<AdminEvent> placements;
+        if (status != null && !status.isEmpty()) {
+            try {
+                AdminEvent.ApprovalStatus approvalStatus = AdminEvent.ApprovalStatus.valueOf(status.toUpperCase());
+                placements = adminEventRepository.findByApprovalStatusOrderByCreatedAtDesc(approvalStatus);
+            } catch (Exception e) {
+                placements = adminEventRepository.findAllByOrderByCreatedAtDesc();
+            }
+        } else {
+            placements = adminEventRepository.findAllByOrderByCreatedAtDesc();
+        }
+
+        // 쿠폰 (marketing) 목록 조회
+        List<Marketing> coupons;
+        if (status != null && !status.isEmpty()) {
+            try {
+                Marketing.ApprovalStatus approvalStatus = Marketing.ApprovalStatus.valueOf(status.toUpperCase());
+                coupons = marketingRepository.findByApprovalStatusOrderByCreatedAtDesc(approvalStatus);
+            } catch (Exception e) {
+                coupons = marketingRepository.findAllByOrderByCreatedAtDesc();
+            }
+        } else {
+            coupons = marketingRepository.findAllByOrderByCreatedAtDesc();
+        }
+
+        // 통계 계산
+        long totalRequests = placements.size() + coupons.size();
+        long pendingCount = placements.stream().filter(p -> p.getApprovalStatus() == AdminEvent.ApprovalStatus.PENDING).count()
+                          + coupons.stream().filter(c -> c.getApprovalStatus() == Marketing.ApprovalStatus.PENDING).count();
+        long approvedCount = placements.stream().filter(p -> p.getApprovalStatus() == AdminEvent.ApprovalStatus.APPROVED).count()
+                           + coupons.stream().filter(c -> c.getApprovalStatus() == Marketing.ApprovalStatus.APPROVED).count();
+        long rejectedCount = placements.stream().filter(p -> p.getApprovalStatus() == AdminEvent.ApprovalStatus.REJECTED).count()
+                           + coupons.stream().filter(c -> c.getApprovalStatus() == Marketing.ApprovalStatus.REJECTED).count();
+
+        model.addAttribute("placements", placements);
+        model.addAttribute("coupons", coupons);
+        model.addAttribute("totalRequests", totalRequests);
+        model.addAttribute("pendingCount", pendingCount);
+        model.addAttribute("approvedCount", approvedCount);
+        model.addAttribute("rejectedCount", rejectedCount);
+        model.addAttribute("selectedStatus", status);
+
+        return "admin/event_promotion";
+    }
+
+    /**
+     * Placement 승인 API
+     */
+    @PostMapping("/api/placement/{id}/approve")
+    @ResponseBody
+    public ResponseEntity<?> approvePlacement(@PathVariable Integer id, HttpSession session) {
+        try {
+            Integer managerId = (Integer) session.getAttribute("managerId");
+            if (managerId == null) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "로그인이 필요합니다."));
+            }
+
+            AdminEvent event = adminEventRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("항목을 찾을 수 없습니다."));
+
+            event.setApprovalStatus(AdminEvent.ApprovalStatus.APPROVED);
+            event.setApprovedAt(LocalDateTime.now());
+            event.setApprovedBy(managerId);
+
+            adminEventRepository.save(event);
+
+            return ResponseEntity.ok(Map.of("success", true, "message", "승인되었습니다."));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError()
+                .body(Map.of("success", false, "message", "승인 실패: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Placement 거부 API
+     */
+    @PostMapping("/api/placement/{id}/reject")
+    @ResponseBody
+    public ResponseEntity<?> rejectPlacement(
+            @PathVariable Integer id,
+            @RequestBody Map<String, String> body,
+            HttpSession session) {
+        try {
+            Integer managerId = (Integer) session.getAttribute("managerId");
+            if (managerId == null) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "로그인이 필요합니다."));
+            }
+
+            AdminEvent event = adminEventRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("항목을 찾을 수 없습니다."));
+
+            event.setApprovalStatus(AdminEvent.ApprovalStatus.REJECTED);
+            event.setRejectReason(body.get("reason"));
+
+            adminEventRepository.save(event);
+
+            return ResponseEntity.ok(Map.of("success", true, "message", "반려되었습니다."));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError()
+                .body(Map.of("success", false, "message", "반려 실패: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Coupon 승인 API
+     */
+    @PostMapping("/api/coupon/{id}/approve")
+    @ResponseBody
+    public ResponseEntity<?> approveCoupon(@PathVariable Integer id, HttpSession session) {
+        try {
+            Integer managerId = (Integer) session.getAttribute("managerId");
+            if (managerId == null) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "로그인이 필요합니다."));
+            }
+
+            Marketing marketing = marketingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("항목을 찾을 수 없습니다."));
+
+            marketing.setApprovalStatus(Marketing.ApprovalStatus.APPROVED);
+            marketing.setApprovedAt(LocalDateTime.now());
+            marketing.setApprovedBy(managerId);
+
+            marketingRepository.save(marketing);
+
+            return ResponseEntity.ok(Map.of("success", true, "message", "승인되었습니다."));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError()
+                .body(Map.of("success", false, "message", "승인 실패: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Coupon 거부 API
+     */
+    @PostMapping("/api/coupon/{id}/reject")
+    @ResponseBody
+    public ResponseEntity<?> rejectCoupon(
+            @PathVariable Integer id,
+            @RequestBody Map<String, String> body,
+            HttpSession session) {
+        try {
+            Integer managerId = (Integer) session.getAttribute("managerId");
+            if (managerId == null) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "로그인이 필요합니다."));
+            }
+
+            Marketing marketing = marketingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("항목을 찾을 수 없습니다."));
+
+            marketing.setApprovalStatus(Marketing.ApprovalStatus.REJECTED);
+            marketing.setRejectReason(body.get("reason"));
+
+            marketingRepository.save(marketing);
+
+            return ResponseEntity.ok(Map.of("success", true, "message", "반려되었습니다."));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError()
+                .body(Map.of("success", false, "message", "반려 실패: " + e.getMessage()));
+        }
+    }
+
+
+    /**
      * 예약 관리 페이지
      */
     @GetMapping("/reservations")
@@ -226,6 +413,22 @@ public class AdminController {
         return "admin/reservations";
     }
 
+    /**
+     * 리포트 & 통계 페이지
+     */
+    @GetMapping("/report")
+    public String report(Model model, HttpSession session) {
+        model.addAttribute("managerName", session.getAttribute("managerName"));
+
+        // 통계 데이터 (실제로는 서비스에서 가져와야 함)
+        Map<String, Object> reportStats = new HashMap<>();
+        reportStats.put("totalRevenue", 0);
+        reportStats.put("totalReservations", 0);
+        reportStats.put("totalUsers", 0);
+        model.addAttribute("reportStats", reportStats);
+
+        return "admin/report";
+    }
 
     /**
      * 문의/신고 접수 페이지 (관리자용)
@@ -402,24 +605,24 @@ public class AdminController {
         activity2.put("time", "5분 전");
         activity2.put("icon", "fas fa-calendar-plus");
         activities.add(activity2);
-
+        
         Map<String, Object> activity3 = new HashMap<>();
         activity3.put("type", "company_approval");
         activity3.put("message", "업체 승인이 완료되었습니다");
         activity3.put("time", "10분 전");
         activity3.put("icon", "fas fa-building");
         activities.add(activity3);
-
+        
         return activities;
     }
 
     private Map<String, Object> getChartData() {
         Map<String, Object> chartData = new HashMap<>();
-
+        
         // 월별 사용자 증가 데이터
         List<Integer> userGrowth = List.of(120, 150, 180, 200, 220, 250);
         chartData.put("userGrowth", userGrowth);
-
+        
         // 월별 예약 데이터
         List<Integer> reservationData = List.of(45, 60, 75, 90, 85, 95);
         chartData.put("reservations", reservationData);
@@ -440,10 +643,10 @@ public class AdminController {
 
     private List<Map<String, Object>> getReservations(int page, int size, String search) {
         List<Map<String, Object>> reservations = new ArrayList<>();
-
+        
         // 임시 예약 데이터
         String[] services = {"진료", "미용", "마사지", "치과진료", "한의진료"};
-
+        
         for (int i = 1; i <= size; i++) {
             Map<String, Object> reservation = new HashMap<>();
             reservation.put("id", (page - 1) * size + i);
@@ -456,7 +659,7 @@ public class AdminController {
             reservation.put("amount", 50000 + (i * 10000));
             reservations.add(reservation);
         }
-
+        
         return reservations;
     }
 
@@ -477,7 +680,7 @@ public class AdminController {
         report1.put("priority", "high");
         report1.put("createdDate", "2024-01-15 14:30");
         reports.add(report1);
-
+        
         // 의료진 태도 문제 신고
         Map<String, Object> report2 = new HashMap<>();
         report2.put("id", 2);
@@ -492,7 +695,7 @@ public class AdminController {
         report2.put("priority", "medium");
         report2.put("createdDate", "2024-01-14 16:45");
         reports.add(report2);
-
+        
         // 예약 변경 요청
         Map<String, Object> report3 = new HashMap<>();
         report3.put("id", 3);
@@ -507,7 +710,7 @@ public class AdminController {
         report3.put("priority", "low");
         report3.put("createdDate", "2024-01-13 10:20");
         reports.add(report3);
-
+        
         // 시설 청결도 문제 신고
         Map<String, Object> report4 = new HashMap<>();
         report4.put("id", 4);
@@ -522,7 +725,7 @@ public class AdminController {
         report4.put("priority", "medium");
         report4.put("createdDate", "2024-01-12 09:15");
         reports.add(report4);
-
+        
         // 시술 비용 환불 요청
         Map<String, Object> report5 = new HashMap<>();
         report5.put("id", 5);
@@ -537,14 +740,14 @@ public class AdminController {
         report5.put("priority", "high");
         report5.put("createdDate", "2024-01-11 15:30");
         reports.add(report5);
-
+        
         return reports;
     }
 
     private Map<String, Object> getInquiryReportById(Long id) {
         // 실제로는 DB에서 조회해야 함
         List<Map<String, Object>> reports = getInquiryReports();
-
+        
         return reports.stream()
                 .filter(report -> report.get("id").equals(id.intValue()))
                 .findFirst()
@@ -590,7 +793,7 @@ public class AdminController {
         notifyStats.put("pending", 54);
         notifyStats.put("failed", 12);
         model.addAttribute("notifyStats", notifyStats);
-
+        
         return "admin/admin_notice_notify";
     }
 
@@ -627,7 +830,7 @@ public class AdminController {
             notice.setIsPinned(topFixed);
             notice.setCreatedBy(managerId);
             notice.setPublishAt(LocalDateTime.now()); // 즉시 게시
-
+            
             noticeService.createNotice(notice);
             return "success";
         } catch (Exception e) {
@@ -660,7 +863,7 @@ public class AdminController {
             notice.setBody(content);
             notice.setAudience(Notice.Audience.valueOf(audience));
             notice.setIsPinned(topFixed);
-
+            
             noticeService.updateNotice(notice);
             return "success";
         } catch (Exception e) {
@@ -695,7 +898,7 @@ public class AdminController {
 
     private List<Map<String, Object>> getNotifications() {
         List<Map<String, Object>> notifications = new ArrayList<>();
-
+        
         Map<String, Object> notify1 = new HashMap<>();
         notify1.put("id", 1);
         notify1.put("title", "시스템 점검 안내");
@@ -705,12 +908,12 @@ public class AdminController {
         notify1.put("date", "2024-10-09 14:30");
         notify1.put("recipients", 5234);
         notifications.add(notify1);
-
+        
         return notifications;
     }
 
     // ===== REST API 엔드포인트 =====
-
+    
     /**
      * 사용자 상세 조회
      */
@@ -746,7 +949,7 @@ public class AdminController {
     public ResponseEntity<Map<String, Object>> updateUser(
             @PathVariable Integer userId,
             @RequestBody Map<String, String> updateData) {
-
+        
         return usersRepo.findByUserIdAndIsDeletedFalse(userId)
                 .map(user -> {
                     // 수정 가능한 필드 업데이트
@@ -775,7 +978,7 @@ public class AdminController {
                     return ResponseEntity.notFound().build();
                 });
     }
-
+    
     /**
      * 사용자 상태 토글 (활성 → 정지 → 비활성화)
      */
@@ -821,7 +1024,7 @@ public class AdminController {
                     return ResponseEntity.notFound().build();
                 });
     }
-
+    
     /**
      * 일괄 정지 처리
      */
@@ -829,14 +1032,14 @@ public class AdminController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> bulkSuspend(@RequestBody Map<String, List<Integer>> request) {
         List<Integer> userIds = request.get("userIds");
-
+        
         if (userIds == null || userIds.isEmpty()) {
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", "선택된 사용자가 없습니다.");
             return ResponseEntity.badRequest().body(response);
         }
-
+        
         int count = 0;
         for (Integer userId : userIds) {
             usersRepo.findById(userId).ifPresent(user -> {
@@ -846,7 +1049,7 @@ public class AdminController {
             });
             count++;
         }
-
+        
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
         response.put("message", count + "명의 사용자가 정지되었습니다.");

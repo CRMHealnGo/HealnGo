@@ -65,17 +65,17 @@ public class ChatAppService {
     @Transactional(readOnly = true)
     public Page<ChatThreadDto> listThreadsForCompany(Integer companyId, int page, int size, String status) {
         Page<ChatThread> p;
-        
+
         if (status != null && !status.isEmpty()) {
             // status 필터링이 있는 경우
             p = threadRepo.findByCompanyIdAndStatusOrderByLastMsgAtDescThreadIdDesc(
-                companyId, status, PageRequest.of(page - 1, size));
+                    companyId, status, PageRequest.of(page - 1, size));
         } else {
             // 전체 조회
             p = threadRepo.findByCompanyIdOrderByLastMsgAtDescThreadIdDesc(
-                companyId, PageRequest.of(page - 1, size));
+                    companyId, PageRequest.of(page - 1, size));
         }
-        
+
         return p.map(t -> ChatThreadDto.builder()
                 .threadId(t.getThreadId())
                 .userId(t.getUserId())
@@ -127,7 +127,7 @@ public class ChatAppService {
 
         // 마지막 메시지 시각 갱신
         thread.setLastMsgAt(LocalDateTime.now());
-        
+
         // 첫 메시지 전송 시 상태를 IN_PROGRESS로 변경
         if ("NEW".equals(thread.getStatus())) {
             thread.setStatus("IN_PROGRESS");

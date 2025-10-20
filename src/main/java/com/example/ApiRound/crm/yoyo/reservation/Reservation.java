@@ -5,6 +5,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
+import com.example.ApiRound.crm.hyeonah.entity.CompanyUser;
+import com.example.ApiRound.crm.hyeonah.entity.SocialUsers;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -20,9 +23,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import com.example.ApiRound.crm.hyeonah.entity.SocialUsers;
-import com.example.ApiRound.crm.hyeonah.entity.CompanyUser;
 
 @Entity
 @Table(name = "reservations")
@@ -67,6 +67,14 @@ public class Reservation {
 
     @Column(name = "total_amount", precision = 10, scale = 2)
     private BigDecimal totalAmount;
+
+    // service_id 컬럼 (medical_service 테이블의 service_id)
+    @Column(name = "service_id")
+    private Long serviceId;
+    
+    // item_id 컬럼 (item_list 테이블의 id)
+    @Column(name = "item_id")
+    private Long itemId;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

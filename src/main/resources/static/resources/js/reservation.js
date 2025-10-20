@@ -504,6 +504,7 @@ async function confirmReservation() {
         hospitalName: hospitalName,
         totalAmount: totalAmount,
         companyId: companyId, // URL 파라미터에서 가져온 값 (없으면 null)
+        serviceId: serviceData ? serviceData.serviceId : null, // serviceId 추가
         itemId: hospitalData ? hospitalData.id : null // itemId는 별도로 전송
     };
     

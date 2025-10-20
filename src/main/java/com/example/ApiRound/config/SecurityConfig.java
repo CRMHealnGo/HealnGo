@@ -48,6 +48,7 @@ public class SecurityConfig {
                     "/crm/register-manager",
                     "/crm/login",
                     "/crm/reset-password",
+                    "/crm/api/current-company",  // 현재 업체 ID 조회 API
                     "/api/crm/**",
                     // 정적 리소스(업체)
                     "/crm/css/**", 

@@ -1,3 +1,31 @@
+// 병원 아이템 클릭 핸들러 (HTML onclick에서 호출)
+function handleHospitalClick(element) {
+    console.log('\n🟢🟢🟢 handleHospitalClick 호출! 🟢🟢🟢');
+    
+    const itemId = element.dataset.itemId || element.getAttribute('data-item-id');
+    const hospital = element.dataset.hospital || element.getAttribute('data-hospital');
+    
+    console.log('병원명:', hospital);
+    console.log('item_id:', itemId);
+    
+    // 1. 클릭 로그 전송 (무조건)
+    if (itemId) {
+        logCompanyClick(itemId);
+    } else {
+        console.error('❌ item_id가 없음!');
+    }
+    
+    // 2. 병원 선택
+    selectHospital(element);
+    
+    // 3. 상세 정보 표시
+    if (element.classList.contains('active')) {
+        showHospitalDetail(element);
+    }
+    
+    console.log('🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢\n');
+}
+
 // 값 공백/placeholder 검사
 function isBlank(v) {
     return !v || /^\s*$/.test(v);
@@ -50,6 +78,12 @@ document.addEventListener('DOMContentLoaded', async function() {
 });
 
 function bindHospitalItemEvents() {
+    // HTML에서 onclick="handleHospitalClick(this)"를 사용하므로
+    // JavaScript 이벤트 리스너 바인딩은 건너뜀
+    console.log('✅ bindHospitalItemEvents - HTML onclick 사용 중');
+    return;
+    
+    /* 사용하지 않음 - HTML onclick으로 대체됨
     const list = document.querySelector('.hospital-list');
     console.log('찾은 hospital-list:', list);
 
@@ -105,20 +139,9 @@ function bindHospitalItemEvents() {
             return;
         }
 
-        // 병원 아이템 클릭 확인 (하트가 아닌 경우만)
-        const item = e.target.closest('.hospital-item');
-        if (!item) {
-            return;
-        }
-
-        console.log('병원 아이템 클릭됨, 상세 정보 표시 시작');
-        selectHospital(item);
-        if (item.classList.contains('active')) {
-                // 클릭 로그 전송 (컨텍스트 경로/CSRF 처리 포함)
-                logCompanyClick(item.dataset.itemId);
-            showHospitalDetail(item);
-        }
+        // HTML onclick 사용
     });
+    */
 }
 
 
@@ -859,13 +882,9 @@ async function autoSelectFromQuery() {
         }
         if (!item) return false;
 
-        // 선택 및 상세 표시
-        selectHospital(item);
-        if (item.classList.contains('active')) {
-            // 클릭 로그 전송 (컨텍스트 경로/CSRF 처리 포함)
-            logCompanyClick(item.dataset.itemId);
-            showHospitalDetail(item);
-        }
+        // 선택 및 상세 표시 (handleHospitalClick 사용)
+        console.log('🔵 URL에서 자동 선택:', item.dataset.hospital);
+        handleHospitalClick(item);
 
         // 좌측 목록 내에서 해당 아이템으로 스크롤
         try {
@@ -893,7 +912,7 @@ async function loadListData() {
         // API 호출을 위한 URL 구성
         let apiUrl = '/api/list';
         const queryParams = new URLSearchParams();
-        
+
         if (region) queryParams.append('region', region);
         if (subRegion) queryParams.append('subRegion', subRegion);
         if (category) queryParams.append('category', category);

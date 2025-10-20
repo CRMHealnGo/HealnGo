@@ -1,55 +1,15 @@
-// 관리자 예약 캘린더 JavaScript
+// 관리자 캘린더 JavaScript
 
-console.log('관리자 예약 캘린더 JavaScript 로드됨');
+console.log('관리자 캘린더 JavaScript 로드됨');
 
 let currentDate = new Date();
 let currentMonth = currentDate.getMonth();
 let currentYear = currentDate.getFullYear();
 let selectedDate = null;
 
-// 승인된 이벤트 데이터 (실제로는 서버에서 가져와야 함)
-const approvedEvents = [
-    {
-        id: 1,
-        title: '가을맞이 레이저 토닝 할인',
-        company: '힝거피부과',
-        type: 'event',
-        startDate: '2024-10-15',
-        endDate: '2024-10-31',
-        discount: '30% 할인',
-        description: '가을 맞이 특별 이벤트'
-    },
-    {
-        id: 2,
-        title: '신규 고객 50% 할인',
-        company: '뷰티클리닉',
-        type: 'promotion',
-        startDate: '2024-10-01',
-        endDate: '2024-10-30',
-        discount: '50% 할인',
-        description: '첫 방문 고객 대상'
-    },
-    {
-        id: 3,
-        title: '주말 특가 할인',
-        company: '메디컬센터',
-        type: 'discount',
-        startDate: '2024-10-05',
-        endDate: '2024-10-25',
-        discount: '주말 한정 20% 할인',
-        description: '주말 예약 고객 대상'
-    },
-    {
-        id: 4,
-        title: '가을 건강검진 이벤트',
-        company: '서울메디컬',
-        type: 'event',
-        startDate: '2024-10-20',
-        endDate: '2024-11-10',
-        discount: '종합검진 25% 할인',
-        description: '가을 건강검진 특별 이벤트'
-    }
-];
+// 서버에서 전달받은 이벤트 데이터를 사용
+// calendarEvents는 HTML에서 th:inline="javascript"로 주입됨
+const approvedEvents = typeof calendarEvents !== 'undefined' ? calendarEvents : [];
 
 document.addEventListener('DOMContentLoaded', function() {
     initCalendar();
@@ -312,123 +272,22 @@ function goToToday() {
 function syncGoogleCalendar() {
     if (confirm('Google 캘린더와 동기화하시겠습니까?')) {
         console.log('Google 캘린더 동기화 시작');
-        // 실제로는 서버 API 호출
-        alert('동기화가 시작되었습니다. 잠시만 기다려주세요.');
+        alert('동기화 기능은 추후 구현됩니다.');
     }
-}
-
-// 일정 추가 모달 열기
-function openAddEventModal() {
-    const modal = document.getElementById('addEventModal');
-    const form = document.getElementById('addEventForm');
-    
-    // 폼 초기화
-    form.reset();
-    
-    // 선택된 날짜가 있으면 시작일에 설정
-    if (selectedDate) {
-        document.getElementById('startDate').value = selectedDate;
-    }
-    
-    modal.style.display = 'block';
-}
-
-// 일정 추가 모달 닫기
-function closeAddEventModal() {
-    const modal = document.getElementById('addEventModal');
-    modal.style.display = 'none';
-}
-
-// 일정 추가 처리
-function processAddEvent() {
-    const title = document.getElementById('eventTitle').value;
-    const company = document.getElementById('eventCompany').value;
-    const type = document.getElementById('eventType').value;
-    const startDate = document.getElementById('startDate').value;
-    const endDate = document.getElementById('endDate').value;
-    const discount = document.getElementById('eventDiscount').value;
-    const description = document.getElementById('eventDescription').value;
-    
-    console.log('일정 추가:', { title, company, type, startDate, endDate, discount, description });
-    
-    // 실제로는 서버에 저장 요청
-    
-    // 새 이벤트를 배열에 추가
-    const newEvent = {
-        id: approvedEvents.length + 1,
-        title,
-        company: document.getElementById('eventCompany').options[document.getElementById('eventCompany').selectedIndex].text,
-        type,
-        startDate,
-        endDate,
-        discount,
-        description
-    };
-    
-    approvedEvents.push(newEvent);
-    
-    // 캘린더와 목록 업데이트
-    updateCalendar();
-    addEventToList(newEvent);
-    
-    closeAddEventModal();
-    alert('일정이 추가되었습니다.');
-}
-
-// 이벤트를 목록에 추가
-function addEventToList(event) {
-    const eventsList = document.getElementById('eventsList');
-    
-    const eventItem = document.createElement('div');
-    eventItem.className = 'event-item';
-    eventItem.setAttribute('data-type', event.type);
-    eventItem.setAttribute('data-date', event.startDate);
-    eventItem.setAttribute('data-end-date', event.endDate);
-    
-    eventItem.innerHTML = `
-        <div class="event-color event-color-${event.type}"></div>
-        <div class="event-content">
-            <h4 class="event-title">${event.title}</h4>
-            <p class="event-company"><i class="fas fa-building"></i> ${event.company}</p>
-            <p class="event-period"><i class="fas fa-calendar"></i> ${event.startDate} ~ ${event.endDate}</p>
-            <p class="event-discount"><i class="fas fa-tag"></i> ${event.discount}</p>
-        </div>
-        <div class="event-badge">
-            <span class="type-badge type-${event.type}">${getTypeText(event.type)}</span>
-        </div>
-    `;
-    
-    eventsList.appendChild(eventItem);
 }
 
 // 유형 텍스트 변환
 function getTypeText(type) {
     const typeMap = {
-        'event': '이벤트',
-        'promotion': '프로모션',
-        'discount': '할인'
+        'placement': '노출',
+        'coupon': '쿠폰'
     };
     return typeMap[type] || type;
 }
 
 // 모달 이벤트 설정
 function setupModalEvents() {
-    const addEventForm = document.getElementById('addEventForm');
-    const addEventModal = document.getElementById('addEventModal');
-    
-    // 폼 제출 이벤트
-    if (addEventForm) {
-        addEventForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            processAddEvent();
-        });
-    }
-    
-    // 모달 외부 클릭 시 닫기
-    window.addEventListener('click', function(event) {
-        if (event.target === addEventModal) {
-            closeAddEventModal();
-        }
-    });
+    // 현재는 사용하지 않음 (일정 추가 모달 제거됨)
 }
+
 

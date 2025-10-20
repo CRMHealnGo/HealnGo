@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.example.ApiRound.Service.ItemListService;
+import com.example.ApiRound.crm.hyeonah.review.UserReviewService;
 import com.example.ApiRound.entity.ItemList;
 import com.example.ApiRound.repository.ItemListRepository;
 
@@ -28,6 +29,7 @@ public class ListController {
 
     private final ItemListService itemListService;
     private final ItemListRepository itemListRepository;
+    private final UserReviewService userReviewService;
 
     /** "전국" / "전체" / "" / null  -> 검색조건 미적용(null)로 통일 */
     private String norm(String v) {
@@ -153,20 +155,23 @@ public class ListController {
         private int endPage;
         private int amount;
     }
-    
+
     // ========== 리뷰 시스템용 API ==========
-    
+
     /**
      * 업체의 아이템 목록 조회
      * GET /api/review/company-items/{companyId}
      */
     @GetMapping("/api/review/company-items/{companyId}")
     @ResponseBody
-    public ResponseEntity<List<ItemList>> getItemsByCompany(@PathVariable Integer companyId) {
-        List<ItemList> items = itemListRepository.findByOwnerCompany_CompanyId(companyId);
-        return ResponseEntity.ok(items);
+    public ResponseEntity<List<com.example.ApiRound.dto.ItemListDto>> getItemsByCompany(@PathVariable Integer companyId) {
+        List<com.example.ApiRound.entity.ItemList> items = itemListRepository.findByOwnerCompany_CompanyId(companyId);
+        List<com.example.ApiRound.dto.ItemListDto> itemDtos = items.stream()
+                .map(com.example.ApiRound.dto.ItemListDto::from)
+                .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(itemDtos);
     }
-    
+
     /**
      * 아이템 상세 조회 (리뷰용)
      * GET /api/review/item/{itemId}
@@ -178,4 +183,21 @@ public class ListController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+
+    /**
+     * 업체의 모든 리뷰 조회 (user_review.booking_id -> reservations.id -> reservations.company_id)
+     * GET /api/review/company-reviews/{companyId}
+     */
+    @GetMapping("/api/review/company-reviews/{companyId}")
+    @ResponseBody
+    public ResponseEntity<List<Object[]>> getCompanyReviews(@PathVariable Integer companyId) {
+        try {
+            // user_review.booking_id를 통해 예약(reservations)과 연결하여 업체의 리뷰 조회
+            List<Object[]> reviews = userReviewService.getReviewsByCompanyId(companyId);
+            return ResponseEntity.ok(reviews);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
 }

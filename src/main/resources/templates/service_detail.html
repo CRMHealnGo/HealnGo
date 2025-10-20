@@ -141,64 +141,44 @@
             <div class="tab-panel" id="reviews-panel" style="display: none;">
                 <div class="reviews-summary">
                     <div class="rating-overview">
-                        <div class="rating-score">4.8</div>
-                        <div class="rating-stars">
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star-half-alt"></i>
+                        <div class="rating-score" th:text="${averageRating != null ? #numbers.formatDecimal(averageRating, 1, 1) : '0.0'}">0.0</div>
+                        <div class="rating-stars" th:attr="data-rating=${averageRating}">
+                            <i th:each="star : ${#numbers.sequence(1, 5)}" 
+                               th:class="${star <= averageRating ? 'fas fa-star' : (star - 0.5 <= averageRating ? 'fas fa-star-half-alt' : 'far fa-star')}"></i>
                         </div>
-                        <div class="rating-count">128개의 리뷰</div>
+                        <div class="rating-count" th:text="${reviewCount != null ? reviewCount + '개의 리뷰' : '0개의 리뷰'}">0개의 리뷰</div>
                     </div>
                 </div>
 
                 <div class="reviews-list">
-                    <div class="review-item">
-                        <div class="review-header">
-                            <div class="reviewer-info">
-                                <div class="reviewer-avatar">
-                                    <i class="fas fa-user"></i>
-                                </div>
-                                <div class="reviewer-details">
-                                    <div class="reviewer-name">김*현</div>
-                                    <div class="review-date">2024-03-15</div>
-                                </div>
-                            </div>
-                            <div class="review-rating">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                            </div>
-                        </div>
-                        <div class="review-content">
-                            친절하고 세심한 상담이 인상적이었습니다. 시술 과정도 편안했고 결과도 만족스럽습니다.
-                        </div>
+                    <!-- 리뷰가 없는 경우 -->
+                    <div th:if="${reviews == null || #lists.isEmpty(reviews)}" class="no-reviews">
+                        <i class="fas fa-comment-slash" style="font-size: 48px; color: #ccc; margin-bottom: 16px;"></i>
+                        <p>아직 작성된 리뷰가 없습니다.</p>
                     </div>
-
-                    <div class="review-item">
+                    
+                    <!-- 리뷰 목록 -->
+                    <div th:each="review : ${reviews}" class="review-item">
                         <div class="review-header">
                             <div class="reviewer-info">
                                 <div class="reviewer-avatar">
                                     <i class="fas fa-user"></i>
                                 </div>
                                 <div class="reviewer-details">
-                                    <div class="reviewer-name">박*수</div>
-                                    <div class="review-date">2024-03-10</div>
+                                    <div class="reviewer-name" th:text="${review.userName != null ? review.userName : '익명'}">익명</div>
+                                    <div class="review-date" th:text="${#temporals.format(review.createdAt, 'yyyy-MM-dd')}">2024-01-01</div>
                                 </div>
                             </div>
                             <div class="review-rating">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="far fa-star"></i>
+                                <i th:each="star : ${#numbers.sequence(1, 5)}" 
+                                   th:class="${star <= review.rating ? 'fas fa-star' : 'far fa-star'}"></i>
                             </div>
                         </div>
-                        <div class="review-content">
-                            전문적인 진료와 깨끗한 시설이 좋았습니다. 다음에도 이용하고 싶습니다.
+                        <div class="review-title" th:if="${review.title != null && !#strings.isEmpty(review.title)}" 
+                             th:text="${review.title}" style="font-weight: 600; margin-bottom: 8px;">리뷰 제목</div>
+                        <div class="review-content" th:text="${review.content}">리뷰 내용</div>
+                        <div class="review-image" th:if="${review.imageUrl != null}">
+                            <img th:src="${review.imageUrl}" alt="리뷰 이미지" style="max-width: 300px; border-radius: 8px; margin-top: 12px;">
                         </div>
                     </div>
                 </div>

@@ -41,8 +41,12 @@
                             </div>
                             <div class="booking-status" style="margin-top: 8px;">
                                 <span class="status-badge" 
-                                      th:classappend="${reservation.status == 'CONFIRMED' ? 'status-confirmed' : (reservation.status == 'CANCELLED' ? 'status-cancelled' : 'status-pending')}"
-                                      th:text="${reservation.status == 'CONFIRMED' ? '확정' : (reservation.status == 'CANCELLED' ? '취소' : '대기')}"
+                                      th:classappend="${reservation.status == 'CONFIRMED' ? 'status-confirmed' : 
+                                                       (reservation.status == 'CANCELLED' ? 'status-cancelled' : 
+                                                       (reservation.status == 'COMPLETED' ? 'status-completed' : 'status-pending'))}"
+                                      th:text="${reservation.status == 'CONFIRMED' ? '확정' : 
+                                               (reservation.status == 'CANCELLED' ? '취소' : 
+                                               (reservation.status == 'COMPLETED' ? '완료' : '대기'))}"
                                       style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;">
                                     상태
                                 </span>
@@ -59,18 +63,50 @@
             </div>
 
             <!-- 페이지네이션 -->
-            <div class="pagination">
-                <button class="page-btn active">1</button>
-                <button class="page-btn">2</button>
-                <button class="page-btn">3</button>
-                <button class="page-btn">4</button>
-                <button class="page-btn">5</button>
-                <button class="page-btn">
+            <div class="pagination" th:if="${totalPages > 0}">
+                <!-- 처음으로 -->
+                <a th:if="${currentPage > 1}" 
+                   th:href="@{/booking(page=1)}" 
+                   class="page-btn">
+                    <i class="fas fa-angle-double-left"></i>
+                </a>
+                
+                <!-- 이전 페이지 -->
+                <a th:if="${hasPrevious}" 
+                   th:href="@{/booking(page=${currentPage - 1})}" 
+                   class="page-btn">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+                
+                <!-- 페이지 번호들 -->
+                <th:block th:with="startPage=${currentPage - 2 > 0 ? currentPage - 2 : 1}, 
+                                   endPage=${currentPage + 2 <= totalPages ? currentPage + 2 : totalPages}">
+                    <a th:each="pageNum : ${#numbers.sequence(startPage, endPage)}"
+                       th:href="@{/booking(page=${pageNum})}"
+                       th:text="${pageNum}"
+                       th:classappend="${pageNum == currentPage ? 'active' : ''}"
+                       class="page-btn">
+                    </a>
+                </th:block>
+                
+                <!-- 다음 페이지 -->
+                <a th:if="${hasNext}" 
+                   th:href="@{/booking(page=${currentPage + 1})}" 
+                   class="page-btn">
                     <i class="fas fa-chevron-right"></i>
-                </button>
-                <button class="page-btn">
+                </a>
+                
+                <!-- 마지막으로 -->
+                <a th:if="${currentPage < totalPages}" 
+                   th:href="@{/booking(page=${totalPages})}" 
+                   class="page-btn">
                     <i class="fas fa-angle-double-right"></i>
-                </button>
+                </a>
+            </div>
+            
+            <!-- 페이지 정보 표시 -->
+            <div class="page-info" th:if="${totalPages > 0}" style="text-align: center; margin-top: 10px; color: #6c757d; font-size: 14px;">
+                <span th:text="|전체 ${totalElements}개 중 ${currentPage} / ${totalPages} 페이지|"></span>
             </div>
         </div>
     </main>
