@@ -53,15 +53,21 @@ public class UserReviewController {
             @RequestParam(defaultValue = "true") Boolean isPublic) {
 
         try {
+            System.out.println("🔍 리뷰 작성 요청 - userId: " + userId + ", itemId: " + itemId + ", serviceId: " + serviceId + ", bookingId: " + bookingId);
+            
             UserReview review = new UserReview();
             review.setUserId(userId);
             // itemId 설정 (프론트에서 전달된 경우)
             if (itemId != null) {
                 review.setItemId(itemId);
+                System.out.println("🔍 itemId 설정: " + itemId);
             }
             // serviceId 설정 (프론트에서 전달된 경우)
             if (serviceId != null) {
                 review.setServiceId(serviceId);
+                System.out.println("🔍 serviceId 설정: " + serviceId);
+            } else {
+                System.out.println("⚠️ serviceId가 null입니다!");
             }
             review.setBookingId(bookingId);  // bookingId 직접 설정
             review.setRating(rating);

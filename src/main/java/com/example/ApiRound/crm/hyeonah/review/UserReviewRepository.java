@@ -16,6 +16,9 @@ public interface UserReviewRepository extends JpaRepository<UserReview, Integer>
     // 특정 서비스의 리뷰 목록 조회
     List<UserReview> findByServiceIdAndIsPublicTrueOrderByCreatedAtDesc(Long serviceId);
     
+    // 특정 서비스의 모든 리뷰 조회 (공개/비공개 구분 없이)
+    List<UserReview> findByServiceIdOrderByCreatedAtDesc(Long serviceId);
+    
     // 특정 사용자의 리뷰 목록 조회
     List<UserReview> findByUserIdOrderByCreatedAtDesc(Integer userId);
     
@@ -51,7 +54,7 @@ public interface UserReviewRepository extends JpaRepository<UserReview, Integer>
     @Query(value =
     "SELECT ur.review_id, ur.user_id, ur.item_id, ur.booking_id, ur.rating, " +
     "       ur.title, ur.content, ur.image_mime, ur.is_public, ur.created_at, ur.updated_at, " +
-    "       il.name AS item_name, su.name AS user_name " +
+    "       r.title AS item_name, su.name AS user_name " +
     "FROM user_review ur " +
     "JOIN reservations r ON r.id = ur.booking_id " +   
     "LEFT JOIN item_list il ON il.id = ur.item_id " +

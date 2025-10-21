@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.example.ApiRound.Service.ItemListService;
+import com.example.ApiRound.crm.hyeonah.review.UserReviewDto;
 import com.example.ApiRound.crm.hyeonah.review.UserReviewService;
 import com.example.ApiRound.entity.ItemList;
 import com.example.ApiRound.repository.ItemListRepository;
@@ -210,6 +211,57 @@ public class ListController {
             // user_review.booking_id를 통해 예약(reservations)과 연결하여 업체의 리뷰 조회
             List<Object[]> reviews = userReviewService.getReviewsByCompanyId(companyId);
             return ResponseEntity.ok(reviews);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * 서비스별 리뷰 조회
+     * GET /api/review/service/{serviceId}
+     */
+    @GetMapping("/api/review/service/{serviceId}")
+    @ResponseBody
+    public ResponseEntity<List<UserReviewDto>> getServiceReviews(@PathVariable Long serviceId) {
+        try {
+            System.out.println("🔍 서비스별 리뷰 조회 - serviceId: " + serviceId);
+            List<UserReviewDto> reviews = userReviewService.getReviewsByServiceId(serviceId);
+            System.out.println("🔍 조회된 리뷰 개수: " + reviews.size());
+            for (UserReviewDto review : reviews) {
+                System.out.println("  - reviewId: " + review.getReviewId() + ", title: " + review.getTitle() + ", isPublic: " + review.getIsPublic());
+            }
+            return ResponseEntity.ok(reviews);
+        } catch (Exception e) {
+            System.err.println("❌ 서비스별 리뷰 조회 오류: " + e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * 서비스별 평균 평점 조회
+     * GET /api/review/service/{serviceId}/average-rating
+     */
+    @GetMapping("/api/review/service/{serviceId}/average-rating")
+    @ResponseBody
+    public ResponseEntity<Double> getServiceAverageRating(@PathVariable Long serviceId) {
+        try {
+            Double averageRating = userReviewService.getAverageRatingByServiceId(serviceId);
+            return ResponseEntity.ok(averageRating != null ? averageRating : 0.0);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * 서비스별 리뷰 개수 조회
+     * GET /api/review/service/{serviceId}/count
+     */
+    @GetMapping("/api/review/service/{serviceId}/count")
+    @ResponseBody
+    public ResponseEntity<Long> getServiceReviewCount(@PathVariable Long serviceId) {
+        try {
+            Long count = userReviewService.getReviewCountByServiceId(serviceId);
+            return ResponseEntity.ok(count != null ? count : 0L);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }

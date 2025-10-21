@@ -51,10 +51,13 @@ public class HelloController {
         // TOP3 업체의 ItemList 정보 가져오기
         List<ItemList> medicalInstitutions = new ArrayList<>();
         for (Object[] data : topCompaniesData) {
-            Long companyId = ((Number) data[0]).longValue();
-            // item_list에서 해당 업체의 대표 서비스 찾기
-            itemListRepository.findFirstByOwnerCompany_CompanyIdOrderByIdAsc(companyId.intValue())
-                .ifPresent(medicalInstitutions::add);
+            // null 체크 추가
+            if (data[0] != null) {
+                Long itemId = ((Number) data[0]).longValue();
+                // item_list에서 해당 아이템 찾기
+                itemListRepository.findById(itemId)
+                    .ifPresent(medicalInstitutions::add);
+            }
         }
         
         System.out.println("===== 메인 페이지 TOP3 의료기관 =====");

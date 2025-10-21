@@ -125,8 +125,20 @@ public class UserReviewServiceImpl implements UserReviewService {
     @Override
     @Transactional(readOnly = true)
     public List<UserReviewDto> getReviewsByServiceId(Long serviceId) {
-        List<UserReview> reviews = userReviewRepository.findByServiceIdAndIsPublicTrueOrderByCreatedAtDesc(serviceId);
-        return reviews.stream()
+        System.out.println("🔍 UserReviewServiceImpl.getReviewsByServiceId - serviceId: " + serviceId);
+        
+        // 모든 리뷰 조회 (공개/비공개 구분 없이)
+        List<UserReview> allReviews = userReviewRepository.findByServiceIdOrderByCreatedAtDesc(serviceId);
+        System.out.println("🔍 전체 리뷰 개수: " + allReviews.size());
+        for (UserReview review : allReviews) {
+            System.out.println("  - reviewId: " + review.getReviewId() + ", isPublic: " + review.getIsPublic() + ", title: " + review.getTitle());
+        }
+        
+        // 공개 리뷰만 조회
+        List<UserReview> publicReviews = userReviewRepository.findByServiceIdAndIsPublicTrueOrderByCreatedAtDesc(serviceId);
+        System.out.println("🔍 공개 리뷰 개수: " + publicReviews.size());
+        
+        return publicReviews.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
