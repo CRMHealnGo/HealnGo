@@ -123,7 +123,16 @@ public class MediServiceService {
         ItemList item;
         if (itemOpt.isPresent()) {
             item = itemOpt.get();
-            log.info("기존 item 사용: ID={}, 이름={}", item.getId(), item.getName());
+            log.info("기존 item 사용: ID={}, 이름={}, 기존 카테고리={}", item.getId(), item.getName(), item.getCategory());
+            
+            // 기존 item의 카테고리가 "의료서비스"이거나 업체 카테고리와 다르면 업데이트
+            String companyCategory = company.getCategory() != null ? company.getCategory() : "의료서비스";
+            if ("의료서비스".equals(item.getCategory()) || !companyCategory.equals(item.getCategory())) {
+                item.setCategory(companyCategory);
+                item.setUpdatedAt(java.time.LocalDateTime.now());
+                item = itemListRepository.save(item);
+                log.info("기존 item 카테고리 업데이트: {} -> {}", item.getCategory(), companyCategory);
+            }
         } else {
             // item이 없으면 새로 생성
             item = new ItemList();
@@ -131,10 +140,13 @@ public class MediServiceService {
             item.setRegion("서울");
             item.setAddress(company.getAddress());
             item.setPhone(company.getPhone());
-            item.setCategory("의료서비스");
+            // 업체의 카테고리를 사용 (없으면 "의료서비스"로 기본값)
+            item.setCategory(company.getCategory() != null ? company.getCategory() : "의료서비스");
             item.setOwnerCompany(company);
+            item.setCreatedAt(java.time.LocalDateTime.now());
+            item.setUpdatedAt(java.time.LocalDateTime.now());
             item = itemListRepository.save(item);
-            log.info("새로운 item 생성: ID={}, 이름={}", item.getId(), item.getName());
+            log.info("새로운 item 생성: ID={}, 이름={}, 카테고리={}", item.getId(), item.getName(), item.getCategory());
         }
         
         entity.setItem(item);

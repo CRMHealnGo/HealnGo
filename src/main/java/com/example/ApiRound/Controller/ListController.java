@@ -62,6 +62,9 @@ public class ListController {
         boolean hasRegionOrSub = (nRegion != null) || (nSubRegion != null);
         boolean hasCategory    = (nCategory != null);
 
+        System.out.println("===== ListController.getAllItems 디버깅 =====");
+        System.out.println("region: " + nRegion + ", subRegion: " + nSubRegion + ", category: " + nCategory);
+
         if (hasRegionOrSub) {
             page = itemListService.getItemsByRegionAndCategory(nRegion, nSubRegion, nCategory, pageable);
             totalCount = itemListService.countByRegionAndCategory(nRegion, nSubRegion, nCategory);
@@ -72,6 +75,18 @@ public class ListController {
             // 전체
             page = itemListService.getItemsByCategory(null, pageable);
             totalCount = itemListService.countByCategory(null);
+        }
+        
+        System.out.println("조회된 아이템 수: " + page.getContent().size());
+        System.out.println("전체 카운트: " + totalCount);
+        for (ItemList item : page.getContent()) {
+            System.out.println("Item ID: " + item.getId() + 
+                             ", Name: " + item.getName() + 
+                             ", Category: " + item.getCategory() + 
+                             ", OwnerCompany: " + (item.getOwnerCompany() != null ? 
+                                 "ID=" + item.getOwnerCompany().getCompanyId() + 
+                                 ", Active=" + item.getOwnerCompany().getIsActive() + 
+                                 ", Status=" + item.getOwnerCompany().getApprovalStatus() : "NULL"));
         }
 
         int totalPages = Math.max(page.getTotalPages(), 1);

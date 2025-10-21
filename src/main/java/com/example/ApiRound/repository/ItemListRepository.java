@@ -20,9 +20,11 @@ public interface ItemListRepository extends JpaRepository<ItemList, Long> {
     /** 지역 + 세부지역 + 카테고리 검색 (부분일치 허용, 파라미터 null/빈문자면 미적용) */
     @Query("""
         SELECT i FROM ItemList i
+        LEFT JOIN i.ownerCompany c
         WHERE (:region IS NULL OR :region = '' OR i.region LIKE CONCAT('%', :region, '%') OR i.address LIKE CONCAT('%', :region, '%'))
           AND (:subRegion IS NULL OR :subRegion = '' OR i.subregion LIKE CONCAT('%', :subRegion, '%') OR i.address LIKE CONCAT('%', :subRegion, '%'))
           AND (:category IS NULL OR :category = '' OR i.category LIKE CONCAT('%', :category, '%'))
+          AND (i.ownerCompany IS NULL OR (c.isActive = true AND c.approvalStatus = 'APPROVED'))
         """)
     Page<ItemList> findByRegionAndSubregionAndCategory(
             @Param("region") String region,
@@ -33,16 +35,20 @@ public interface ItemListRepository extends JpaRepository<ItemList, Long> {
     /** 카테고리만 검색 (null/빈문자면 전체) */
     @Query("""
         SELECT i FROM ItemList i
+        LEFT JOIN i.ownerCompany c
         WHERE (:category IS NULL OR :category = '' OR i.category LIKE CONCAT('%', :category, '%'))
+          AND (i.ownerCompany IS NULL OR (c.isActive = true AND c.approvalStatus = 'APPROVED'))
         """)
     Page<ItemList> findByCategory(@Param("category") String category, Pageable pageable);
 
     /** 카운트들 */
     @Query("""
         SELECT COUNT(i) FROM ItemList i
+        LEFT JOIN i.ownerCompany c
         WHERE (:region IS NULL OR :region = '' OR i.region LIKE CONCAT('%', :region, '%') OR i.address LIKE CONCAT('%', :region, '%'))
           AND (:subRegion IS NULL OR :subRegion = '' OR i.subregion LIKE CONCAT('%', :subRegion, '%') OR i.address LIKE CONCAT('%', :subRegion, '%'))
           AND (:category IS NULL OR :category = '' OR i.category LIKE CONCAT('%', :category, '%'))
+          AND (i.ownerCompany IS NULL OR (c.isActive = true AND c.approvalStatus = 'APPROVED'))
         """)
     long countByRegionAndSubregionAndCategory(
             @Param("region") String region,
@@ -51,7 +57,9 @@ public interface ItemListRepository extends JpaRepository<ItemList, Long> {
 
     @Query("""
         SELECT COUNT(i) FROM ItemList i
+        LEFT JOIN i.ownerCompany c
         WHERE (:category IS NULL OR :category = '' OR i.category LIKE CONCAT('%', :category, '%'))
+          AND (i.ownerCompany IS NULL OR (c.isActive = true AND c.approvalStatus = 'APPROVED'))
         """)
     long countByCategory(@Param("category") String category);
 
