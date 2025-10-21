@@ -244,7 +244,7 @@
                                         </div>
                                         <div class="inquiry-message">
                                             <i class="fas fa-comment" style="color: #3498db; margin-right: 5px;"></i>
-                                            <span th:text="${inquiry.subject != null ? (inquiry.subject.replaceAll('\\[(?:문의|신고):[^\\]]+\\]\\s*', '').length() > 50 ? inquiry.subject.replaceAll('\\[(?:문의|신고):[^\\]]+\\]\\s*', '').substring(0, 47) + '...' : inquiry.subject.replaceAll('\\[(?:문의|신고):[^\\]]+\\]\\s*', '')) : '제목 없음'}">제목</span>
+                                            <span th:text="${inquiry.subject != null ? (inquiry.subject.length() > 50 ? inquiry.subject.substring(0, 47) + '...' : inquiry.subject) : '제목 없음'}">제목</span>
                                         </div>
                                         <div class="inquiry-actions">
                                             <span style="font-size: 12px; color: #7f8c8d;" 

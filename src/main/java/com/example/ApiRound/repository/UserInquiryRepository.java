@@ -14,6 +14,7 @@ public interface UserInquiryRepository extends JpaRepository<UserInquiry, Intege
     Page<UserInquiry> findByStatusAndReporterType(Status status, ReporterType reporterType, Pageable pageable);
     Page<UserInquiry> findByReporterSocialId(Integer reporterSocialId, Pageable pageable);
     Page<UserInquiry> findByReporterCompanyId(Integer reporterCompanyId, Pageable pageable);
+    Page<UserInquiry> findByReporterCompanyIdAndReporterType(Integer reporterCompanyId, ReporterType reporterType, Pageable pageable);
     Page<UserInquiry> findByStatusAndAssignedTo(Status status, Integer assignedTo, Pageable pageable);
     long countByStatus(Status status);
 }

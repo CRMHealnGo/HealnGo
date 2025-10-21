@@ -36,6 +36,7 @@ import com.example.ApiRound.entity.Marketing;
 import com.example.ApiRound.entity.UserInquiry;
 import com.example.ApiRound.repository.AdminEventRepository;
 import com.example.ApiRound.repository.MarketingRepository;
+import com.example.ApiRound.repository.UserInquiryRepository;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -50,6 +51,7 @@ public class AdminController {
     private final ReservationRepository reservationRepo;
     private final NoticeService noticeService;
     private final UserInquiryService userInquiryService;
+    private final UserInquiryRepository userInquiryRepository;
     private final AdminEventRepository adminEventRepository;
     private final MarketingRepository marketingRepository;
 
@@ -61,10 +63,10 @@ public class AdminController {
         // 세션 체크: 관리자로 로그인한 사용자만 접근 가능
         Object managerIdObj = session.getAttribute("managerId");
         Long managerId = null;
-        if (managerIdObj instanceof Integer) {
-            managerId = ((Integer) managerIdObj).longValue();
-        } else if (managerIdObj instanceof Long) {
-            managerId = (Long) managerIdObj;
+        if (managerIdObj instanceof Integer integer) {
+            managerId = integer.longValue();
+        } else if (managerIdObj instanceof Long longValue) {
+            managerId = longValue;
         }
         String userType = (String) session.getAttribute("userType");
         
@@ -115,6 +117,15 @@ public class AdminController {
         // 차트 데이터
         Map<String, Object> chartData = getChartData();
         model.addAttribute("chartData", chartData);
+        
+        // 최근 문의/신고 데이터 (실제 DB에서 조회)
+        try {
+            Page<UserInquiry> recentInquiriesPage = userInquiryService.getAdminPagedList(1, 5, null);
+            model.addAttribute("recentInquiries", recentInquiriesPage.getContent());
+        } catch (Exception e) {
+            System.err.println("최근 문의/신고 조회 실패: " + e.getMessage());
+            model.addAttribute("recentInquiries", new ArrayList<>());
+        }
 
         // 예약 많은 순으로 업체 리스트 (상위 5개)
         List<Map<String, Object>> topCompanies = getTopCompaniesByReservations();
@@ -444,23 +455,33 @@ public class AdminController {
 
         model.addAttribute("managerName", session.getAttribute("managerName"));
 
-        // 문의/신고 목록 데이터 (실제로는 서비스에서 가져와야 함)
-        List<Map<String, Object>> reports = getInquiryReports();
-        model.addAttribute("reports", reports);
+        try {
+            // 실제 DB에서 문의/신고 목록 조회
+            Page<UserInquiry> inquiryPage = userInquiryService.getAdminPagedList(page, size, status, type);
+            model.addAttribute("reports", inquiryPage.getContent());
 
-        // 페이지네이션 정보
-        int totalReports = reports.size(); // 실제로는 DB에서 조회
-        int totalPages = (int) Math.ceil((double) totalReports / size);
+            // 페이지네이션 정보
+            model.addAttribute("currentPage", page);
+            model.addAttribute("totalPages", inquiryPage.getTotalPages());
+            model.addAttribute("totalReports", inquiryPage.getTotalElements());
+            model.addAttribute("search", search);
+            model.addAttribute("type", type);
+            model.addAttribute("status", status);
+            model.addAttribute("sidebarType", "admin");
 
-        model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", totalPages);
-        model.addAttribute("totalReports", totalReports);
-        model.addAttribute("search", search);
-        model.addAttribute("type", type);
-        model.addAttribute("status", status);
-        model.addAttribute("sidebarType", "admin");
-
-        return "admin/inquiry_report";
+            return "admin/inquiry_report";
+        } catch (Exception e) {
+            System.err.println("문의/신고 목록 조회 실패: " + e.getMessage());
+            model.addAttribute("reports", new ArrayList<>());
+            model.addAttribute("currentPage", 1);
+            model.addAttribute("totalPages", 1);
+            model.addAttribute("totalReports", 0);
+            model.addAttribute("search", search);
+            model.addAttribute("type", type);
+            model.addAttribute("status", status);
+            model.addAttribute("sidebarType", "admin");
+            return "admin/inquiry_report";
+        }
     }
 
     /**
@@ -468,11 +489,20 @@ public class AdminController {
      */
     @GetMapping("/inquiry-report/detail/{id}")
     public String inquiryReportDetail(@PathVariable("id") Integer id, Model model, HttpSession session) {
-        model.addAttribute("reportId", id);
-        model.addAttribute("sidebarType", "admin");
-        model.addAttribute("managerName", session.getAttribute("managerName"));
+        try {
+            UserInquiry inquiry = userInquiryRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("문의/신고를 찾을 수 없습니다."));
+            
+            model.addAttribute("inquiry", inquiry);
+            model.addAttribute("reportId", id);
+            model.addAttribute("sidebarType", "admin");
+            model.addAttribute("managerName", session.getAttribute("managerName"));
 
-        return "crm/inquiry_detail";
+            return "crm/inquiry_detail";
+        } catch (Exception e) {
+            model.addAttribute("error", "문의/신고를 찾을 수 없습니다.");
+            return "crm/inquiry_detail";
+        }
     }
 
     /**
@@ -482,11 +512,7 @@ public class AdminController {
     @ResponseBody
     public ResponseEntity<UserInquiry> getInquiryDetail(@PathVariable Integer id) {
         try {
-            List<UserInquiry> inquiries = userInquiryService.getAdminPagedList(1, 1000, null).getContent();
-
-            UserInquiry inquiry = inquiries.stream()
-                    .filter(i -> i.getInquiryId().equals(id))
-                    .findFirst()
+            UserInquiry inquiry = userInquiryRepository.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("문의/신고를 찾을 수 없습니다."));
 
             return ResponseEntity.ok(inquiry);
@@ -527,10 +553,10 @@ public class AdminController {
             String newStatus = request.get("status");
             Object managerIdObj = session.getAttribute("managerId");
             Integer adminId = null;
-            if (managerIdObj instanceof Integer) {
-                adminId = (Integer) managerIdObj;
-            } else if (managerIdObj instanceof Long) {
-                adminId = ((Long) managerIdObj).intValue();
+            if (managerIdObj instanceof Integer integer) {
+                adminId = integer;
+            } else if (managerIdObj instanceof Long longValue) {
+                adminId = longValue.intValue();
             }
 
             userInquiryService.updateStatus(id, newStatus, adminId);
@@ -569,10 +595,10 @@ public class AdminController {
 
             Object managerIdObj = session.getAttribute("managerId");
             Integer adminId = null;
-            if (managerIdObj instanceof Integer) {
-                adminId = (Integer) managerIdObj;
-            } else if (managerIdObj instanceof Long) {
-                adminId = ((Long) managerIdObj).intValue();
+            if (managerIdObj instanceof Integer integer) {
+                adminId = integer;
+            } else if (managerIdObj instanceof Long longValue) {
+                adminId = longValue.intValue();
             }
 
             userInquiryService.answer(id, replyText, adminId);
@@ -744,15 +770,6 @@ public class AdminController {
         return reports;
     }
 
-    private Map<String, Object> getInquiryReportById(Long id) {
-        // 실제로는 DB에서 조회해야 함
-        List<Map<String, Object>> reports = getInquiryReports();
-        
-        return reports.stream()
-                .filter(report -> report.get("id").equals(id.intValue()))
-                .findFirst()
-                .orElse(new HashMap<>());
-    }
 
     /**
      * 공지사항 & 알림 관리 페이지

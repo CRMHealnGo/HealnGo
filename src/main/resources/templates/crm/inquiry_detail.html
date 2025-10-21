@@ -33,13 +33,83 @@
                 </div>
                 <h2 class="detail-page-title">문의/신고 상세</h2>
                 
-            <!-- JavaScript로 동적 로드 -->
-            <div id="inquiryDetailContent">
-                <div style="text-align:center; padding:60px;">
-                    <i class="fas fa-spinner fa-spin" style="font-size:48px; color:#667eea;"></i>
-                    <p style="margin-top:20px; color:#6c757d;">로딩 중...</p>
+            <!-- 실제 DB 데이터 표시 -->
+            <div th:if="${inquiry != null}">
+                <div class="inquiry-detail-container" style="background: white; border-radius: 8px; padding: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <!-- 문의/신고 기본 정보 -->
+                    <div class="inquiry-header" style="border-bottom: 1px solid #e0e0e0; padding-bottom: 16px; margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: between; align-items: start; margin-bottom: 12px;">
+                            <h3 style="margin: 0; font-size: 20px; color: #333;" th:text="${inquiry.subject}">제목</h3>
+                            <div style="display: flex; gap: 8px;">
+                                <span th:if="${inquiry.reporterType != null and inquiry.reporterType.name() == 'COMPANY'}" 
+                                      style="background: #e3f2fd; color: #1976d2; padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: bold;">업체</span>
+                                <span th:if="${inquiry.reporterType != null and inquiry.reporterType.name() == 'SOCIAL'}" 
+                                      style="background: #f3e5f5; color: #7b1fa2; padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: bold;">사용자</span>
+                                <span th:if="${inquiry.status != null and inquiry.status.name() == 'OPEN'}" 
+                                      style="background: #fff3e0; color: #f57c00; padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: bold;">대기중</span>
+                                <span th:if="${inquiry.status != null and inquiry.status.name() == 'ANSWERED'}" 
+                                      style="background: #e8f5e8; color: #2e7d32; padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: bold;">답변완료</span>
+                                <span th:if="${inquiry.status != null and inquiry.status.name() == 'CLOSED'}" 
+                                      style="background: #f5f5f5; color: #616161; padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: bold;">종료</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 20px; font-size: 14px; color: #666;">
+                            <span><i class="fas fa-calendar"></i> <span th:text="${inquiry.createdAt != null ? #temporals.format(inquiry.createdAt, 'yyyy-MM-dd HH:mm') : ''}">등록일</span></span>
+                            <span th:if="${inquiry.answeredAt != null}"><i class="fas fa-check"></i> <span th:text="${#temporals.format(inquiry.answeredAt, 'yyyy-MM-dd HH:mm')}">답변일</span></span>
+                        </div>
+                    </div>
+                    
+                    <!-- 문의/신고 내용 -->
+                    <div class="inquiry-content" style="margin-bottom: 24px;">
+                        <h4 style="margin: 0 0 12px 0; color: #333;">문의 내용</h4>
+                        <div style="background: #f8f9fa; padding: 16px; border-radius: 6px; border-left: 4px solid #007bff; white-space: pre-wrap;" 
+                             th:text="${inquiry.content}">문의 내용</div>
+                    </div>
+                    
+                    <!-- 관리자 답변 -->
+                    <div th:if="${inquiry.adminAnswer != null and !inquiry.adminAnswer.isEmpty()}" class="admin-answer" style="margin-bottom: 24px;">
+                        <h4 style="margin: 0 0 12px 0; color: #333;">관리자 답변</h4>
+                        <div style="background: #e8f5e8; padding: 16px; border-radius: 6px; border-left: 4px solid #28a745; white-space: pre-wrap;" 
+                             th:text="${inquiry.adminAnswer}">관리자 답변</div>
+                    </div>
+                    
+                    <!-- 답변이 없을 때 -->
+                    <div th:if="${inquiry.adminAnswer == null or inquiry.adminAnswer.isEmpty()}" class="no-answer" style="margin-bottom: 24px;">
+                        <div style="background: #fff3cd; padding: 16px; border-radius: 6px; border-left: 4px solid #ffc107; text-align: center; color: #856404;">
+                            <i class="fas fa-clock"></i> 아직 답변이 등록되지 않았습니다.
+                        </div>
+                    </div>
+                    
+                    <!-- 관리자 액션 버튼 -->
+                    <div th:if="${sidebarType == 'admin'}" class="admin-actions" style="border-top: 1px solid #e0e0e0; padding-top: 20px;">
+                        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                            <button th:if="${inquiry.status != null and inquiry.status.name() == 'OPEN'}" 
+                                    onclick="updateStatus([[${inquiry.inquiryId}]], 'ANSWERED')" 
+                                    style="background: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+                                <i class="fas fa-check"></i> 답변완료로 변경
+                            </button>
+                            <button th:if="${inquiry.status != null and inquiry.status.name() == 'ANSWERED'}" 
+                                    onclick="updateStatus([[${inquiry.inquiryId}]], 'CLOSED')" 
+                                    style="background: #6c757d; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+                                <i class="fas fa-times"></i> 종료로 변경
+                            </button>
+                            <button onclick="showReplyModal([[${inquiry.inquiryId}]])" 
+                                    style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+                                <i class="fas fa-reply"></i> 답변 작성
+                            </button>
+                        </div>
                     </div>
                 </div>
+            </div>
+            
+            <!-- 에러 메시지 -->
+            <div th:if="${error != null}" style="text-align: center; padding: 60px; color: #dc3545;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 48px; margin-bottom: 16px;"></i>
+                <p th:text="${error}">에러 메시지</p>
+                <button onclick="goBack()" style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-top: 16px;">
+                    목록으로 돌아가기
+                </button>
+            </div>
             </div>
         </div>
     </div>
@@ -49,12 +119,67 @@
 <script src="/crm/js/inquiry_detail.js"></script>
 <script>
 // 페이지 로드 시 상세 정보 가져오기
-        document.addEventListener('DOMContentLoaded', function() {
-    const reportId = document.getElementById('detailId').value;
-    if (reportId) {
-        loadInquiryDetail(reportId);
-    }
+document.addEventListener('DOMContentLoaded', function() {
+    // 서버사이드에서 데이터를 이미 전달받았으므로 별도 로딩 불필요
 });
-    </script>
+
+// 뒤로가기 함수
+function goBack() {
+    window.history.back();
+}
+
+// 상태 업데이트 함수
+function updateStatus(inquiryId, newStatus) {
+    if (confirm('상태를 변경하시겠습니까?')) {
+        fetch(`/admin/api/inquiry-reports/${inquiryId}/status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ status: newStatus })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('상태가 변경되었습니다.');
+                location.reload();
+            } else {
+                alert('상태 변경에 실패했습니다: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('상태 변경 중 오류가 발생했습니다.');
+        });
+    }
+}
+
+// 답변 모달 표시 함수
+function showReplyModal(inquiryId) {
+    const reply = prompt('답변을 입력해주세요:');
+    if (reply && reply.trim()) {
+        fetch(`/admin/api/inquiry-reports/${inquiryId}/reply`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ reply: reply.trim() })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('답변이 등록되었습니다.');
+                location.reload();
+            } else {
+                alert('답변 등록에 실패했습니다: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('답변 등록 중 오류가 발생했습니다.');
+        });
+    }
+}
+</script>
 </body>
 </html>

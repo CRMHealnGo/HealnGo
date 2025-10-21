@@ -113,17 +113,38 @@ public class UserInquiryService {
     /** (업체) 내 요청 조회 */
     @Transactional(readOnly = true)
     public List<UserInquiry> getCompanyPagedList(Integer companyId, int page, int size) {
+        System.out.println("===== UserInquiryService.getCompanyPagedList 시작 =====");
+        System.out.println("companyId: " + companyId);
+        System.out.println("page: " + page + ", size: " + size);
+        
         Pageable pageable = PageRequest.of(Math.max(page - 1, 0), Math.max(size, 1),
                 Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        Example<UserInquiry> example = Example.of(
-                UserInquiry.builder()
-                    .reporterCompanyId(companyId)
-                    .reporterType(UserInquiry.ReporterType.COMPANY)
-                    .build(),
-                ExampleMatcher.matching().withIgnoreNullValues()
-        );
-        return userInquiryRepository.findAll(example, pageable).getContent();
+        // reporterCompanyId와 reporterType이 COMPANY인 것만 조회
+        Page<UserInquiry> inquiryPage = userInquiryRepository.findByReporterCompanyIdAndReporterType(
+            companyId, UserInquiry.ReporterType.COMPANY, pageable);
+        List<UserInquiry> inquiries = inquiryPage.getContent();
+        
+        // 만약 조회되지 않았다면 reporterId로도 시도
+        if (inquiries.isEmpty()) {
+            System.out.println("reporterCompanyId로 조회 실패, reporterId로 재시도");
+            // 직접 쿼리로 조회
+            inquiries = userInquiryRepository.findAll().stream()
+                .filter(inquiry -> inquiry.getReporterId() != null && 
+                                 inquiry.getReporterId().equals(companyId) && 
+                                 inquiry.getReporterType() == UserInquiry.ReporterType.COMPANY)
+                .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
+                .collect(java.util.stream.Collectors.toList());
+        }
+        
+        System.out.println("조회된 문의 수: " + inquiries.size());
+        for (UserInquiry inquiry : inquiries) {
+            System.out.println("문의 ID: " + inquiry.getInquiryId() + ", 제목: " + inquiry.getSubject() + 
+                             ", reporterCompanyId: " + inquiry.getReporterCompanyId() + 
+                             ", reporterType: " + inquiry.getReporterType());
+        }
+        
+        return inquiries;
     }
 
     /** (사용자) 내 문의 페이징 조회 */

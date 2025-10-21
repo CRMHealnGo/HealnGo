@@ -75,6 +75,7 @@ import com.example.ApiRound.entity.UserInquiry;
 import com.example.ApiRound.repository.AdminEventRepository;
 
 import com.example.ApiRound.repository.MarketingRepository;
+import com.example.ApiRound.repository.UserInquiryRepository;
 
 
 
@@ -99,6 +100,7 @@ public class CompanyController {
     private final AdminEventRepository adminEventRepository;
 
     private final MarketingRepository marketingRepository;
+    private final UserInquiryRepository userInquiryRepository;
 
     private final ClickLogService clickLogService;
 
@@ -120,6 +122,8 @@ public class CompanyController {
 
                             MarketingRepository marketingRepository,
 
+                            UserInquiryRepository userInquiryRepository,
+
                             ClickLogService clickLogService,
 
                             MediServiceRepository mediServiceRepository,
@@ -135,6 +139,8 @@ public class CompanyController {
         this.adminEventRepository = adminEventRepository;
 
         this.marketingRepository = marketingRepository;
+
+        this.userInquiryRepository = userInquiryRepository;
 
         this.clickLogService = clickLogService;
 
@@ -1497,6 +1503,9 @@ public class CompanyController {
     public String helpSupport(Model model, HttpSession session) {
 
         Integer companyId = (Integer) session.getAttribute("companyId");
+        
+        System.out.println("helpSupport: companyId from session = " + companyId);
+        System.out.println("helpSupport: all session attributes = " + session.getAttributeNames());
 
         List<Map<String, Object>> requests = getHelpRequestsByCompanyId(companyId);
 
@@ -2294,15 +2303,32 @@ public class CompanyController {
 
             if (companyId == null) {
 
+                System.out.println("getHelpRequestsByCompanyId: companyId is null");
                 return requests;
 
             }
 
+            System.out.println("getHelpRequestsByCompanyId: companyId = " + companyId);
+
+            // 디버깅: 전체 문의 조회
+            List<UserInquiry> allInquiries = userInquiryService.getAdminPagedList(1, 1000, null).getContent();
+            System.out.println("전체 문의 수: " + allInquiries.size());
+            for (UserInquiry inquiry : allInquiries) {
+                System.out.println("전체 문의 - ID: " + inquiry.getInquiryId() + 
+                                 ", reporterCompanyId: " + inquiry.getReporterCompanyId() + 
+                                 ", reporterType: " + inquiry.getReporterType() + 
+                                 ", subject: " + inquiry.getSubject());
+            }
+
+            // DB에서 해당 업체의 문의/요청 조회 (직접 repository 사용)
+            List<UserInquiry> inquiries = userInquiryRepository.findAll().stream()
+                .filter(inquiry -> inquiry.getReporterId() != null && 
+                                 inquiry.getReporterId().equals(companyId) && 
+                                 inquiry.getReporterType() == UserInquiry.ReporterType.COMPANY)
+                .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
+                .collect(java.util.stream.Collectors.toList());
             
-
-            // DB에서 해당 업체의 문의/요청 조회
-
-            List<UserInquiry> inquiries = userInquiryService.getCompanyPagedList(companyId, 1, 100);
+            System.out.println("getHelpRequestsByCompanyId: found " + inquiries.size() + " inquiries");
 
             
 
