@@ -138,6 +138,8 @@ public class ReservationController {
                     .location(request.getHospitalName())
                     .status("CONFIRMED")
                     .totalAmount(request.getTotalAmount())
+                    .serviceId(request.getServiceId())  // serviceId 추가
+                    .itemId(request.getItemId())  // itemId 추가
                     .userId(request.getUserId())
                     .companyId(request.getCompanyId())
                     .build();
@@ -175,6 +177,7 @@ public class ReservationController {
         private java.math.BigDecimal totalAmount;
         private Integer userId;
         private Integer companyId;
+        private Long serviceId;
         private Long itemId;
 
         // Getters and Setters
@@ -204,6 +207,9 @@ public class ReservationController {
         
         public Integer getCompanyId() { return companyId; }
         public void setCompanyId(Integer companyId) { this.companyId = companyId; }
+        
+        public Long getServiceId() { return serviceId; }
+        public void setServiceId(Long serviceId) { this.serviceId = serviceId; }
         
         public Long getItemId() { return itemId; }
         public void setItemId(Long itemId) { this.itemId = itemId; }

@@ -57,6 +57,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // 자유 태그 추가
 function addFreeTag(tagText) {
+    console.log('🔵 [자유 태그 추가] 입력된 텍스트:', tagText);
     const container = document.getElementById('freeTagsContainer');
     const tagDiv = document.createElement('div');
     tagDiv.className = 'event-tag';
@@ -69,6 +70,10 @@ function addFreeTag(tagText) {
     container.insertBefore(tagDiv, input);
 
     const freeTagCount = document.querySelectorAll('#freeTagsContainer .event-tag').length;
+    console.log('🔵 [자유 태그] 현재 태그 개수:', freeTagCount);
+    console.log('🔵 [자유 태그] 생성된 태그 HTML:', tagDiv.outerHTML);
+    console.log('🔵 [자유 태그] 컨테이너 전체 HTML:', container.innerHTML);
+    
     if (freeTagCount >= 5) {
         input.style.display = 'none';
     }
@@ -76,6 +81,7 @@ function addFreeTag(tagText) {
 
 // 시술명 태그 추가
 function addProcedureTag(tagText) {
+    console.log('🟢 [시술명 태그 추가] 입력된 텍스트:', tagText);
     const container = document.getElementById('procedureTagsContainer');
     const tagDiv = document.createElement('div');
     tagDiv.className = 'event-tag';
@@ -88,6 +94,10 @@ function addProcedureTag(tagText) {
     container.insertBefore(tagDiv, input);
 
     const procedureTagCount = document.querySelectorAll('#procedureTagsContainer .event-tag').length;
+    console.log('🟢 [시술명 태그] 현재 태그 개수:', procedureTagCount);
+    console.log('🟢 [시술명 태그] 생성된 태그 HTML:', tagDiv.outerHTML);
+    console.log('🟢 [시술명 태그] 컨테이너 전체 HTML:', container.innerHTML);
+    
     if (procedureTagCount >= 8) {
         input.style.display = 'none';
     }
@@ -108,9 +118,40 @@ function removeTag(button) {
 
 // 이벤트 승인 요청 버튼
 document.querySelector('.event-approval-btn').addEventListener('click', async function() {
+    console.log('=====================================');
+    console.log('🚀 [서비스 등록] 버튼 클릭됨');
+    console.log('=====================================');
+    
+    // DOM 구조 확인
+    const freeContainer = document.getElementById('freeTagsContainer');
+    const procedureContainer = document.getElementById('procedureTagsContainer');
+    
+    console.log('🔍 [DOM 구조 확인]');
+    console.log('자유 태그 컨테이너 HTML:', freeContainer ? freeContainer.innerHTML : 'null');
+    console.log('시술명 태그 컨테이너 HTML:', procedureContainer ? procedureContainer.innerHTML : 'null');
+    
     // 태그 데이터 수집
-    const freeTags = Array.from(document.querySelectorAll('#freeTagsContainer .event-tag span')).map(span => span.textContent);
-    const procedureTags = Array.from(document.querySelectorAll('#procedureTagsContainer .event-tag span')).map(span => span.textContent);
+    const freeTagElements = document.querySelectorAll('#freeTagsContainer .event-tag span');
+    const procedureTagElements = document.querySelectorAll('#procedureTagsContainer .event-tag span');
+    
+    console.log('🔍 [태그 수집 시작]');
+    console.log('  - 자유 태그 요소 개수:', freeTagElements.length);
+    console.log('  - 자유 태그 NodeList:', freeTagElements);
+    console.log('  - 시술명 태그 요소 개수:', procedureTagElements.length);
+    console.log('  - 시술명 태그 NodeList:', procedureTagElements);
+    
+    const freeTags = Array.from(freeTagElements).map(span => span.textContent);
+    const procedureTags = Array.from(procedureTagElements).map(span => span.textContent);
+    
+    console.log('📌 [수집된 자유 태그]:', freeTags);
+    console.log('📌 [수집된 시술명 태그]:', procedureTags);
+    
+    if (freeTags.length === 0) {
+        console.warn('⚠️ 자유 태그가 비어있습니다!');
+    }
+    if (procedureTags.length === 0) {
+        console.warn('⚠️ 시술명 태그가 비어있습니다!');
+    }
 
     // JSON 데이터 구성
     const formData = {
@@ -131,6 +172,11 @@ document.querySelector('.event-approval-btn').addEventListener('click', async fu
         currency: 'KRW',
         description: ''
     };
+    
+    console.log('📦 [전송될 데이터]');
+    console.log('  - tags (자유 태그):', formData.tags, '(길이:', formData.tags.length + ')');
+    console.log('  - serviceCategory (시술명):', formData.serviceCategory, '(길이:', formData.serviceCategory.length + ')');
+    console.log('  - 전체 formData:', formData);
 
     // 필수 필드 검증
     if (!formData.name.trim()) {
@@ -149,6 +195,9 @@ document.querySelector('.event-approval-btn').addEventListener('click', async fu
     }
 
     try {
+        console.log('📡 [서버 전송 시작] URL: /company/api/medical-services');
+        console.log('📡 [전송 JSON]:', JSON.stringify(formData, null, 2));
+        
         // fetch로 JSON 데이터 전송 - 세션에서 companyId를 사용하여 해당 회사의 item 찾기
         const response = await fetch('/company/api/medical-services', {
             method: 'POST',
@@ -158,15 +207,20 @@ document.querySelector('.event-approval-btn').addEventListener('click', async fu
             body: JSON.stringify(formData)
         });
 
+        console.log('✅ [서버 응답] 상태 코드:', response.status);
+        
         if (response.ok) {
+            console.log('✅ [등록 성공]');
             alert('의료 서비스 등록이 완료되었습니다.');
+            window.location.href = '/company/medical-services';
         } else {
             const errorText = await response.text();
-            console.error('서버 응답:', response.status, errorText);
+            console.error('❌ [등록 실패] 서버 응답:', response.status, errorText);
             alert(`의료 서비스 등록에 실패했습니다.\n상태: ${response.status}\n오류: ${errorText}`);
         }
     } catch (error) {
-        console.error('Error:', error);
+        console.error('❌ [오류 발생]', error);
         alert('서버 오류가 발생했습니다.');
     }
+    console.log('=====================================');
 });

@@ -136,6 +136,9 @@ function initializeEditModal() {
 
 // 버튼에서 데이터 읽어서 모달 열기
 function openEditModalFromButton(button) {
+    console.log('🔍 [버튼 데이터셋 확인] button.dataset.tags:', button.dataset.tags);
+    console.log('🔍 [버튼 데이터셋 확인] typeof:', typeof button.dataset.tags);
+    
     const serviceData = {
         serviceId: button.dataset.serviceId,
         name: button.dataset.name,
@@ -146,13 +149,17 @@ function openEditModalFromButton(button) {
         targetCountry: button.dataset.targetCountry,
         vatIncluded: button.dataset.vatIncluded === 'true',
         isRefundable: button.dataset.refundable === 'true',
-        tags: button.dataset.tags
+        tags: button.dataset.tags || ''  // undefined나 null이면 빈 문자열
     };
     openEditModal(serviceData);
 }
 
 // 수정 모달 열기
 function openEditModal(serviceData) {
+    console.log('=====================================');
+    console.log('📝 [수정 모달 열기] 서비스 데이터:', serviceData);
+    console.log('📝 [수정 모달 열기] tags 값:', serviceData.tags);
+    
     const modal = document.getElementById('editModal');
     if (!modal) return;
 
@@ -179,10 +186,16 @@ function openEditModal(serviceData) {
     document.querySelector(`input[name="editIsRefundable"][value="${refundValue}"]`).checked = true;
 
     // 태그 설정
+    console.log('🏷️ [태그 초기화 시작]');
     clearEditTags();
-    if (serviceData.tags) {
+    if (serviceData.tags && serviceData.tags.trim()) {
+        console.log('🏷️ [태그 분리] 원본:', serviceData.tags);
         const tags = serviceData.tags.split(',').filter(tag => tag.trim());
+        console.log('🏷️ [태그 분리] 분리된 태그 배열:', tags);
         tags.forEach(tag => addEditTag(tag.trim()));
+        console.log('✅ [태그 설정 완료] 총', tags.length, '개 태그 추가됨');
+    } else {
+        console.warn('⚠️ [태그 없음] DB에 저장된 tags가 없습니다. 새로 추가할 수 있습니다.');
     }
 
     // 모달 표시
@@ -191,6 +204,7 @@ function openEditModal(serviceData) {
 
     // 현재 편집 중인 서비스 ID 저장
     modal.dataset.serviceId = serviceData.serviceId;
+    console.log('=====================================');
 }
 
 // 수정 모달 닫기
@@ -209,6 +223,7 @@ function closeEditModal() {
 
 // 태그 추가 (수정 모달용)
 function addEditTag(tagValue) {
+    console.log('🔵 [수정 모달 - 태그 추가] 입력된 태그:', tagValue);
     const tagsContainer = document.getElementById('editTagsContainer');
     const existingTags = getEditTags();
 
@@ -229,6 +244,7 @@ function addEditTag(tagValue) {
     // 입력 필드 앞에 삽입
     const tagInput = document.getElementById('editTagInput');
     tagsContainer.insertBefore(tagElement, tagInput);
+    console.log('🔵 [수정 모달 - 태그 추가 완료] 현재 태그 개수:', getEditTags().length);
 }
 
 // 태그 제거 (수정 모달용)
@@ -247,11 +263,16 @@ function clearEditTags() {
 function getEditTags() {
     const tagsContainer = document.getElementById('editTagsContainer');
     const tags = tagsContainer.querySelectorAll('.tag');
-    return Array.from(tags).map(tag => tag.textContent.trim().replace('×', '').trim());
+    const result = Array.from(tags).map(tag => tag.textContent.trim().replace('×', '').trim());
+    console.log('🔍 [수정 모달 - 태그 가져오기] 태그 요소 개수:', tags.length, '/ 추출된 태그:', result);
+    return result;
 }
 
 // 수정된 서비스 저장
 function saveEditedService() {
+    console.log('=====================================');
+    console.log('💾 [서비스 수정 저장] 시작');
+    
     const modal = document.getElementById('editModal');
     const serviceId = modal.dataset.serviceId;
 
@@ -260,7 +281,15 @@ function saveEditedService() {
         return;
     }
 
+    console.log('💾 [서비스 수정] 서비스 ID:', serviceId);
+
     // 폼 데이터 수집
+    const editTags = getEditTags();
+    console.log('🔍 [태그 수집] getEditTags() 결과:', editTags);
+    
+    const tagsString = editTags.join(',') || '';
+    console.log('🔍 [태그 조합] join 결과:', tagsString, '(길이:', tagsString.length + ')');
+    
     const formData = {
         name: document.getElementById('editName').value.trim(),
         startDate: document.getElementById('editStartDate').value || null,
@@ -270,9 +299,11 @@ function saveEditedService() {
         targetCountry: document.querySelector('input[name="editTargetCountry"]:checked')?.value || 'KOR',
         vatIncluded: document.querySelector('input[name="editVatIncluded"]:checked')?.value === 'true',
         isRefundable: document.querySelector('input[name="editIsRefundable"]:checked')?.value === 'true',
-        tags: getEditTags().join(',') || '',
+        tags: tagsString,
         serviceCategory: ''  // 빈 문자열로 설정
     };
+    
+    console.log('📦 [전송 데이터] formData.tags:', formData.tags);
 
     // 유효성 검사
     if (!formData.name) {
@@ -298,7 +329,8 @@ function saveEditedService() {
     }
 
     // API 호출
-    console.log('전송할 데이터:', formData);
+    console.log('📡 [전송할 전체 데이터]:', formData);
+    console.log('📡 [JSON 변환]:', JSON.stringify(formData, null, 2));
 
     fetch(`/company/api/medical-services/${serviceId}`, {
         method: 'PUT',
@@ -309,8 +341,8 @@ function saveEditedService() {
     })
     .then(async response => {
         const text = await response.text();
-        console.log('서버 응답 상태:', response.status);
-        console.log('서버 응답 내용:', text);
+        console.log('✅ [서버 응답] 상태:', response.status);
+        console.log('✅ [서버 응답] 내용:', text);
 
         if (response.ok) {
             alert('서비스가 성공적으로 수정되었습니다.');
@@ -321,9 +353,10 @@ function saveEditedService() {
         }
     })
     .catch(error => {
-        console.error('Error:', error);
+        console.error('❌ [오류]:', error);
         alert('서비스 수정 중 오류가 발생했습니다: ' + error.message);
     });
+    console.log('=====================================');
 }
 
 // 모달 외부 클릭 시 닫기

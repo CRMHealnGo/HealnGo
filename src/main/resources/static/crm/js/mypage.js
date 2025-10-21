@@ -1,6 +1,12 @@
 // 마이페이지 JavaScript
 
+// 알림 데이터 저장
+let notifications = [];
+
 document.addEventListener('DOMContentLoaded', function() {
+    // 알림 데이터 로드
+    loadNotifications();
+    
     // 알림 팝업 관련 기능
     initializeNotificationPopup();
     
@@ -9,7 +15,155 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 예약내역 카드 클릭 이벤트
     initializeBookingItems();
+    
+    // 주기적으로 알림 확인 (30초마다)
+    setInterval(loadNotifications, 30000);
 });
+
+// 알림 데이터 로드
+async function loadNotifications() {
+    try {
+        // 임시 데이터 (실제로는 서버에서 가져옴)
+        notifications = [
+            {
+                id: 1,
+                type: 'CHAT',
+                title: '새로운 채팅이 왔습니다',
+                message: '병원명에서 채팅 메시지를 보냈습니다.',
+                companyName: '서울치과',
+                read: false,
+                createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000) // 2시간 전
+            },
+            {
+                id: 2,
+                type: 'RESERVATION_CONFIRMED',
+                title: '새로운 예약이 확정되었습니다',
+                message: '화이트닝 패키지 예약이 확정되었습니다.',
+                reservationTitle: '화이트닝 패키지',
+                reservationDate: '2024.10.25 14:00',
+                companyName: '강남치과',
+                read: false,
+                createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) // 1일 전
+            },
+            {
+                id: 3,
+                type: 'RESERVATION_UPDATED',
+                title: '예약일정이 변경되었습니다',
+                message: '임플란트 상담 예약 시간이 변경되었습니다.',
+                reservationTitle: '임플란트 상담',
+                oldDate: '2024.10.20 10:00',
+                newDate: '2024.10.22 14:00',
+                companyName: '서초치과',
+                read: false,
+                createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) // 3일 전
+            }
+        ];
+        
+        // 알림 렌더링
+        renderNotifications();
+    } catch (error) {
+        console.error('알림 로드 실패:', error);
+    }
+}
+
+// 알림 렌더링
+function renderNotifications() {
+    const notificationList = document.getElementById('notificationList');
+    const unreadNotifications = notifications.filter(n => !n.read).slice(0, 3); // 최신 3개만
+    
+    if (unreadNotifications.length === 0) {
+        notificationList.innerHTML = `
+            <li class="no-notifications" style="text-align: center; padding: 40px; color: #adb5bd;">
+                <i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>
+                <p style="margin: 0;">새로운 소식이 없습니다</p>
+            </li>
+        `;
+        return;
+    }
+    
+    notificationList.innerHTML = unreadNotifications.map(notification => {
+        const icon = getNotificationIcon(notification.type);
+        const timeAgo = getTimeAgo(notification.createdAt);
+        
+        return `
+            <li class="notification-item" data-id="${notification.id}" onclick="markAsRead(${notification.id})">
+                <span class="notification-icon">${icon}</span>
+                <div class="notification-content">
+                    <span class="notification-text">${notification.title}</span>
+                    ${notification.companyName ? `<span class="notification-company">${notification.companyName}</span>` : ''}
+                    ${notification.reservationTitle ? `<span class="notification-detail">${notification.reservationTitle}</span>` : ''}
+                    ${notification.newDate ? `<span class="notification-detail">${notification.newDate}</span>` : ''}
+                </div>
+                <span class="notification-time">${timeAgo}</span>
+            </li>
+        `;
+    }).join('');
+}
+
+// 알림 타입에 따른 아이콘 반환
+function getNotificationIcon(type) {
+    switch(type) {
+        case 'CHAT':
+            return '<i class="fas fa-comment-dots"></i>';
+        case 'RESERVATION_CONFIRMED':
+            return '<i class="fas fa-bell"></i>';
+        case 'RESERVATION_UPDATED':
+            return '<i class="fas fa-calendar-alt"></i>';
+        default:
+            return '<i class="fas fa-info-circle"></i>';
+    }
+}
+
+// 시간 전 표시
+function getTimeAgo(date) {
+    const seconds = Math.floor((new Date() - date) / 1000);
+    
+    if (seconds < 60) return `${seconds}초 전`;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}분 전`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}시간 전`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days}일 전`;
+    const weeks = Math.floor(days / 7);
+    if (weeks < 4) return `${weeks}주 전`;
+    const months = Math.floor(days / 30);
+    return `${months}개월 전`;
+}
+
+// 알림 읽음 처리
+async function markAsRead(notificationId) {
+    try {
+        // 서버에 읽음 처리 요청 (실제 구현 시)
+        // await fetch(`/api/notifications/${notificationId}/read`, { method: 'POST' });
+        
+        // 로컬에서 읽음 처리
+        const notification = notifications.find(n => n.id === notificationId);
+        if (notification) {
+            notification.read = true;
+            
+            // 알림 타입에 따라 다른 동작
+            switch(notification.type) {
+                case 'CHAT':
+                    window.location.href = '/chat';
+                    break;
+                case 'RESERVATION_CONFIRMED':
+                case 'RESERVATION_UPDATED':
+                    window.location.href = '/booking';
+                    break;
+                default:
+                    break;
+            }
+            
+            // 알림 다시 렌더링
+            renderNotifications();
+            
+            showMessage('알림을 확인했습니다.');
+        }
+    } catch (error) {
+        console.error('알림 읽음 처리 실패:', error);
+    }
+}
 
 // 알림 팝업 초기화
 function initializeNotificationPopup() {
@@ -17,7 +171,7 @@ function initializeNotificationPopup() {
     const notificationsSection = document.querySelector('.notifications-section');
     if (notificationsSection) {
         notificationsSection.addEventListener('click', function(e) {
-            if (!e.target.closest('.view-all')) {
+            if (!e.target.closest('.view-all') && !e.target.closest('.notification-item')) {
                 openNotificationPopup();
             }
         });
@@ -207,7 +361,74 @@ function openNotificationModal() {
     if (modal) {
         modal.classList.add('show');
         document.body.style.overflow = 'hidden'; // 배경 스크롤 방지
+        
+        // 모달 내용 렌더링
+        renderNotificationModal();
     }
+}
+
+// 알림 모달 내용 렌더링
+function renderNotificationModal() {
+    const modalList = document.getElementById('notificationModalList');
+    if (!modalList) return;
+    
+    const allNotifications = notifications.filter(n => !n.read);
+    
+    if (allNotifications.length === 0) {
+        modalList.innerHTML = `
+            <li style="text-align: center; padding: 60px; color: #adb5bd;">
+                <i class="fas fa-inbox" style="font-size: 64px; margin-bottom: 20px; display: block;"></i>
+                <p style="margin: 0; font-size: 16px;">새로운 소식이 없습니다</p>
+            </li>
+        `;
+        return;
+    }
+    
+    modalList.innerHTML = allNotifications.map(notification => {
+        const icon = getNotificationIcon(notification.type);
+        const timeAgo = getTimeAgo(notification.createdAt);
+        
+        let detailHtml = '';
+        if (notification.type === 'RESERVATION_CONFIRMED') {
+            detailHtml = `
+                <div class="notification-details">
+                    <p><strong>예약 내용:</strong> ${notification.reservationTitle}</p>
+                    <p><strong>예약 일시:</strong> ${notification.reservationDate}</p>
+                    <p><strong>업체명:</strong> ${notification.companyName}</p>
+                </div>
+            `;
+        } else if (notification.type === 'RESERVATION_UPDATED') {
+            detailHtml = `
+                <div class="notification-details">
+                    <p><strong>예약 내용:</strong> ${notification.reservationTitle}</p>
+                    <p><strong>변경 전:</strong> ${notification.oldDate}</p>
+                    <p><strong>변경 후:</strong> ${notification.newDate}</p>
+                    <p><strong>업체명:</strong> ${notification.companyName}</p>
+                </div>
+            `;
+        } else if (notification.type === 'CHAT') {
+            detailHtml = `
+                <div class="notification-details">
+                    <p><strong>업체명:</strong> ${notification.companyName}</p>
+                    <p>${notification.message}</p>
+                </div>
+            `;
+        }
+        
+        return `
+            <li class="notification-modal-item" onclick="markAsRead(${notification.id})">
+                <div class="notification-item">
+                    <div class="notification-line"></div>
+                    <div class="notification-header">
+                        <span class="notification-icon">${icon}</span>
+                        <span class="notification-text">${notification.title}</span>
+                        <span class="notification-time">${timeAgo}</span>
+                    </div>
+                    ${detailHtml}
+                </div>
+            </li>
+        `;
+    }).join('');
 }
 
 // 알림 모달 닫기
@@ -254,28 +475,26 @@ function closeProfileModal() {
 }
 
 // 프로필 저장
-function saveProfile() {
+async function saveProfile() {
     const modal = document.getElementById('profileModal');
     if (!modal) return;
     
     // 폼 데이터 수집
+    const nameInput = modal.querySelector('.profile-form input[type="text"]:not([readonly])');
+    const currentPasswordInput = document.getElementById('currentPassword');
+    const newPasswordInput = document.getElementById('newPassword');
+    const confirmPasswordInput = document.getElementById('confirmPassword');
+    
     const formData = {
-        nickname: modal.querySelector('input[type="text"]').value,
-        email: modal.querySelector('input[type="email"]').value,
-        gender: modal.querySelector('select').value,
-        currentPassword: modal.querySelector('input[placeholder="현재 비밀번호를 입력하세요"]').value,
-        newPassword: modal.querySelector('input[placeholder="새 비밀번호를 입력하세요"]').value,
-        confirmPassword: modal.querySelector('input[placeholder="새 비밀번호를 다시 입력하세요"]').value
+        name: nameInput ? nameInput.value : '',
+        currentPassword: currentPasswordInput ? currentPasswordInput.value : '',
+        newPassword: newPasswordInput ? newPasswordInput.value : '',
+        confirmPassword: confirmPasswordInput ? confirmPasswordInput.value : ''
     };
     
     // 유효성 검사
-    if (!formData.nickname.trim()) {
-        alert('닉네임을 입력해주세요.');
-        return;
-    }
-    
-    if (!formData.email.trim()) {
-        alert('이메일을 입력해주세요.');
+    if (!formData.name.trim()) {
+        alert('이름을 입력해주세요.');
         return;
     }
     
@@ -296,37 +515,59 @@ function saveProfile() {
             return;
         }
         
-        if (formData.newPassword.length < 6) {
-            alert('비밀번호는 6자 이상이어야 합니다.');
+        if (formData.newPassword.length < 8) {
+            alert('비밀번호는 8자 이상이어야 합니다.');
             return;
         }
     }
     
-    // 저장 처리 (실제로는 서버에 전송)
-    console.log('프로필 저장:', formData);
-    
-    // 성공 메시지
-    alert('정보가 성공적으로 저장되었습니다.');
-    
-    // 메인 페이지 정보 업데이트
-    updateMainProfile(formData);
-    
-    // 모달 닫기
-    closeProfileModal();
+    try {
+        // 서버에 데이터 전송
+        const response = await fetch('/api/user/profile', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name: formData.name,
+                currentPassword: formData.currentPassword || null,
+                newPassword: formData.newPassword || null
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok && result.success) {
+            alert('정보가 성공적으로 저장되었습니다.');
+            
+            // 메인 페이지 정보 업데이트
+            updateMainProfile({ name: formData.name });
+            
+            // 비밀번호 필드 초기화
+            if (currentPasswordInput) currentPasswordInput.value = '';
+            if (newPasswordInput) newPasswordInput.value = '';
+            if (confirmPasswordInput) confirmPasswordInput.value = '';
+            
+            // 모달 닫기
+            closeProfileModal();
+            
+            // 페이지 새로고침 (선택사항)
+            // window.location.reload();
+        } else {
+            alert(result.message || '저장에 실패했습니다.');
+        }
+    } catch (error) {
+        console.error('프로필 저장 실패:', error);
+        alert('저장 중 오류가 발생했습니다.');
+    }
 }
 
 // 메인 페이지 프로필 정보 업데이트
 function updateMainProfile(formData) {
     // 사용자 이름 업데이트
-    const userName = document.querySelector('.user-name');
-    if (userName) {
-        userName.textContent = `${formData.nickname} 님`;
-    }
-    
-    // 사용자 ID 업데이트 (닉네임으로)
-    const userId = document.querySelector('.user-id');
-    if (userId) {
-        userId.textContent = formData.nickname;
+    const userName = document.querySelector('.mypage-user-name');
+    if (userName && formData.name) {
+        userName.textContent = `${formData.name} 님`;
     }
 }
 
@@ -359,5 +600,79 @@ function handleProfileImage(input) {
             console.log('프로필 이미지가 업데이트되었습니다.');
         };
         reader.readAsDataURL(file);
+    }
+}
+
+// 비밀번호 보기 토글
+function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    const button = input.nextElementSibling;
+    const icon = button.querySelector('i');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+
+// 비밀번호 강도 체크
+function checkPasswordStrength(password) {
+    const strengthBar = document.querySelector('#passwordStrength .password-strength-bar');
+    const strengthContainer = document.getElementById('passwordStrength');
+    
+    if (!password) {
+        strengthContainer.style.display = 'none';
+        return;
+    }
+    
+    strengthContainer.style.display = 'block';
+    
+    let strength = 0;
+    
+    // 길이 체크
+    if (password.length >= 8) strength++;
+    if (password.length >= 12) strength++;
+    
+    // 복잡도 체크
+    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+    if (/[0-9]/.test(password)) strength++;
+    if (/[^a-zA-Z0-9]/.test(password)) strength++;
+    
+    // 강도 표시
+    strengthBar.className = 'password-strength-bar';
+    if (strength <= 2) {
+        strengthBar.classList.add('password-strength-weak');
+    } else if (strength <= 4) {
+        strengthBar.classList.add('password-strength-medium');
+    } else {
+        strengthBar.classList.add('password-strength-strong');
+    }
+    
+    // 비밀번호 일치 확인도 함께 체크
+    checkPasswordMatch();
+}
+
+// 비밀번호 일치 확인
+function checkPasswordMatch() {
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const messageDiv = document.getElementById('passwordMatchMessage');
+    
+    if (!confirmPassword) {
+        messageDiv.innerHTML = '';
+        return;
+    }
+    
+    if (newPassword === confirmPassword) {
+        messageDiv.className = 'password-match-message success';
+        messageDiv.innerHTML = '<i class="fas fa-check-circle"></i> 비밀번호가 일치합니다';
+    } else {
+        messageDiv.className = 'password-match-message error';
+        messageDiv.innerHTML = '<i class="fas fa-times-circle"></i> 비밀번호가 일치하지 않습니다';
     }
 }

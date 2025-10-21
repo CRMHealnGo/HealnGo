@@ -43,21 +43,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // 알림 버튼 기능
-    const notificationBtn = document.querySelector('.notification-btn');
-    if (notificationBtn) {
-        notificationBtn.addEventListener('click', function() {
-            // 알림 패널 토글
-            toggleNotificationPanel();
-            
-            // 알림 읽음 처리
-            markNotificationsAsRead();
-        });
-        
-        // 알림 개수 업데이트
-        updateNotificationCount();
-    }
-    
     // 사용자 프로필 드롭다운
     const userProfile = document.querySelector('.user-profile');
     const userDropdown = document.querySelector('.user-dropdown');
@@ -74,87 +59,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 closeUserDropdown();
             }
         });
-    }
-    
-    // 알림 패널 토글
-    function toggleNotificationPanel() {
-        // 알림 패널이 없다면 생성
-        let notificationPanel = document.querySelector('.notification-panel');
-        
-        if (!notificationPanel) {
-            notificationPanel = createNotificationPanel();
-            document.body.appendChild(notificationPanel);
-        }
-        
-        notificationPanel.classList.toggle('show');
-    }
-    
-    // 알림 패널 생성
-    function createNotificationPanel() {
-        const panel = document.createElement('div');
-        panel.className = 'notification-panel';
-        panel.innerHTML = `
-            <div class="notification-header">
-                <h3>알림</h3>
-                <button class="close-btn">&times;</button>
-            </div>
-            <div class="notification-content">
-                <div class="notification-item">
-                    <div class="notification-icon">🔔</div>
-                    <div class="notification-text">
-                        <strong>새로운 사용자 가입</strong>
-                        <p>김민수님이 가입했습니다.</p>
-                        <span class="notification-time">5분 전</span>
-                    </div>
-                </div>
-                <div class="notification-item">
-                    <div class="notification-icon">⚠️</div>
-                    <div class="notification-text">
-                        <strong>신고 접수</strong>
-                        <p>사용자 신고가 접수되었습니다.</p>
-                        <span class="notification-time">10분 전</span>
-                    </div>
-                </div>
-                <div class="notification-item">
-                    <div class="notification-icon">📊</div>
-                    <div class="notification-text">
-                        <strong>일일 리포트</strong>
-                        <p>오늘의 통계 리포트가 준비되었습니다.</p>
-                        <span class="notification-time">1시간 전</span>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        // 닫기 버튼 이벤트
-        panel.querySelector('.close-btn').addEventListener('click', function() {
-            panel.classList.remove('show');
-        });
-        
-        return panel;
-    }
-    
-    // 알림 읽음 처리
-    function markNotificationsAsRead() {
-        // 실제로는 서버에 알림 읽음 상태 전송
-        console.log('알림을 읽음 처리했습니다.');
-        updateNotificationCount(0);
-    }
-    
-    // 알림 개수 업데이트
-    function updateNotificationCount(count = 3) {
-        let badge = notificationBtn.querySelector('.notification-badge');
-        
-        if (count > 0) {
-            if (!badge) {
-                badge = document.createElement('span');
-                badge.className = 'notification-badge';
-                notificationBtn.appendChild(badge);
-            }
-            badge.textContent = count > 99 ? '99+' : count;
-        } else if (badge) {
-            badge.remove();
-        }
     }
     
     // 사용자 드롭다운 토글

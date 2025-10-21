@@ -13,6 +13,8 @@ import com.example.ApiRound.Service.ClickLogService;
 import com.example.ApiRound.Service.CommunityPostService;
 import com.example.ApiRound.crm.hyeonah.notice.Notice;
 import com.example.ApiRound.crm.hyeonah.notice.NoticeService;
+import com.example.ApiRound.crm.hyeonah.review.UserReviewDto;
+import com.example.ApiRound.crm.hyeonah.review.UserReviewService;
 import com.example.ApiRound.entity.CommunityPost;
 
 @Controller
@@ -21,11 +23,14 @@ public class HelloController {
     private final ClickLogService clickLogService;
     private final CommunityPostService communityPostService;
     private final NoticeService noticeService;
+    private final UserReviewService userReviewService;
 
-    public HelloController(ClickLogService clickLogService, CommunityPostService communityPostService, NoticeService noticeService) {
+    public HelloController(ClickLogService clickLogService, CommunityPostService communityPostService, 
+                          NoticeService noticeService, UserReviewService userReviewService) {
         this.clickLogService = clickLogService;
         this.communityPostService = communityPostService;
         this.noticeService = noticeService;
+        this.userReviewService = userReviewService;
     }
     @GetMapping("/main")
     public String main(Model model) {
@@ -67,6 +72,19 @@ public class HelloController {
     @GetMapping("/service/detail/{serviceId}")
     public String serviceDetail(@PathVariable Long serviceId, Model model) {
         model.addAttribute("serviceId", serviceId);
+        
+        // 리뷰 목록 조회 (serviceId 기반)
+        List<UserReviewDto> reviews = userReviewService.getReviewsByServiceId(serviceId);
+        model.addAttribute("reviews", reviews);
+        
+        // 평균 평점 조회
+        Double averageRating = userReviewService.getAverageRatingByServiceId(serviceId);
+        model.addAttribute("averageRating", averageRating);
+        
+        // 리뷰 개수 조회
+        Long reviewCount = userReviewService.getReviewCountByServiceId(serviceId);
+        model.addAttribute("reviewCount", reviewCount);
+        
         return "service_detail";
     }
 

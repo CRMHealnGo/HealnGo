@@ -52,27 +52,17 @@
 
             <!-- 알림 및 예약내역 섹션 (가로 배치) -->
             <div class="content-section">
-                <!-- 알림 섹션 -->
+                <!-- 새로운 소식 섹션 -->
                 <section class="notifications-section card">
                     <div class="section-header">
-                        <h3>알림</h3>
+                        <h3>🎉 새로운 소식</h3>
                         <a href="#" class="view-all" onclick="openNotificationModal()">View all ></a>
                     </div>
-                    <ul class="notification-list">
-                        <li>
-                            <span class="notification-icon"><i class="fas fa-bell"></i></span>
-                            <span class="notification-text">새로운 예약이 확정되었습니다.</span>
-                            <span class="notification-time">2시간 전</span>
-                        </li>
-                        <li>
-                            <span class="notification-icon"><i class="fas fa-calendar-alt"></i></span>
-                            <span class="notification-text">예약 일정이 변경되었습니다.</span>
-                            <span class="notification-time">1일 전</span>
-                        </li>
-                        <li>
-                            <span class="notification-icon"><i class="fas fa-comment-dots"></i></span>
-                            <span class="notification-text">새로운 메시지가 도착했습니다.</span>
-                            <span class="notification-time">3일 전</span>
+                    <ul class="notification-list" id="notificationList">
+                        <!-- JavaScript로 동적 생성 -->
+                        <li class="no-notifications" style="text-align: center; padding: 40px; color: #adb5bd;">
+                            <i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>
+                            <p style="margin: 0;">새로운 소식이 없습니다</p>
                         </li>
                     </ul>
                 </section>
@@ -137,12 +127,8 @@
                     
                     <div class="profile-form">
                         <div class="form-group">
-                            <label>아이디</label>
-                            <input type="text" th:value="${userId}" readonly>
-                        </div>
-                        <div class="form-group">
                             <label>이름</label>
-                            <input type="text" th:value="${userName}">
+                            <input type="text" th:value="${userName}" placeholder="이름을 입력하세요">
                         </div>
                         <div class="form-group">
                             <label>이메일</label>
@@ -153,18 +139,41 @@
                 
                 <div class="password-section">
                     <h4>비밀번호 변경</h4>
+                    
+                    <div class="password-requirements">
+                        <p>비밀번호 요구사항</p>
+                        <ul>
+                            <li>최소 8자 이상</li>
+                            <li>영문, 숫자 조합 권장</li>
+                            <li>특수문자 사용 가능</li>
+                        </ul>
+                    </div>
+                    
                     <div class="password-form">
                         <div class="form-group">
                             <label>현재 비밀번호</label>
-                            <input type="password" placeholder="현재 비밀번호를 입력하세요">
+                            <input type="password" id="currentPassword" placeholder="현재 비밀번호를 입력하세요">
+                            <button type="button" class="password-toggle" onclick="togglePassword('currentPassword')">
+                                <i class="fas fa-eye"></i>
+                            </button>
                         </div>
                         <div class="form-group">
                             <label>새 비밀번호</label>
-                            <input type="password" placeholder="새 비밀번호를 입력하세요">
+                            <input type="password" id="newPassword" placeholder="새 비밀번호를 입력하세요" oninput="checkPasswordStrength(this.value)">
+                            <button type="button" class="password-toggle" onclick="togglePassword('newPassword')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <div class="password-strength" id="passwordStrength" style="display: none;">
+                                <div class="password-strength-bar"></div>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label>비밀번호 확인</label>
-                            <input type="password" placeholder="새 비밀번호를 다시 입력하세요">
+                            <input type="password" id="confirmPassword" placeholder="새 비밀번호를 다시 입력하세요" oninput="checkPasswordMatch()">
+                            <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <div class="password-match-message" id="passwordMatchMessage"></div>
                         </div>
                     </div>
                 </div>
@@ -177,53 +186,18 @@
         </div>
     </div>
 
-    <!-- 알림 모달 -->
+    <!-- 새로운 소식 모달 -->
     <div id="notificationModal" class="notification-modal">
         <div class="notification-modal-content">
             <div class="notification-modal-header">
-                <h3>알림</h3>
+                <h3>🎉 새로운 소식</h3>
                 <button class="notification-close-btn" onclick="closeNotificationModal()">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="notification-modal-body">
-                <ul class="notification-modal-list">
-                    <li>
-                        <div class="notification-item">
-                            <div class="notification-line"></div>
-                            <span class="notification-text">문의하기 답변 완료되었습니다.</span>
-                        </div>
-                    </li>
-                    <li>
-                        <div class="notification-item">
-                            <div class="notification-line"></div>
-                            <span class="notification-text">노란리본 업체에게 채팅이 왔습니다.</span>
-                        </div>
-                    </li>
-                    <li>
-                        <div class="notification-item">
-                            <div class="notification-line"></div>
-                            <span class="notification-text">화이트닝 패키지 예약 완료되었습니다.</span>
-                        </div>
-                    </li>
-                    <li>
-                        <div class="notification-item">
-                            <div class="notification-line"></div>
-                            <span class="notification-text">D-3 여름패키지</span>
-                        </div>
-                    </li>
-                    <li>
-                        <div class="notification-item">
-                            <div class="notification-line"></div>
-                            <span class="notification-text">문의하기 답변 완료되었습니다.</span>
-                        </div>
-                    </li>
-                    <li>
-                        <div class="notification-item">
-                            <div class="notification-line"></div>
-                            <span class="notification-text">노란리본 업체에게 채팅이 왔습니다.</span>
-                        </div>
-                    </li>
+                <ul class="notification-modal-list" id="notificationModalList">
+                    <!-- JavaScript로 동적 생성 -->
                 </ul>
             </div>
         </div>

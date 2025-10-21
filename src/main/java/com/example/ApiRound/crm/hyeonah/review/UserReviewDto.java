@@ -12,8 +12,9 @@ public class UserReviewDto {
     private Integer userId;
     private String userName; // 사용자 이름
     private Long itemId;
+    private Long serviceId;  // medical_service.service_id
     private String itemName; // 아이템 이름
-    private Integer bookingId;
+    private Long bookingId;  // reservations.id (Long)
     private Byte rating;
     private String title;
     private String content;
@@ -23,7 +24,7 @@ public class UserReviewDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     
-    // 답글 목록
+    // 답글 정보
     private List<UserReviewReplyDto> replies;
     
     // 통계

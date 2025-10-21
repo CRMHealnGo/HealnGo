@@ -171,6 +171,22 @@ public class SocialUsersAuthController {
         if (userOpt.isPresent()) {
             SocialUsers user = userOpt.get();
             
+            // 사용자 상태 검증
+            if (!"ACTIVE".equals(user.getStatus())) {
+                System.out.println("로그인 거부: 사용자 상태가 ACTIVE가 아님 - " + user.getStatus());
+                response.put("success", false);
+                response.put("message", "계정이 비활성화되었습니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            // 삭제된 사용자 검증
+            if (Boolean.TRUE.equals(user.getIsDeleted())) {
+                System.out.println("로그인 거부: 삭제된 사용자");
+                response.put("success", false);
+                response.put("message", "계정이 삭제되었습니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
             // 세션에 사용자 정보 저장
             session.setAttribute("userId", user.getUserId());
             session.setAttribute("userEmail", user.getEmail());

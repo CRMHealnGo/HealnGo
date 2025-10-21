@@ -57,11 +57,26 @@ public class GoogleOAuthController {
             String name = (String) userInfo.get("name");
             
             // 3. 사용자 DB 조회 또는 생성
+            System.out.println("Google OAuth: 사용자 조회 시작 - " + email);
             Optional<SocialUsers> userOpt = socialUsersRepository.findByEmail(email);
+            System.out.println("Google OAuth: 사용자 조회 결과 - " + (userOpt.isPresent() ? "존재" : "없음"));
             SocialUsers user;
             
             if (userOpt.isPresent()) {
                 user = userOpt.get();
+                
+                // 사용자 상태 검증
+                if (!"ACTIVE".equals(user.getStatus())) {
+                    System.out.println("로그인 거부: 사용자 상태가 ACTIVE가 아님 - " + user.getStatus());
+                    return new RedirectView("/login?error=account_inactive");
+                }
+                
+                // 삭제된 사용자 검증
+                if (Boolean.TRUE.equals(user.getIsDeleted())) {
+                    System.out.println("로그인 거부: 삭제된 사용자");
+                    return new RedirectView("/login?error=account_deleted");
+                }
+                
                 user.setLastLoginAt(LocalDateTime.now());
                 socialUsersRepository.save(user);
             } else {
@@ -84,6 +99,15 @@ public class GoogleOAuthController {
             
             return new RedirectView("/main");
             
+        } catch (RuntimeException e) {
+            // 상태 검증 실패 시
+            if (e.getMessage().contains("계정이 비활성화") || e.getMessage().contains("계정이 삭제")) {
+                System.err.println("Google OAuth 상태 검증 실패: " + e.getMessage());
+                return new RedirectView("/login?error=account_inactive");
+            }
+            System.err.println("Google OAuth error: " + e.getMessage());
+            e.printStackTrace();
+            return new RedirectView("/login?error=google_oauth_failed");
         } catch (Exception e) {
             System.err.println("Google OAuth error: " + e.getMessage());
             e.printStackTrace();

@@ -33,6 +33,8 @@ public class ReservationDto {
     // FK 정보
     private Integer userId;
     private Integer companyId;
+    private Long serviceId;
+    private Long itemId;
 
     // 조인된 정보 (예약 확인 화면용)
     private String customerName;    // SocialUsers.name

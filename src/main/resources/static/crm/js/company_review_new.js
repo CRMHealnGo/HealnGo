@@ -73,13 +73,15 @@ if (!window.ReviewAPI) {
 
 // ========== 초기화 ==========
 document.addEventListener('DOMContentLoaded', async function () {
-    currentCompanyId = await getCurrentCompanyId();
+  currentCompanyId = await getCurrentCompanyId();
   console.log('🔍 getCurrentCompanyId 결과:', currentCompanyId);
-    
-  // 임시 하드코딩 (테스트용)
-    if (!currentCompanyId) {
-    console.log('⚠️ API에서 companyId를 가져오지 못함. 하드코딩으로 테스트...');
-    currentCompanyId = 1; // 임시로 1로 설정
+  
+  // API에서 companyId를 가져오지 못한 경우
+  if (!currentCompanyId) {
+    console.error('❌ 업체 ID를 가져올 수 없습니다. 로그인이 필요합니다.');
+    alert('로그인이 필요합니다.');
+    window.location.href = '/crm/crm_login';
+    return;
   }
   
   console.log('🔍 최종 currentCompanyId:', currentCompanyId);
@@ -94,17 +96,37 @@ document.addEventListener('DOMContentLoaded', async function () {
 // ========== 현재 업체 ID ==========
 async function getCurrentCompanyId() {
     try {
+      console.log('🔍 /crm/api/current-company API 호출 중...');
       const res = await fetch('/crm/api/current-company', {
         credentials: 'include',
         cache: 'no-store',
         headers: { 'Accept': 'application/json' }
       });
-      if (!res.ok) return null;                   // 401/403/302 등
+      
+      console.log('🔍 API 응답 상태:', res.status);
+      console.log('🔍 API 응답 헤더:', res.headers.get('content-type'));
+      
+      if (!res.ok) {
+        console.log('❌ API 응답 실패:', res.status);
+        return null;
+      }
+      
       const ct = (res.headers.get('content-type') || '').toLowerCase();
-      if (!ct.includes('application/json')) return null;  // HTML이면 리다이렉트
+      console.log('🔍 Content-Type:', ct);
+      
+      if (!ct.includes('application/json')) {
+        console.log('❌ JSON이 아닌 응답:', ct);
+        const text = await res.text();
+        console.log('❌ 응답 내용:', text.substring(0, 200));
+        return null;
+      }
+      
       const data = await res.json();
+      console.log('🔍 API 응답 데이터:', data);
+      
       return (data && data.companyId != null) ? data.companyId : null;
-    } catch {
+    } catch (error) {
+      console.error('❌ API 호출 오류:', error);
       return null;
     }
   }
@@ -126,7 +148,7 @@ async function loadReviewData() {
       throw new Error('리뷰 조회 실패: ' + response.status);
     }
 
-                const reviews = await response.json();
+    const reviews = await response.json();
     console.log('[reviews] api size:', reviews?.length);
     console.log('🔍 API 응답 데이터:', reviews);
 
@@ -145,7 +167,8 @@ async function loadReviewData() {
       updatedAt: r[10],
       itemName: r[11],
       userName: r[12],
-      imageUrl: `/review/${r[0]}/image`,
+      imageUrl: r[7] ? `/review/${r[0]}/image` : null, // image_mime이 있을 때만 이미지 URL 설정
+      imageMime: r[7], // image_mime 정보 저장
       replies: []
     }));
 
@@ -153,16 +176,16 @@ async function loadReviewData() {
 
     await loadAllReplies();       // 각 리뷰의 답글 로드
     renderReviewList(reviewData); // 리스트 렌더
-                if (reviewData.length > 0) {
+    if (reviewData.length > 0) {
       await selectReview(reviewData[0]); // 첫 리뷰 선택
-                } else {
-                    showNoReviewsMessage();
-                }
+    } else {
+      showNoReviewsMessage();
+    }
   } catch (e) {
     console.error('Failed to load review data:', e);
     // 네트워크/서버 에러일 때만 더미 사용
     source = 'dummy';
-            loadTestData();
+    loadTestData();
   } finally {
     showDataSourceBanner(`companyId=${currentCompanyId} · source=${source}`);
   }
@@ -186,51 +209,51 @@ function renderReviewList(reviews) {
   const reviewListContainer = document.querySelector('.review-list');
   if (!reviewListContainer) return;
 
-    reviewListContainer.innerHTML = '';
-    
+  reviewListContainer.innerHTML = '';
+
   if (!reviews || reviews.length === 0) {
-        reviewListContainer.innerHTML = '<div class="empty-message">리뷰가 없습니다.</div>';
-        return;
-    }
-    
+    reviewListContainer.innerHTML = '<div class="empty-message">리뷰가 없습니다.</div>';
+    return;
+  }
+
   reviews.forEach((review) => {
-        const hasReply = review.replies && review.replies.length > 0;
-        const status = hasReply ? 'completed' : 'pending';
-        const statusText = hasReply ? '답변 완료' : '답변 대기';
-        
-        const reviewItem = document.createElement('div');
-        reviewItem.className = 'review-item';
-        reviewItem.dataset.reviewId = review.reviewId;
-        reviewItem.dataset.status = status;
-        
-        reviewItem.innerHTML = `
-            <div class="review-header">
-                <span class="review-id">#${String(review.reviewId).padStart(4, '0')}</span>
-                <span class="status-badge ${status}">${statusText}</span>
-            </div>
+    const hasReply = review.replies && review.replies.length > 0;
+    const status = hasReply ? 'completed' : 'pending';
+    const statusText = hasReply ? '답변 완료' : '답변 대기';
+
+    const reviewItem = document.createElement('div');
+    reviewItem.className = 'review-item';
+    reviewItem.dataset.reviewId = review.reviewId;
+    reviewItem.dataset.status = status;
+
+    reviewItem.innerHTML = `
+      <div class="review-header">
+        <span class="review-id">#${String(review.reviewId).padStart(4, '0')}</span>
+        <span class="status-badge ${status}">${statusText}</span>
+      </div>
       <h4>${escapeHtml(review.title || '제목 없음')}</h4>
       <p class="customer">고객 : ${escapeHtml(maskName(review.userName || '익명'))}</p>
       <p class="review-text">${escapeHtml(truncateText(review.content, 50))}</p>
-            <div class="review-footer">
-                <div class="rating">
-                    <i class="fas fa-star"></i>
-                    <span>${review.rating || 0}</span>
-                </div>
-                <span class="date">${formatDate(review.createdAt)}</span>
+      <div class="review-footer">
+        <div class="rating">
+          <i class="fas fa-star"></i>
+          <span>${review.rating || 0}</span>
+        </div>
+        <span class="date">${formatDate(review.createdAt)}</span>
         <span class="item-name">${escapeHtml(review.itemName || '')}</span>
-            </div>
-        `;
-        
+      </div>
+    `;
+
     reviewItem.addEventListener('click', () => selectReview(review));
-        reviewListContainer.appendChild(reviewItem);
-    });
+    reviewListContainer.appendChild(reviewItem);
+  });
 }
 
 // ========== 리뷰 선택 & 상세 갱신 ==========
 async function selectReview(review) {
   // 리스트에서 선택 표시
   document.querySelectorAll('.review-item').forEach((el) => el.classList.remove('selected'));
-    const selectedItem = document.querySelector(`[data-review-id="${review.reviewId}"]`);
+  const selectedItem = document.querySelector(`[data-review-id="${review.reviewId}"]`);
   if (selectedItem) selectedItem.classList.add('selected');
 
   selectedReview = review; // 항상 객체
@@ -250,83 +273,91 @@ async function selectReview(review) {
 
 // 상세 패널 갱신
 function updateReviewDetail(review) {
-    if (!review) return;
+  if (!review) return;
 
-    const hasReply = review.replies && review.replies.length > 0;
-    const status = hasReply ? 'completed' : 'pending';
-    const statusText = hasReply ? '답변 완료' : '답변 대기';
+  const hasReply = review.replies && review.replies.length > 0;
+  const status = hasReply ? 'completed' : 'pending';
+  const statusText = hasReply ? '답변 완료' : '답변 대기';
 
   // 헤더
-    const detailHeader = document.querySelector('.detail-header');
-    if (detailHeader) {
-        detailHeader.innerHTML = `
-            <span class="review-id">#${String(review.reviewId).padStart(4, '0')}</span>
-            <span class="status-badge ${status}">${statusText}</span>
-        `;
-    }
+  const detailHeader = document.querySelector('.detail-header');
+  if (detailHeader) {
+    detailHeader.innerHTML = `
+      <span class="review-id">#${String(review.reviewId).padStart(4, '0')}</span>
+      <span class="status-badge ${status}">${statusText}</span>
+    `;
+  }
 
   // 평점
-    const stars = document.querySelector('.stars');
-    const ratingScore = document.querySelector('.rating-score');
-    if (stars) stars.innerHTML = generateStars(review.rating || 0);
-    if (ratingScore) ratingScore.textContent = review.rating || 0;
+  const stars = document.querySelector('.stars');
+  const ratingScore = document.querySelector('.rating-score');
+  if (stars) stars.innerHTML = generateStars(review.rating || 0);
+  if (ratingScore) ratingScore.textContent = review.rating || 0;
 
   // 기본 정보
-    const detailInfo = document.querySelector('.detail-info');
-    if (detailInfo) {
-        detailInfo.innerHTML = `
+  const detailInfo = document.querySelector('.detail-info');
+  if (detailInfo) {
+    detailInfo.innerHTML = `
       <h3>${escapeHtml(review.title || '제목 없음')}</h3>
       <p class="customer">고객 : ${escapeHtml(maskName(review.userName || '익명'))}</p>
-            <div class="detail-meta">
-                <span class="date">작성일: ${formatDate(review.createdAt)}</span>
+      <div class="detail-meta">
+        <span class="date">작성일: ${formatDate(review.createdAt)}</span>
         <span class="item">아이템: ${escapeHtml(review.itemName || '정보 없음')}</span>
-            </div>
-        `;
-    }
+      </div>
+    `;
+  }
 
   // 고객 리뷰 본문
-    const customerReview = document.querySelector('.customer-review');
-    if (customerReview) {
-        customerReview.textContent = review.content || '내용 없음';
-    }
+  const customerReview = document.querySelector('.customer-review');
+  if (customerReview) {
+    customerReview.textContent = review.content || '내용 없음';
+  }
 
   // 리뷰 이미지
-    if (review.imageUrl) {
-        const reviewContentBox = document.querySelector('.review-content-box');
-        if (reviewContentBox) {
-            const existingImage = reviewContentBox.querySelector('.review-image');
-      if (existingImage) existingImage.remove();
-            const imageDiv = document.createElement('div');
-            imageDiv.className = 'review-image';
-            imageDiv.innerHTML = `<img src="${review.imageUrl}" alt="리뷰 이미지" style="max-width: 100%; border-radius: 8px; margin-top: 10px;">`;
-            reviewContentBox.appendChild(imageDiv);
-        }
+  const reviewContentBox = document.querySelector('.review-content-box');
+  if (reviewContentBox) {
+    const existingImage = reviewContentBox.querySelector('.review-image');
+    if (existingImage) existingImage.remove();
+    
+    const imageDiv = document.createElement('div');
+    imageDiv.className = 'review-image';
+    
+    if (review.imageUrl && review.imageMime) {
+      // 이미지가 있는 경우
+      imageDiv.innerHTML = `<img src="${review.imageUrl}" alt="리뷰 이미지" style="max-width: 100%; border-radius: 8px; margin-top: 10px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                           <div style="display:none; color: #999; font-style: italic; margin-top: 10px;">📷 사진 없음</div>`;
+    } else {
+      // 이미지가 없는 경우
+      imageDiv.innerHTML = `<div style="color: #999; font-style: italic; margin-top: 10px;">📷 사진 없음</div>`;
     }
+    
+    reviewContentBox.appendChild(imageDiv);
+  }
 
   // 판매자 답변 섹션
-    const replySection = document.querySelector('.reply-section');
-    const replyEditSection = document.querySelector('.reply-edit-section');
-    const editReplyBtn = document.querySelector('.edit-reply-btn');
-    const textarea = document.querySelector('.reply-textarea');
+  const replySection = document.querySelector('.reply-section');
+  const replyEditSection = document.querySelector('.reply-edit-section');
+  const editReplyBtn = document.querySelector('.edit-reply-btn');
+  const textarea = document.querySelector('.reply-textarea');
 
   if (hasReply) {
     const reply = review.replies[0]; // 최신 하나만 노출
-        const sellerReply = document.querySelector('.seller-reply');
+    const sellerReply = document.querySelector('.seller-reply');
     if (sellerReply) sellerReply.textContent = reply.body || '';
     if (textarea) textarea.value = reply.body || '';
-        if (replySection) replySection.style.display = 'block';
-        if (editReplyBtn) {
-            editReplyBtn.textContent = '답변 수정';
-            editReplyBtn.style.display = 'block';
-        }
-    } else {
-        if (replySection) replySection.style.display = 'none';
-        if (textarea) textarea.value = '';
-        if (editReplyBtn) {
-            editReplyBtn.textContent = '답변 작성';
-            editReplyBtn.style.display = 'block';
-        }
+    if (replySection) replySection.style.display = 'block';
+    if (editReplyBtn) {
+      editReplyBtn.textContent = '답변 수정';
+      editReplyBtn.style.display = 'block';
     }
+  } else {
+    if (replySection) replySection.style.display = 'none';
+    if (textarea) textarea.value = '';
+    if (editReplyBtn) {
+      editReplyBtn.textContent = '답변 작성';
+      editReplyBtn.style.display = 'block';
+    }
+  }
 
   if (replyEditSection) replyEditSection.style.display = 'none';
 }
@@ -336,42 +367,42 @@ function setupFilterButtons() {
   document.querySelectorAll('.filter-btn').forEach((btn) => {
     btn.addEventListener('click', function () {
       document.querySelectorAll('.filter-btn').forEach((b) => b.classList.remove('active'));
-            this.classList.add('active');
-            currentFilter = this.dataset.filter;
-            filterReviews(currentFilter);
-        });
+      this.classList.add('active');
+      currentFilter = this.dataset.filter;
+      filterReviews(currentFilter);
     });
+  });
 }
 
 function setupSearch() {
-    const searchInput = document.getElementById('reviewSearch');
+  const searchInput = document.getElementById('reviewSearch');
   if (!searchInput) return;
   searchInput.addEventListener('input', function () {
-            const searchTerm = this.value.toLowerCase();
-            filterReviews(currentFilter, searchTerm);
-        });
+    const searchTerm = this.value.toLowerCase();
+    filterReviews(currentFilter, searchTerm);
+  });
 }
 
 function filterReviews(filter, searchTerm = '') {
-    const reviewItems = document.querySelectorAll('.review-item');
-    
+  const reviewItems = document.querySelectorAll('.review-item');
+
   reviewItems.forEach((item) => {
     const reviewId = Number(item.dataset.reviewId);
     const review = reviewData.find((r) => r.reviewId === reviewId);
-        if (!review) return;
-        
-        let shouldShow = true;
-        const hasReply = review.replies && review.replies.length > 0;
-        const status = hasReply ? 'completed' : 'pending';
+    if (!review) return;
 
-        if (filter !== 'all') {
+    let shouldShow = true;
+    const hasReply = review.replies && review.replies.length > 0;
+    const status = hasReply ? 'completed' : 'pending';
+
+    if (filter !== 'all') {
       if (filter === 'pending') shouldShow = status === 'pending';
       else if (filter === 'completed') shouldShow = status === 'completed';
       else if (filter === 'high-rating') shouldShow = (review.rating || 0) >= 4.5;
       else if (filter === 'low-rating') shouldShow = (review.rating || 0) < 4.5;
     }
 
-        if (searchTerm && shouldShow) {
+    if (searchTerm && shouldShow) {
       const hay = [
         review.title || '',
         review.content || '',
@@ -381,8 +412,8 @@ function filterReviews(filter, searchTerm = '') {
       shouldShow = hay.includes(searchTerm);
     }
 
-        item.style.display = shouldShow ? 'block' : 'none';
-    });
+    item.style.display = shouldShow ? 'block' : 'none';
+  });
 
   const visible = Array.from(reviewItems).some((el) => el.style.display !== 'none');
   if (!visible) showNoResultsMessage(); else hideNoResultsMessage();
@@ -390,46 +421,46 @@ function filterReviews(filter, searchTerm = '') {
 
 // ========== 통계 ==========
 function updateStats() {
-    const totalReviews = reviewData.length;
+  const totalReviews = reviewData.length;
   const pendingReplies = reviewData.filter((r) => !r.replies || r.replies.length === 0).length;
   const completedReplies = totalReviews - pendingReplies;
-    
-    let averageRating = 0;
-    if (totalReviews > 0) {
-        const totalRating = reviewData.reduce((sum, r) => sum + (r.rating || 0), 0);
-        averageRating = (totalRating / totalReviews).toFixed(1);
-    }
 
-    const totalElement = document.querySelector('.stats-cards .stat-card:nth-child(1) h3');
-    const pendingElement = document.querySelector('.stats-cards .stat-card:nth-child(2) h3');
-    const completedElement = document.querySelector('.stats-cards .stat-card:nth-child(3) h3');
-    const averageElement = document.querySelector('.stats-cards .stat-card:nth-child(4) h3');
+  let averageRating = 0;
+  if (totalReviews > 0) {
+    const totalRating = reviewData.reduce((sum, r) => sum + (r.rating || 0), 0);
+    averageRating = (totalRating / totalReviews).toFixed(1);
+  }
 
-    if (totalElement) totalElement.textContent = totalReviews;
-    if (pendingElement) pendingElement.textContent = pendingReplies;
-    if (completedElement) completedElement.textContent = completedReplies;
-    if (averageElement) averageElement.textContent = averageRating;
+  const totalElement = document.querySelector('.stats-cards .stat-card:nth-child(1) h3');
+  const pendingElement = document.querySelector('.stats-cards .stat-card:nth-child(2) h3');
+  const completedElement = document.querySelector('.stats-cards .stat-card:nth-child(3) h3');
+  const averageElement = document.querySelector('.stats-cards .stat-card:nth-child(4) h3');
+
+  if (totalElement) totalElement.textContent = totalReviews;
+  if (pendingElement) pendingElement.textContent = pendingReplies;
+  if (completedElement) completedElement.textContent = completedReplies;
+  if (averageElement) averageElement.textContent = averageRating;
 }
 
 // ========== 답글 UI 토글 ==========
 function showReplyEditSection() {
-    const replySection = document.querySelector('.reply-section');
-    const replyEditSection = document.querySelector('.reply-edit-section');
-    const editReplyBtn = document.querySelector('.edit-reply-btn');
-    
+  const replySection = document.querySelector('.reply-section');
+  const replyEditSection = document.querySelector('.reply-edit-section');
+  const editReplyBtn = document.querySelector('.edit-reply-btn');
+
   if (replyEditSection) replyEditSection.style.display = 'block';
   if (replySection) replySection.style.display = 'none';
   if (editReplyBtn) editReplyBtn.style.display = 'none';
 
-    const textarea = document.querySelector('.reply-textarea');
+  const textarea = document.querySelector('.reply-textarea');
   if (textarea) textarea.focus();
 }
 
 function hideReplyEditSection() {
   const replySection = document.querySelector('.reply-section');
-    const replyEditSection = document.querySelector('.reply-edit-section');
-    const editReplyBtn = document.querySelector('.edit-reply-btn');
-    
+  const replyEditSection = document.querySelector('.reply-edit-section');
+  const editReplyBtn = document.querySelector('.edit-reply-btn');
+
   if (replyEditSection) replyEditSection.style.display = 'none';
   if (replySection) replySection.style.display = 'block';
   if (editReplyBtn) editReplyBtn.style.display = 'block';
@@ -437,29 +468,29 @@ function hideReplyEditSection() {
 
 // ========== 답글 저장 (단일 버전) ==========
 async function saveReply() {
-    const textarea = document.querySelector('.reply-textarea');
+  const textarea = document.querySelector('.reply-textarea');
   const replyText = (textarea?.value || '').trim();
 
-    if (!replyText) {
-        alert('답변을 입력해주세요.');
-        return;
-    }
-    if (!selectedReview) {
-        alert('리뷰를 선택해주세요.');
-        return;
-    }
+  if (!replyText) {
+    alert('답변을 입력해주세요.');
+    return;
+  }
+  if (!selectedReview) {
+    alert('리뷰를 선택해주세요.');
+    return;
+  }
 
-    try {
+  try {
     const hasReply = Array.isArray(selectedReview.replies) && selectedReview.replies.length > 0;
-        
-        if (hasReply) {
-            const replyId = selectedReview.replies[0].replyId;
-      await ReviewAPI.updateReply(replyId, replyText, true);
-        } else {
-            await ReviewAPI.createReply(selectedReview.reviewId, currentCompanyId, replyText, true);
-        }
 
-        showSuccessMessage('답변이 저장되었습니다.');
+    if (hasReply) {
+      const replyId = selectedReview.replies[0].replyId;
+      await ReviewAPI.updateReply(replyId, replyText, true);
+    } else {
+      await ReviewAPI.createReply(selectedReview.reviewId, currentCompanyId, replyText, true);
+    }
+
+    showSuccessMessage('답변이 저장되었습니다.');
 
     // 최신 답글 재조회 → 상태 동기화
     const replies = await ReviewAPI.getRepliesByReview(selectedReview.reviewId);
@@ -472,10 +503,10 @@ async function saveReply() {
     const selectedItem = document.querySelector(`[data-review-id="${selectedReview.reviewId}"]`);
     if (selectedItem) selectedItem.classList.add('selected');
     updateReviewDetail(selectedReview);
-        hideReplyEditSection();
-        updateStats();
-    } catch (error) {
-        console.error('Failed to save reply:', error);
+    hideReplyEditSection();
+    updateStats();
+  } catch (error) {
+    console.error('Failed to save reply:', error);
     alert('답변 저장에 실패했습니다: ' + (error.message || 'unknown'));
   }
 }
@@ -550,24 +581,24 @@ function generateStars(rating) {
   if (half) stars += '<i class="fas fa-star-half-alt"></i>';
   const empty = 5 - Math.ceil(rating);
   for (let i = 0; i < empty; i++) stars += '<i class="far fa-star"></i>';
-    return stars;
+  return stars;
 }
 
 function maskName(name) {
-    if (!name || name.length < 2) return name;
-    return name[0] + '*'.repeat(name.length - 1);
+  if (!name || name.length < 2) return name;
+  return name[0] + '*'.repeat(name.length - 1);
 }
 
 function truncateText(text, maxLength) {
-    if (!text) return '';
-    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+  if (!text) return '';
+  return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
 }
 
 function formatDate(dateString) {
-    if (!dateString) return '';
-    const date = new Date(dateString);
+  if (!dateString) return '';
+  const date = new Date(dateString);
   if (Number.isNaN(date.getTime())) return '';
-    return date.toISOString().split('T')[0];
+  return date.toISOString().split('T')[0];
 }
 
 function escapeHtml(str) {
@@ -608,20 +639,20 @@ function hideNoResultsMessage() {
 }
 
 function showSuccessMessage(message) {
-    const toast = document.createElement('div');
-    toast.style.cssText = `
+  const toast = document.createElement('div');
+  toast.style.cssText = `
     position: fixed; top: 20px; right: 20px; background: #27ae60; color: white;
     padding: 12px 20px; border-radius: 6px; font-size: 14px; z-index: 1000;
     animation: slideIn 0.3s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    `;
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    setTimeout(() => {
-        toast.style.animation = 'slideOut 0.3s ease';
+  `;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    toast.style.animation = 'slideOut 0.3s ease';
     setTimeout(() => document.body.contains(toast) && document.body.removeChild(toast), 300);
-    }, 3000);
+  }, 3000);
 
-if (!document.head.querySelector('style[data-review-animations]')) {
+  if (!document.head.querySelector('style[data-review-animations]')) {
     const style = document.createElement('style');
     style.setAttribute('data-review-animations', 'true');
     style.textContent = `
@@ -631,7 +662,7 @@ if (!document.head.querySelector('style[data-review-animations]')) {
       .error-message { color:#e74c3c; }
     `;
     document.head.appendChild(style);
-}
+  }
 }
 
 // 데이터 출처 배너 (api/dummy/빈배열 확인용)
@@ -652,8 +683,8 @@ function showDataSourceBanner(text) {
 
 // ========== 테스트 데이터 (폴백) ==========
 function loadTestData() {
-    reviewData = [
-        {
+  reviewData = [
+    {
       reviewId: 3, userId: 2, itemId: 1, bookingId: 4, rating: 4,
       title: '탱글탱글', content: '탱글탱글한 피부가 되었어요 ㅎㅎ',
       imageUrl: '/review/3/image', imageMime: 'image/png', isPublic: true,
@@ -669,6 +700,6 @@ function loadTestData() {
     }
   ];
 
-    renderReviewList(reviewData);
+  renderReviewList(reviewData);
   if (reviewData.length > 0) selectReview(reviewData[0]);
 }

@@ -118,6 +118,14 @@ public class MediServiceController {
         try {
             log.info("========== 의료 서비스 등록 요청 시작 ==========");
             log.info("받은 데이터: {}", entity);
+            log.info("🔍 [tags 필드 상세] tags: '{}' (null 여부: {}, 비어있음 여부: {})", 
+                entity.getTags(), 
+                entity.getTags() == null,
+                entity.getTags() != null && entity.getTags().isEmpty());
+            log.info("🔍 [serviceCategory 필드 상세] serviceCategory: '{}' (null 여부: {}, 비어있음 여부: {})", 
+                entity.getServiceCategory(),
+                entity.getServiceCategory() == null,
+                entity.getServiceCategory() != null && entity.getServiceCategory().isEmpty());
             
             Integer companyId = (Integer) session.getAttribute("companyId");
             log.info("세션에서 가져온 companyId: {}", companyId);
@@ -129,6 +137,7 @@ public class MediServiceController {
             
             MediServiceEntity result = mediServiceService.createByCompanyId(companyId, entity);
             log.info("의료 서비스 등록 성공: {}", result.getServiceId());
+            log.info("✅ [저장된 tags 확인] tags: '{}'", result.getTags());
             return ResponseEntity.ok(result);
             
         } catch (Exception e) {
@@ -143,7 +152,19 @@ public class MediServiceController {
             @PathVariable Long id,
             @RequestBody MediServiceEntity entity
     ) {
+        log.info("========== 의료 서비스 수정 요청 시작 ==========");
+        log.info("🔍 [수정 요청] 서비스 ID: {}", id);
+        log.info("🔍 [수정 요청] 받은 데이터: {}", entity);
+        log.info("🔍 [수정 요청] tags: '{}' (null: {}, empty: {})", 
+            entity.getTags(), 
+            entity.getTags() == null,
+            entity.getTags() != null && entity.getTags().isEmpty());
+        
         MediServiceEntity updated = mediServiceService.update(id, entity);
+        
+        log.info("✅ [수정 완료] 업데이트된 tags: '{}'", updated.getTags());
+        log.info("========== 의료 서비스 수정 완료 ==========");
+        
         // JSON 순환 참조 방지를 위해 간단한 응답 반환
         return ResponseEntity.ok(new java.util.HashMap<String, Object>() {{
             put("success", true);

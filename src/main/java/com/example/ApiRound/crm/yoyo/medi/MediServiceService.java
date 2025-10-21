@@ -42,13 +42,21 @@ public class MediServiceService {
 
     /** 수정 */
     public MediServiceEntity update(Long id, MediServiceEntity updatedEntity) {
+        log.info("====== MediServiceService.update 호출 ======");
+        log.info("수정할 서비스 ID: {}", id);
+        
         MediServiceEntity existing = findById(id);
+        log.info("기존 데이터 - tags: '{}'", existing.getTags());
+        
         existing.setName(updatedEntity.getName());
         existing.setDescription(updatedEntity.getDescription());
         existing.setStartDate(updatedEntity.getStartDate());
         existing.setEndDate(updatedEntity.getEndDate());
         existing.setGenderTarget(updatedEntity.getGenderTarget());
+        
+        log.info("💾 [태그 업데이트] 기존: '{}' → 새로운 값: '{}'", existing.getTags(), updatedEntity.getTags());
         existing.setTags(updatedEntity.getTags());
+        
         existing.setTargetCountry(updatedEntity.getTargetCountry());
         existing.setServiceCategory(updatedEntity.getServiceCategory());
         existing.setPrice(updatedEntity.getPrice());
@@ -56,7 +64,11 @@ public class MediServiceService {
         existing.setCurrency(updatedEntity.getCurrency());
         existing.setDiscountRate(updatedEntity.getDiscountRate());
         existing.setIsRefundable(updatedEntity.getIsRefundable());
-        return mediServiceRepository.save(existing);
+        
+        MediServiceEntity saved = mediServiceRepository.save(existing);
+        log.info("💾 [저장 후] tags: '{}'", saved.getTags());
+        
+        return saved;
     }
 
     /** 삭제 */
@@ -126,7 +138,10 @@ public class MediServiceService {
         }
         
         entity.setItem(item);
+        
+        log.info("💾 [저장 전] tags: '{}', serviceCategory: '{}'", entity.getTags(), entity.getServiceCategory());
         MediServiceEntity savedEntity = mediServiceRepository.save(entity);
+        log.info("💾 [저장 후] tags: '{}', serviceCategory: '{}'", savedEntity.getTags(), savedEntity.getServiceCategory());
         
         log.info("의료 서비스 등록 완료: ID={}, 이름={}", savedEntity.getServiceId(), savedEntity.getName());
         return savedEntity;

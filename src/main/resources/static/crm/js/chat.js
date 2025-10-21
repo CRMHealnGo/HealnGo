@@ -261,12 +261,18 @@ document.addEventListener('DOMContentLoaded', async function() {
         // 자동으로 새 스레드 생성 (메시지 없이)
         await autoCreateThreadIfNeeded(companyId, companyName);
         
+        // 입력창 활성화
+        enableMessageInput();
+        
         // 스레드 생성 후 대화 목록은 새로고침하지 않음 (사이드바 숨김)
     } else {
         // 마이페이지에서 넘어온 경우: 대화 목록 표시
         console.log('파라미터 없음. 기존 대화 목록 표시');
         document.getElementById('chat-title').textContent = '채팅';
         document.getElementById('chat-members').textContent = '대화 목록';
+        
+        // 입력창 비활성화 (대화 선택 전)
+        disableMessageInput();
         
         // chat-action-btn 기본 설정
         const actionBtn = document.querySelector('.chat-action-btn');
@@ -422,6 +428,10 @@ function setupConversationSelection() {
 // 대화 선택 > 메시지 로드
 async function selectConversation(threadId) {
     window.currentThreadId = Number(threadId); // 전역으로도 저장
+    console.log('대화 선택됨, 스레드 ID:', window.currentThreadId);
+    
+    // 입력창 활성화
+    enableMessageInput();
     
     // WebSocket 구독
     subscribeToThread(window.currentThreadId);
@@ -694,6 +704,36 @@ function escapeHtml(str = '') {
     return str.replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
 }
 
+// 입력창 활성화
+function enableMessageInput() {
+    const messageInput = document.querySelector('.message-input');
+    const sendBtn = document.querySelector('.send-btn');
+    
+    if (messageInput) {
+        messageInput.disabled = false;
+        messageInput.placeholder = '메시지를 입력하세요...';
+    }
+    if (sendBtn) {
+        sendBtn.disabled = false;
+    }
+    console.log('입력창 활성화됨');
+}
+
+// 입력창 비활성화
+function disableMessageInput() {
+    const messageInput = document.querySelector('.message-input');
+    const sendBtn = document.querySelector('.send-btn');
+    
+    if (messageInput) {
+        messageInput.disabled = true;
+        messageInput.placeholder = '대화를 선택하세요';
+    }
+    if (sendBtn) {
+        sendBtn.disabled = true;
+    }
+    console.log('입력창 비활성화됨');
+}
+
 // 메시지를 입력 전송
 function setupMessageInput() {
   const messageInput = document.querySelector('.message-input');
@@ -740,15 +780,43 @@ function setupMessageInput() {
 }
 
 async function sendMessage() {
+  const input = document.querySelector('.message-input');
   
-  const content = input?.value?.trim();
+  if (!input) {
+    console.error('메시지 입력창을 찾을 수 없습니다.');
+    return;
+  }
+  
+  // 비활성화 상태 체크
+  if (input.disabled) {
+    console.warn('입력창이 비활성화 상태입니다.');
+    alert('대화를 먼저 선택해주세요.');
+    return;
+  }
+  
+  const content = input.value?.trim();
   
   if (!content) {
+    console.log('메시지 내용이 비어있습니다.');
     return;
   }
 
+  console.log('메시지 전송 시작:', content);
+  console.log('현재 스레드 ID:', window.currentThreadId);
+
   // 업체 상담인 경우 새 스레드 생성 또는 기존 스레드 사용
   if (!window.currentThreadId) {
+    console.log('스레드가 없어 새로 생성 시도...');
+    
+    // 파라미터로 온 업체 정보가 있는지 확인
+    const hasCompanyParams = window.chatCompanyId || getUrlParameter('companyId') || getUrlParameter('hospitalId');
+    
+    if (!hasCompanyParams) {
+      console.error('업체 정보도 없고 스레드도 없습니다. 대화를 선택해주세요.');
+      alert('대화를 선택하거나 업체 페이지에서 상담을 시작해주세요.');
+      return;
+    }
+    
     await createCompanyThread();
   }
 
@@ -776,7 +844,7 @@ async function sendMessage() {
     // WebSocket을 통해 실시간 전송
     if (stompClient && stompClient.connected) {
       stompClient.send("/app/chat.send", {}, JSON.stringify(payload));
-      console.log('WebSocket으로 메시지 전송됨');
+      console.log('WebSocket으로 메시지 전송됨:', payload);
     } else {
       // WebSocket 연결이 없으면 기존 방식 사용
       const headers = {
@@ -787,7 +855,7 @@ async function sendMessage() {
         headers[CSRF_HEADER] = CSRF_TOKEN;
       }
 
-      console.log('전송 요청:', payload);
+      console.log('HTTP로 전송 요청:', payload);
 
       const res = await fetch('/api/chat/send', { 
         method: 'POST', 
@@ -805,14 +873,15 @@ async function sendMessage() {
 
     console.log('메시지 전송 성공');
 
+    // 입력창 초기화
+    input.value = '';
+    input.style.height = 'auto';
+
     // 대화 목록 새로고침 (최신 메시지 시간 반영)
     await initializeConversations();
   } catch (e) {
     console.error('전송 실패:', e);
     alert('메시지 전송에 실패했습니다. 다시 시도해주세요.');
-  } finally {
-    input.value = '';
-    input.style.height = 'auto';
   }
 }
 

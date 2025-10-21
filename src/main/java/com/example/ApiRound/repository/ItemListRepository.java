@@ -82,4 +82,18 @@ public interface ItemListRepository extends JpaRepository<ItemList, Long> {
                                      @Param("phone") String phone,
                                      @Param("homepage") String homepage,
                                      @Param("category") String category);
+
+    /** 업체의 모든 리뷰 조회 (booking_id로 조회) */
+    @Query(value = """
+        SELECT ur.review_id, ur.user_id, ur.item_id, ur.booking_id, ur.rating, ur.title, ur.content, 
+               ur.image_mime, ur.is_public, ur.created_at, ur.updated_at, il.name as item_name, su.name as user_name
+        FROM user_review ur
+        JOIN reservations r ON ur.booking_id = r.id
+        LEFT JOIN item_list il ON ur.item_id = il.id
+        LEFT JOIN social_users su ON ur.user_id = su.user_id
+        WHERE r.company_id = :companyId AND ur.is_public = true
+        ORDER BY ur.created_at DESC
+        """, nativeQuery = true)
+    List<Object[]> findReviewsByCompanyId(@Param("companyId") Integer companyId);
+    
 }
