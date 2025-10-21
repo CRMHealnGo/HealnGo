@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -150,17 +148,26 @@ public class UserInquiryService {
     /** (사용자) 내 문의 페이징 조회 */
     @Transactional(readOnly = true)
     public Page<UserInquiry> getMyPagedList(Integer userId, int page, int size) {
+        System.out.println("===== UserInquiryService.getMyPagedList 호출 =====");
+        System.out.println("userId: " + userId);
+        System.out.println("page: " + page + ", size: " + size);
+        
         Pageable pageable = PageRequest.of(Math.max(page - 1, 0), Math.max(size, 1),
                 Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        Example<UserInquiry> example = Example.of(
-                UserInquiry.builder()
-                    .reporterSocialId(userId)
-                    .reporterType(UserInquiry.ReporterType.SOCIAL)
-                    .build(),
-                ExampleMatcher.matching().withIgnoreNullValues()
-        );
-        return userInquiryRepository.findAll(example, pageable);
+        // reporterSocialId로 조회
+        Page<UserInquiry> result = userInquiryRepository.findByReporterSocialId(userId, pageable);
+        
+        System.out.println("조회된 사용자 문의 수: " + result.getContent().size());
+        for (UserInquiry inquiry : result.getContent()) {
+            System.out.println("문의 ID: " + inquiry.getInquiryId() + 
+                             ", 제목: " + inquiry.getSubject() + 
+                             ", reporterSocialId: " + inquiry.getReporterSocialId() + 
+                             ", status: " + inquiry.getStatus() + 
+                             ", adminAnswer: " + (inquiry.getAdminAnswer() != null ? "있음" : "없음"));
+        }
+        
+        return result;
     }
 
     /** (관리자) 목록 페이징 - 상태 필터 optional */

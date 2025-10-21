@@ -585,9 +585,14 @@ public class AdminController {
         Map<String, Object> response = new HashMap<>();
 
         try {
+            System.out.println("===== 답변 작성 API 호출 =====");
+            System.out.println("inquiry_id: " + id);
+            System.out.println("request body: " + request);
+            
             String replyText = request.get("reply");
 
             if (replyText == null || replyText.trim().isEmpty()) {
+                System.out.println("답변 내용이 비어있음");
                 response.put("success", false);
                 response.put("message", "답변 내용을 입력해주세요.");
                 return ResponseEntity.badRequest().body(response);
@@ -600,16 +605,28 @@ public class AdminController {
             } else if (managerIdObj instanceof Long longValue) {
                 adminId = longValue.intValue();
             }
+            
+            System.out.println("adminId: " + adminId);
+            System.out.println("replyText: " + replyText);
+
+            // adminId가 null이면 0으로 처리
+            if (adminId == null) {
+                System.out.println("adminId가 null, 0으로 처리");
+                adminId = 0;
+            }
 
             userInquiryService.answer(id, replyText, adminId);
 
             response.put("success", true);
             response.put("message", "답변이 전송되었습니다.");
+            System.out.println("답변 전송 성공");
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
+            System.err.println("답변 작성 중 예외 발생: " + e.getMessage());
+            e.printStackTrace();
             response.put("success", false);
-            response.put("message", e.getMessage());
+            response.put("message", "답변 작성 중 오류가 발생했습니다: " + e.getMessage());
             return ResponseEntity.badRequest().body(response);
         }
     }

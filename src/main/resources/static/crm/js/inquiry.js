@@ -220,13 +220,23 @@ function loadInquiryHistory() {
   fetch('/api/user-inquiry/my-history')
     .then(r => r.json())
     .then(items => {
+      console.log('===== 문의 내역 조회 결과 =====');
+      console.log('조회된 항목 수:', items.length);
+      items.forEach(item => {
+        console.log('문의 ID:', item.inquiryId);
+        console.log('  - 제목:', item.subject);
+        console.log('  - 상태:', item.status);
+        console.log('  - adminAnswer:', item.adminAnswer);
+        console.log('  - answeredAt:', item.answeredAt);
+      });
+      
       loading.style.display = 'none';
       if (!items || items.length === 0) { empty.style.display='block'; return; }
       list.innerHTML = items.map(toHistoryCard).join('');
       list.style.display = 'block';
     })
     .catch(err => {
-      console.error(err);
+      console.error('문의 내역 조회 실패:', err);
       loading.style.display = 'none';
       empty.style.display = 'block';
     });
@@ -236,33 +246,52 @@ function toHistoryCard(it) {
   const fmt = (d) => d ? new Date(d).toLocaleString('ko-KR') : '-';
   const cleanSubject = (s) => (s || '').replace(/^\[(?:문의|신고):[^\]]+\]\s*/, '');
   
+  console.log('카드 생성 - ID:', it.inquiryId, 'status:', it.status, 'adminAnswer:', it.adminAnswer, 'answeredAt:', it.answeredAt);
+  
+  // 답변 섹션 HTML 생성
+  let replySection = '';
+  if (it.adminAnswer && it.adminAnswer.trim()) {
+    // 답변이 있는 경우
+    replySection = `
+      <div class="history-item-reply">
+        <div class="history-item-reply-header"><i class="fas fa-reply"></i><span>관리자 답변</span></div>
+        <div class="history-item-reply-text">${escapeHtml(it.adminAnswer)}</div>
+        <div class="history-item-reply-date">답변일: ${fmt(it.answeredAt)}</div>
+      </div>`;
+  } else if (it.status === 'ANSWERED') {
+    // 상태는 답변완료인데 답변 내용이 없는 경우
+    replySection = `
+      <div class="history-item-reply" style="background: #fff3cd; border-left-color: #ffc107;">
+        <div class="history-item-reply-header"><i class="fas fa-clock"></i><span>답변 처리 중</span></div>
+        <div class="history-item-reply-date">답변일: ${fmt(it.answeredAt)}</div>
+      </div>`;
+  }
+  
+  // 상태에 따른 클래스와 텍스트 결정
+  const isAnswered = it.status === 'ANSWERED';
+  const isClosed = it.status === 'CLOSED';
+  const statusClass = isAnswered || isClosed ? 'answered' : 'pending';
+  const statusIcon = isAnswered || isClosed ? 'fa-check-circle' : 'fa-clock';
+  const statusText = isAnswered ? '답변완료' : (isClosed ? '종료' : '확인중');
+  
   return `
     <div class="history-item">
       <div class="history-item-header">
         <div class="history-item-title-wrapper">
-          <span class="history-item-type ${it.status === 'ANSWERED' ? 'answered':'pending'}">${statusK(it.status)}</span>
+          <span class="history-item-type ${statusClass}">${statusK(it.status)}</span>
           <div class="history-item-title">${escapeHtml(cleanSubject(it.subject))}</div>
           <div class="history-item-date">${fmt(it.createdAt)}</div>
         </div>
-        <div class="history-item-status ${it.status === 'ANSWERED' ? 'answered':'pending'}">
-          <i class="fas ${it.status === 'ANSWERED' ? 'fa-check-circle':'fa-clock'}"></i>
-          <span>${it.status === 'ANSWERED' ? '답변완료':'확인중'}</span>
+        <div class="history-item-status ${statusClass}">
+          <i class="fas ${statusIcon}"></i>
+          <span>${statusText}</span>
         </div>
       </div>
       <div class="history-item-content">
         <div class="history-item-label">문의/신고 내용</div>
         <div class="history-item-text">${escapeHtml(it.content || '')}</div>
       </div>
-      ${it.status === 'ANSWERED' && it.adminAnswer ? `
-        <div class="history-item-reply">
-          <div class="history-item-reply-header"><i class="fas fa-reply"></i><span>관리자 답변</span></div>
-          <div class="history-item-reply-text">${escapeHtml(it.adminAnswer)}</div>
-          <div class="history-item-reply-date">답변일: ${fmt(it.answeredAt)}</div>
-        </div>` : (it.status === 'ANSWERED' && it.answeredAt ? `
-        <div class="history-item-reply">
-          <div class="history-item-reply-header"><i class="fas fa-check-circle"></i><span>답변 완료</span></div>
-          <div class="history-item-reply-date">답변일: ${fmt(it.answeredAt)}</div>
-        </div>` : ``)}
+      ${replySection}
     </div>`;
 }
 function escapeHtml(t) { const d=document.createElement('div'); d.textContent=t||''; return d.innerHTML; }
