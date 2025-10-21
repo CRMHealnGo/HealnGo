@@ -2,8 +2,6 @@
 
 <div align="center">
 
-![HealnGo Logo](/src/main/resources/static/crm/images/로고 블랙.png.png)
-
 **한국 의료 관광을 위한 통합 플랫폼**
 
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.5-brightgreen.svg)](https://spring.io/projects/spring-boot)
