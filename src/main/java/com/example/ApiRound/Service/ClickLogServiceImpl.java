@@ -1,14 +1,19 @@
 package com.example.ApiRound.Service;
 
-import com.example.ApiRound.entity.ClickLog;
-import com.example.ApiRound.repository.ClickLogRepository;
-import lombok.RequiredArgsConstructor;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.*;
+import com.example.ApiRound.entity.ClickLog;
+import com.example.ApiRound.repository.ClickLogRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @Transactional
@@ -31,8 +36,17 @@ public class ClickLogServiceImpl implements ClickLogService {
 
     @Override
     public List<Object[]> getTop3CompaniesLast7Days() {
-        LocalDateTime startDate = LocalDateTime.now().minusDays(7);
-        return clickLogRepository.findTopCompaniesByClickCount(startDate);
+        // 기간을 30일로 확장해서 테스트
+        LocalDateTime startDate = LocalDateTime.now().minusDays(30);
+        System.out.println("🔍 TOP3 조회 시작 - startDate: " + startDate);
+        
+        List<Object[]> results = clickLogRepository.findTopCompaniesByClickCount(startDate);
+        System.out.println("🔍 조회된 결과 개수: " + results.size());
+        for (Object[] result : results) {
+            System.out.println("  - itemId: " + result[0] + ", clickCount: " + result[1]);
+        }
+        
+        return results;
     }
 
     @Override

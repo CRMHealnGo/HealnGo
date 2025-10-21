@@ -296,6 +296,131 @@ function switchTab(tabName) {
         panel.classList.add('active');
         panel.style.display = 'block';
     }
+    
+    // 리뷰 탭으로 전환할 때 리뷰 새로고침
+    if (tabName === 'reviews') {
+        const pathParts = window.location.pathname.split('/');
+        const serviceId = pathParts[pathParts.length - 1];
+        if (serviceId && !isNaN(serviceId)) {
+            loadReviews(serviceId);
+        }
+    }
+}
+
+// 리뷰 동적 로드
+async function loadReviews(serviceId) {
+    try {
+        console.log('🔍 리뷰 로드 시작 - serviceId:', serviceId);
+        
+        // 리뷰 목록 조회
+        const reviewsResponse = await fetch(`/api/review/service/${serviceId}`);
+        console.log('🔍 리뷰 API 응답 상태:', reviewsResponse.status);
+        if (!reviewsResponse.ok) throw new Error('리뷰 조회 실패');
+        const reviews = await reviewsResponse.json();
+        console.log('🔍 조회된 리뷰:', reviews);
+        console.log('🔍 리뷰 개수:', reviews.length);
+        
+        // 평균 평점 조회
+        const ratingResponse = await fetch(`/api/review/service/${serviceId}/average-rating`);
+        const averageRating = ratingResponse.ok ? await ratingResponse.json() : 0;
+        console.log('🔍 평균 평점:', averageRating);
+        
+        // 리뷰 개수 조회
+        const countResponse = await fetch(`/api/review/service/${serviceId}/count`);
+        const reviewCount = countResponse.ok ? await countResponse.json() : 0;
+        console.log('🔍 리뷰 개수:', reviewCount);
+        
+        // UI 업데이트
+        updateReviewsUI(reviews, averageRating, reviewCount);
+    } catch (error) {
+        console.error('리뷰 로드 중 오류:', error);
+    }
+}
+
+// 리뷰 UI 업데이트
+function updateReviewsUI(reviews, averageRating, reviewCount) {
+    // 평균 평점 업데이트
+    const ratingScoreEl = document.querySelector('.rating-score');
+    if (ratingScoreEl) ratingScoreEl.textContent = averageRating.toFixed(1);
+    
+    const ratingCountEl = document.querySelector('.rating-count');
+    if (ratingCountEl) ratingCountEl.textContent = `${reviewCount}개의 리뷰`;
+    
+    // 별점 업데이트
+    const ratingStarsEl = document.querySelector('.rating-stars');
+    if (ratingStarsEl) {
+        ratingStarsEl.innerHTML = '';
+        for (let i = 1; i <= 5; i++) {
+            const star = document.createElement('i');
+            if (i <= Math.floor(averageRating)) {
+                star.className = 'fas fa-star';
+            } else if (i - 0.5 <= averageRating) {
+                star.className = 'fas fa-star-half-alt';
+            } else {
+                star.className = 'far fa-star';
+            }
+            ratingStarsEl.appendChild(star);
+        }
+    }
+    
+    // 리뷰 목록 업데이트
+    const reviewsListEl = document.querySelector('.reviews-list');
+    if (!reviewsListEl) return;
+    
+    if (!reviews || reviews.length === 0) {
+        reviewsListEl.innerHTML = `
+            <div class="no-reviews">
+                <i class="fas fa-comment-slash" style="font-size: 48px; color: #ccc; margin-bottom: 16px;"></i>
+                <p>아직 작성된 리뷰가 없습니다.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    reviewsListEl.innerHTML = reviews.map(review => `
+        <div class="review-item">
+            <div class="review-header">
+                <div class="reviewer-info">
+                    <div class="reviewer-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="reviewer-details">
+                        <div class="reviewer-name">${review.userName || '익명'}</div>
+                        <div class="review-date">${formatReviewDate(review.createdAt)}</div>
+                    </div>
+                </div>
+                <div class="review-rating">
+                    ${generateStarHtml(review.rating)}
+                </div>
+            </div>
+            ${review.title ? `<div class="review-title" style="font-weight: 600; margin-bottom: 8px;">${escapeHtml(review.title)}</div>` : ''}
+            <div class="review-content">${escapeHtml(review.content || '')}</div>
+            ${review.imageUrl ? `<div class="review-image"><img src="${review.imageUrl}" alt="리뷰 이미지" style="max-width: 300px; border-radius: 8px; margin-top: 12px;"></div>` : ''}
+        </div>
+    `).join('');
+}
+
+// 별점 HTML 생성
+function generateStarHtml(rating) {
+    let html = '';
+    for (let i = 1; i <= 5; i++) {
+        html += i <= rating ? '<i class="fas fa-star"></i>' : '<i class="far fa-star"></i>';
+    }
+    return html;
+}
+
+// 날짜 포맷
+function formatReviewDate(dateString) {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toISOString().split('T')[0];
+}
+
+// HTML 이스케이프
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // 찜 상태 확인
