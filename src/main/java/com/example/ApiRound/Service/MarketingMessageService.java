@@ -7,12 +7,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.ApiRound.crm.hyeonah.Repository.CompanyUserRepository;
 import com.example.ApiRound.crm.hyeonah.Repository.SocialUsersRepository;
 import com.example.ApiRound.crm.hyeonah.entity.CompanyUser;
+import com.example.ApiRound.crm.hyeonah.entity.SocialUsers;
 import com.example.ApiRound.crm.yoyo.reservation.ReservationRepository;
 import com.example.ApiRound.entity.MarketingMessage;
 import com.example.ApiRound.repository.MarketingMessageRepository;
@@ -29,6 +32,7 @@ public class MarketingMessageService {
     private final CompanyUserRepository companyUserRepository;
     private final SocialUsersRepository socialUsersRepository;
     private final ReservationRepository reservationRepository;
+    private final JavaMailSender mailSender;
 
     /**
      * 메시지 발송 요청
@@ -48,19 +52,25 @@ public class MarketingMessageService {
 
         // 즉시 발송인 경우
         if (message.getSendType() == MarketingMessage.SendType.IMMEDIATE) {
-            // 대상 고객 수 계산
-            int targetCount = calculateTargetCount(message.getTargetSegment());
-            message.setTargetCount(targetCount);
-
-            // 메시지 발송 처리
-            boolean sendResult = sendPushNotification(message);
+            // 대상 고객 수 계산 및 발송 처리
+            boolean sendResult = false;
+            int targetCount = 0;
+            
+            if (message.getTargetChannel() == MarketingMessage.TargetChannel.EMAIL) {
+                // 이메일 발송
+                sendResult = sendEmailToCustomers(message);
+                targetCount = message.getTargetCount(); // sendEmailToCustomers에서 설정됨
+            } else {
+                // 푸시 알림 발송
+                targetCount = calculateTargetCount(message.getTargetSegment());
+                message.setTargetCount(targetCount);
+                sendResult = sendPushNotification(message);
+            }
 
             if (sendResult) {
                 message.setStatus(MarketingMessage.Status.SENT);
                 message.setSentAt(LocalDateTime.now());
-                message.setSuccessCount(targetCount);
-                message.setFailCount(0);
-                log.info("메시지 발송 성공 - 대상: {}명", targetCount);
+                log.info("메시지 발송 성공 - 채널: {}, 대상: {}명", message.getTargetChannel(), targetCount);
             } else {
                 message.setStatus(MarketingMessage.Status.FAILED);
                 message.setFailCount(targetCount);
@@ -116,6 +126,114 @@ public class MarketingMessageService {
         // 첫 방문 고객: 예약을 한 번도 하지 않은 사용자
         Long count = reservationRepository.countUsersWithNoReservations();
         return count != null ? count.intValue() : 0;
+    }
+
+    /**
+     * 이메일 발송
+     */
+    private boolean sendEmailToCustomers(MarketingMessage message) {
+        log.info("===== 이메일 발송 시작 =====");
+        log.info("제목: {}", message.getTitle());
+        log.info("내용: {}", message.getContent());
+        log.info("대상 세그먼트: {}", message.getTargetSegment());
+
+        try {
+            // 대상 고객 조회
+            List<SocialUsers> targetUsers = getTargetUsers(message.getTargetSegment());
+            log.info("대상 고객 수: {}명", targetUsers.size());
+            
+            message.setTargetCount(targetUsers.size());
+            
+            int successCount = 0;
+            int failCount = 0;
+
+            // 각 고객에게 이메일 발송
+            for (SocialUsers user : targetUsers) {
+                if (user.getEmail() == null || user.getEmail().isEmpty()) {
+                    failCount++;
+                    continue;
+                }
+
+                try {
+                    SimpleMailMessage mailMessage = new SimpleMailMessage();
+                    mailMessage.setTo(user.getEmail());
+                    mailMessage.setSubject("[HealnGo] " + message.getTitle());
+                    
+                    // 이메일 본문 구성
+                    StringBuilder emailBody = new StringBuilder();
+                    emailBody.append("안녕하세요, ").append(user.getName() != null ? user.getName() : "고객").append("님\n\n");
+                    emailBody.append(message.getContent()).append("\n\n");
+                    
+                    if (message.getLinkUrl() != null && !message.getLinkUrl().isEmpty()) {
+                        emailBody.append("자세히 보기: ").append(message.getLinkUrl()).append("\n\n");
+                    }
+                    
+                    emailBody.append("---\n");
+                    emailBody.append("발신: ").append(message.getCompany().getCompanyName()).append("\n");
+                    emailBody.append("이 메일은 HealnGo 마케팅 수신 동의 고객에게 발송되었습니다.\n");
+                    
+                    mailMessage.setText(emailBody.toString());
+                    mailMessage.setFrom("hannah6394@gmail.com");
+
+                    mailSender.send(mailMessage);
+                    successCount++;
+                    
+                    log.debug("이메일 발송 성공 - {}", user.getEmail());
+                } catch (Exception e) {
+                    failCount++;
+                    log.error("이메일 발송 실패 - {}: {}", user.getEmail(), e.getMessage());
+                }
+            }
+
+            message.setSuccessCount(successCount);
+            message.setFailCount(failCount);
+
+            log.info("이메일 발송 완료 - 성공: {}명, 실패: {}명", successCount, failCount);
+            
+            return successCount > 0;
+
+        } catch (Exception e) {
+            log.error("이메일 발송 중 오류 발생", e);
+            return false;
+        }
+    }
+
+    /**
+     * 대상 세그먼트에 따른 사용자 목록 조회
+     */
+    private List<SocialUsers> getTargetUsers(MarketingMessage.TargetSegment segment) {
+        return switch (segment) {
+            case ALL -> socialUsersRepository.findAll().stream()
+                    .filter(u -> !u.getIsDeleted())
+                    .toList();
+            case RECENT_30DAYS -> getRecent30DaysUsers();
+            case VIP -> getVipUsers();
+            case INACTIVE -> getInactiveUsers();
+            case FIRST_TIME -> getFirstTimeUsers();
+        };
+    }
+
+    private List<SocialUsers> getRecent30DaysUsers() {
+        // TODO: 최근 30일 예약한 사용자 목록
+        return List.of();
+    }
+
+    private List<SocialUsers> getVipUsers() {
+        // TODO: 예약 3회 이상 사용자 목록
+        return List.of();
+    }
+
+    private List<SocialUsers> getInactiveUsers() {
+        LocalDateTime ninetyDaysAgo = LocalDateTime.now().minusDays(90);
+        return socialUsersRepository.findAll().stream()
+                .filter(u -> !u.getIsDeleted())
+                .filter(u -> u.getLastLoginAt() != null && u.getLastLoginAt().isBefore(ninetyDaysAgo))
+                .toList();
+    }
+
+    private List<SocialUsers> getFirstTimeUsers() {
+        // TODO: 예약 없는 사용자 목록
+        return List.of();
     }
 
     /**
