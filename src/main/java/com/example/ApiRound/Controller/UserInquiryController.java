@@ -79,15 +79,30 @@ public class UserInquiryController {
     @GetMapping("/api/user-inquiry/my-history")
     @ResponseBody
     public ResponseEntity<?> myHistory(HttpSession session) {
+        System.out.println("===== 내 문의/신고 내역 조회 =====");
+        
         String userType = (String) session.getAttribute("userType");
         Integer socialUserId = (Integer) session.getAttribute("userId");
         Integer companyId = (Integer) session.getAttribute("companyId");
         Integer effectiveUserId = "company".equalsIgnoreCase(userType) ? companyId : socialUserId;
 
+        System.out.println("userType: " + userType);
+        System.out.println("socialUserId: " + socialUserId);
+        System.out.println("companyId: " + companyId);
+        System.out.println("effectiveUserId: " + effectiveUserId);
+
         var page = inquiryService.getMyPagedList(effectiveUserId, 1, 100);
         List<InquiryHistoryItem> items = page.getContent().stream()
                 .map(this::toHistoryItem)
                 .toList();
+
+        System.out.println("조회된 문의 내역 수: " + items.size());
+        for (InquiryHistoryItem item : items) {
+            System.out.println("문의 ID: " + item.getInquiryId() + 
+                             ", 제목: " + item.getSubject() + 
+                             ", 상태: " + item.getStatus() + 
+                             ", 답변: " + (item.getAdminAnswer() != null ? "있음" : "없음"));
+        }
 
         return ResponseEntity.ok(items);
     }

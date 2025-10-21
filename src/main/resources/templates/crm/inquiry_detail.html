@@ -80,22 +80,31 @@
                         </div>
                     </div>
                     
-                    <!-- 관리자 액션 버튼 -->
-                    <div th:if="${sidebarType == 'admin'}" class="admin-actions" style="border-top: 1px solid #e0e0e0; padding-top: 20px;">
-                        <div style="display: flex; gap: 12px; justify-content: flex-end;">
-                            <button th:if="${inquiry.status != null and inquiry.status.name() == 'OPEN'}" 
-                                    onclick="updateStatus([[${inquiry.inquiryId}]], 'ANSWERED')" 
-                                    style="background: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
-                                <i class="fas fa-check"></i> 답변완료로 변경
-                            </button>
+                    <!-- 관리자 답변 입력 폼 -->
+                    <div th:if="${sidebarType == 'admin'}" class="admin-reply-section" style="margin-top: 24px; border-top: 1px solid #e0e0e0; padding-top: 20px;">
+                        <h4 style="margin: 0 0 12px 0; color: #333;">
+                            <i class="fas fa-reply"></i> 답변 작성
+                            <span th:if="${inquiry.adminAnswer != null and !inquiry.adminAnswer.isEmpty()}" 
+                                  style="font-size: 12px; color: #28a745; font-weight: normal; margin-left: 8px;">
+                                (이미 답변 완료)
+                            </span>
+                        </h4>
+                        <textarea id="replyTextarea" 
+                                  th:text="${inquiry.adminAnswer}"
+                                  style="width: 100%; min-height: 120px; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; font-family: inherit; resize: vertical;"
+                                  placeholder="답변을 입력하세요..."></textarea>
+                        <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 12px;">
                             <button th:if="${inquiry.status != null and inquiry.status.name() == 'ANSWERED'}" 
-                                    onclick="updateStatus([[${inquiry.inquiryId}]], 'CLOSED')" 
-                                    style="background: #6c757d; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+                                    type="button"
+                                    th:onclick="|updateStatusInline([[${inquiry.inquiryId}]], 'CLOSED')|" 
+                                    style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 14px;">
                                 <i class="fas fa-times"></i> 종료로 변경
                             </button>
-                            <button onclick="showReplyModal([[${inquiry.inquiryId}]])" 
-                                    style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
-                                <i class="fas fa-reply"></i> 답변 작성
+                            <button type="button"
+                                    th:onclick="|submitReplyInline([[${inquiry.inquiryId}]])|" 
+                                    style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold;">
+                                <i class="fas fa-paper-plane"></i> 
+                                <span th:text="${inquiry.adminAnswer != null and !inquiry.adminAnswer.isEmpty() ? '답변 수정' : '답변 전송'}">답변 전송</span>
                             </button>
                         </div>
                     </div>
@@ -116,70 +125,117 @@
 
 <input type="hidden" id="detailId" th:value="${reportId}"/>
 <script src="/crm/js/manager_sidebar.js"></script>
-<script src="/crm/js/inquiry_detail.js"></script>
+<!-- inquiry_detail.js와 충돌 방지를 위해 로드하지 않음 -->
+<!-- <script src="/crm/js/inquiry_detail.js"></script> -->
 <script>
+console.log('inquiry_detail.html 스크립트 로드됨');
+
 // 페이지 로드 시 상세 정보 가져오기
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOMContentLoaded 이벤트 발생');
     // 서버사이드에서 데이터를 이미 전달받았으므로 별도 로딩 불필요
 });
 
 // 뒤로가기 함수
 function goBack() {
+    console.log('goBack 함수 호출됨');
     window.history.back();
 }
 
-// 상태 업데이트 함수
-function updateStatus(inquiryId, newStatus) {
-    if (confirm('상태를 변경하시겠습니까?')) {
-        fetch(`/admin/api/inquiry-reports/${inquiryId}/status`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ status: newStatus })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('상태가 변경되었습니다.');
-                location.reload();
-            } else {
-                alert('상태 변경에 실패했습니다: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('상태 변경 중 오류가 발생했습니다.');
-        });
+// 상태 업데이트 함수 (인라인 버전)
+function updateStatusInline(inquiryId, newStatus) {
+    console.log('updateStatusInline 함수 호출됨 - inquiryId:', inquiryId, 'newStatus:', newStatus);
+    
+    if (!confirm('상태를 변경하시겠습니까?')) {
+        return;
     }
+    
+    fetch('/admin/api/inquiry-reports/' + inquiryId + '/status', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: newStatus })
+    })
+    .then(function(response) {
+        console.log('상태 변경 응답:', response.status);
+        return response.json();
+    })
+    .then(function(data) {
+        console.log('상태 변경 응답 데이터:', data);
+        if (data.success) {
+            alert('상태가 변경되었습니다.');
+            location.reload();
+        } else {
+            alert('상태 변경에 실패했습니다: ' + data.message);
+        }
+    })
+    .catch(function(error) {
+        console.error('상태 변경 Error:', error);
+        alert('상태 변경 중 오류가 발생했습니다: ' + error.message);
+    });
 }
 
-// 답변 모달 표시 함수
-function showReplyModal(inquiryId) {
-    const reply = prompt('답변을 입력해주세요:');
-    if (reply && reply.trim()) {
-        fetch(`/admin/api/inquiry-reports/${inquiryId}/reply`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ reply: reply.trim() })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('답변이 등록되었습니다.');
-                location.reload();
-            } else {
-                alert('답변 등록에 실패했습니다: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('답변 등록 중 오류가 발생했습니다.');
-        });
+// 답변 전송 함수 (인라인 버전)
+function submitReplyInline(inquiryId) {
+    console.log('submitReplyInline 함수 호출됨 - inquiryId:', inquiryId);
+    
+    var textarea = document.getElementById('replyTextarea');
+    if (!textarea) {
+        console.error('replyTextarea를 찾을 수 없습니다!');
+        alert('답변 입력란을 찾을 수 없습니다.');
+        return;
     }
+    
+    var reply = textarea.value.trim();
+    console.log('입력된 답변:', reply);
+    
+    if (!reply) {
+        alert('답변 내용을 입력해주세요.');
+        textarea.focus();
+        return;
+    }
+    
+    if (!confirm('답변을 전송하시겠습니까?')) {
+        console.log('사용자가 전송 취소함');
+        return;
+    }
+    
+    console.log('답변 전송 시작 - URL:', '/admin/api/inquiry-reports/' + inquiryId + '/reply');
+    console.log('전송할 데이터:', { reply: reply });
+    
+    fetch('/admin/api/inquiry-reports/' + inquiryId + '/reply', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ reply: reply })
+    })
+    .then(function(response) {
+        console.log('답변 전송 응답 상태:', response.status);
+        console.log('응답 OK:', response.ok);
+        if (!response.ok) {
+            throw new Error('HTTP error! status: ' + response.status);
+        }
+        return response.json();
+    })
+    .then(function(data) {
+        console.log('답변 전송 응답 데이터:', data);
+        if (data.success) {
+            alert('답변이 전송되었습니다.');
+            console.log('페이지 새로고침');
+            location.reload();
+        } else {
+            alert('답변 전송에 실패했습니다: ' + data.message);
+        }
+    })
+    .catch(function(error) {
+        console.error('답변 전송 Error:', error);
+        alert('답변 전송 중 오류가 발생했습니다: ' + error.message);
+    });
 }
+
+console.log('모든 함수 정의 완료 - goBack, updateStatusInline, submitReplyInline');
 </script>
 </body>
 </html>
