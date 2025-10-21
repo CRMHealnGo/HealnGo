@@ -206,12 +206,14 @@ public class UserReviewController {
                 HttpHeaders headers = new HttpHeaders();
                 headers.setContentType(MediaType.parseMediaType(mimeType));
                 headers.setContentLength(imageData.length);
+                headers.setCacheControl("max-age=3600"); // 1시간 캐시
 
                 return new ResponseEntity<>(imageData, headers, HttpStatus.OK);
             } else {
                 return ResponseEntity.notFound().build();
             }
         } catch (Exception e) {
+            System.err.println("리뷰 이미지 조회 오류 - reviewId: " + reviewId + ", 오류: " + e.getMessage());
             return ResponseEntity.notFound().build();
         }
     }

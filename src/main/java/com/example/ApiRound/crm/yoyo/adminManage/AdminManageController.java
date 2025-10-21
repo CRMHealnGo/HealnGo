@@ -1,12 +1,9 @@
 package com.example.ApiRound.crm.yoyo.adminManage;
 
-import com.example.ApiRound.crm.yoyo.adminManage.AdminManageService;
-import com.example.ApiRound.entity.ItemList;
-import com.example.ApiRound.crm.yoyo.reservation.ReservationService;
-import com.example.ApiRound.crm.yoyo.reservation.ReservationDto;
-import jakarta.servlet.http.HttpSession;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,9 +18,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
+import com.example.ApiRound.crm.yoyo.reservation.ReservationDto;
+import com.example.ApiRound.crm.yoyo.reservation.ReservationService;
+import com.example.ApiRound.entity.ItemList;
+
+import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Controller
@@ -74,13 +75,19 @@ public class AdminManageController {
 
             model.addAttribute("companies", companies);
 
-            // 각 업체별 의료 서비스 개수 조회
+            // 각 업체별 의료 서비스 개수 및 리뷰 수 조회
             for (ItemList company : companies) {
                 Integer companyId = company.getOwnerCompany() != null ? company.getOwnerCompany().getCompanyId() : null;
                 if (companyId != null) {
+                    // 의료 서비스 개수 조회
                     int serviceCount = adminManageService.getMedicalServiceCount(companyId);
                     model.addAttribute("serviceCount_" + companyId, serviceCount);
                     log.info("업체 {}의 의료 서비스 개수: {}", companyId, serviceCount);
+                    
+                    // 리뷰 수 조회
+                    Long reviewCount = adminManageService.getReviewCountByCompanyId(companyId);
+                    model.addAttribute("reviewCount_" + companyId, reviewCount);
+                    log.info("업체 {}의 리뷰 수: {}", companyId, reviewCount);
                 }
             }
 
