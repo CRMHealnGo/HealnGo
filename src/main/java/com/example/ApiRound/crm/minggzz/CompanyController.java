@@ -19,6 +19,7 @@ import java.util.Optional;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 
 import org.springframework.http.ResponseEntity;
 
@@ -76,6 +77,9 @@ import com.example.ApiRound.repository.AdminEventRepository;
 
 import com.example.ApiRound.repository.MarketingRepository;
 import com.example.ApiRound.repository.UserInquiryRepository;
+import com.example.ApiRound.entity.MarketingMessage;
+import com.example.ApiRound.Service.MarketingMessageService;
+import com.example.ApiRound.repository.MarketingMessageRepository;
 
 
 
@@ -101,6 +105,8 @@ public class CompanyController {
 
     private final MarketingRepository marketingRepository;
     private final UserInquiryRepository userInquiryRepository;
+    private final MarketingMessageService marketingMessageService;
+    private final MarketingMessageRepository marketingMessageRepository;
 
     private final ClickLogService clickLogService;
 
@@ -124,6 +130,10 @@ public class CompanyController {
 
                             UserInquiryRepository userInquiryRepository,
 
+                            @Lazy MarketingMessageService marketingMessageService,
+
+                            @Lazy MarketingMessageRepository marketingMessageRepository,
+
                             ClickLogService clickLogService,
 
                             MediServiceRepository mediServiceRepository,
@@ -141,6 +151,10 @@ public class CompanyController {
         this.marketingRepository = marketingRepository;
 
         this.userInquiryRepository = userInquiryRepository;
+
+        this.marketingMessageService = marketingMessageService;
+
+        this.marketingMessageRepository = marketingMessageRepository;
 
         this.clickLogService = clickLogService;
 
@@ -2568,6 +2582,102 @@ public class CompanyController {
 
         return coupons;
 
+    }
+
+    // ===== 마케팅 메시지 발송 API =====
+
+    /**
+     * 메시지 발송 요청 API
+     */
+    @PostMapping("/api/marketing/message/send")
+    @ResponseBody
+    public ResponseEntity<?> sendMarketingMessage(@RequestBody Map<String, String> request, HttpSession session) {
+        try {
+            Integer companyId = (Integer) session.getAttribute("companyId");
+            if (companyId == null) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "로그인이 필요합니다."));
+            }
+
+            System.out.println("===== 마케팅 메시지 발송 요청 =====");
+            System.out.println("companyId: " + companyId);
+            System.out.println("request: " + request);
+
+            // 요청 데이터 파싱
+            String targetSegment = request.getOrDefault("targetSegment", "ALL");
+            String targetChannel = request.getOrDefault("targetChannel", "PUSH");
+            String title = request.get("title");
+            String content = request.get("content");
+            String linkUrl = request.get("linkUrl");
+            String sendType = request.getOrDefault("sendType", "IMMEDIATE");
+            String scheduledAt = request.get("scheduledAt");
+
+            // 필수 값 검증
+            if (title == null || title.trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "제목을 입력해주세요."));
+            }
+            if (content == null || content.trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "내용을 입력해주세요."));
+            }
+
+            // MarketingMessage 엔티티 생성
+            MarketingMessage message = MarketingMessage.builder()
+                .targetSegment(MarketingMessage.TargetSegment.valueOf(targetSegment))
+                .targetChannel(MarketingMessage.TargetChannel.valueOf(targetChannel))
+                .title(title)
+                .content(content)
+                .linkUrl(linkUrl)
+                .sendType(MarketingMessage.SendType.valueOf(sendType))
+                .build();
+
+            // 예약 발송인 경우 시간 설정
+            if ("SCHEDULED".equals(sendType) && scheduledAt != null) {
+                message.setScheduledAt(java.time.LocalDateTime.parse(scheduledAt));
+            }
+
+            // 메시지 발송
+            MarketingMessage savedMessage = marketingMessageService.sendMessage(companyId, message);
+
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "messageId", savedMessage.getMessageId(),
+                "status", savedMessage.getStatus().name(),
+                "targetCount", savedMessage.getTargetCount(),
+                "message", "메시지가 발송되었습니다."
+            ));
+
+        } catch (Exception e) {
+            System.err.println("메시지 발송 에러: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError()
+                .body(Map.of("success", false, "message", "발송 실패: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * 업체별 메시지 발송 내역 조회 API
+     */
+    @GetMapping("/api/marketing/messages")
+    @ResponseBody
+    public ResponseEntity<?> getMarketingMessages(HttpSession session) {
+        try {
+            Integer companyId = (Integer) session.getAttribute("companyId");
+            if (companyId == null) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "로그인이 필요합니다."));
+            }
+
+            List<MarketingMessage> messages = marketingMessageService.getMessagesByCompany(companyId);
+            return ResponseEntity.ok(messages);
+
+        } catch (Exception e) {
+            System.err.println("메시지 목록 조회 에러: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError()
+                .body(Map.of("success", false, "message", "조회 실패: " + e.getMessage()));
+        }
     }
 
 }

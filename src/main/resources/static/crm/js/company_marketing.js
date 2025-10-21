@@ -311,9 +311,154 @@ function openAssetUpload() {
 }
 
 // 메시지 발송
+// 예약 발송 시간 입력란 토글
+function toggleScheduledTime() {
+    const sendTimeValue = document.querySelector('input[name="sendTime"]:checked').value;
+    const scheduledTime = document.getElementById('scheduledTime');
+    if (sendTimeValue === 'SCHEDULED') {
+        scheduledTime.style.display = 'block';
+        scheduledTime.required = true;
+    } else {
+        scheduledTime.style.display = 'none';
+        scheduledTime.required = false;
+    }
+}
+
+// 메시지 미리보기
+function previewMessage() {
+    const title = document.getElementById('messageTitle').value;
+    const content = document.getElementById('messageContent').value;
+    
+    if (!title || !content) {
+        alert('제목과 본문을 입력해주세요.');
+        return;
+    }
+    
+    const previewHtml = `
+        <div style="padding: 20px; border: 1px solid #ddd; border-radius: 8px; background: white; max-width: 400px;">
+            <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">${title}</h3>
+            <p style="margin: 0; font-size: 14px; color: #666; white-space: pre-wrap;">${content}</p>
+        </div>
+    `;
+    
+    const previewWindow = window.open('', '_blank', 'width=450,height=300');
+    previewWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>메시지 미리보기</title>
+            <meta charset="UTF-8">
+        </head>
+        <body style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #f5f5f5; margin: 0;">
+            ${previewHtml}
+        </body>
+        </html>
+    `);
+}
+
+// 메시지 발송
 function submitMessage(event) {
     event.preventDefault();
-    alert('메시지 발송 요청이 제출되었습니다.');
+    
+    console.log('메시지 발송 함수 호출됨');
+    
+    // 폼 데이터 수집
+    const targetSegment = document.getElementById('targetSegment').value;
+    const targetChannel = document.getElementById('targetChannel').value;
+    const title = document.getElementById('messageTitle').value;
+    const content = document.getElementById('messageContent').value;
+    const linkUrl = document.getElementById('linkUrl').value;
+    const sendType = document.querySelector('input[name="sendTime"]:checked').value;
+    const scheduledAt = document.getElementById('scheduledTime').value;
+    
+    console.log('발송 데이터:', {
+        targetSegment, targetChannel, title, content, linkUrl, sendType, scheduledAt
+    });
+    
+    // 유효성 검사
+    if (!title || !content) {
+        alert('제목과 본문을 입력해주세요.');
+        return;
+    }
+    
+    if (sendType === 'SCHEDULED' && !scheduledAt) {
+        alert('예약 발송 시간을 선택해주세요.');
+        return;
+    }
+    
+    // 확인 메시지
+    const confirmMsg = sendType === 'IMMEDIATE' 
+        ? `메시지를 지금 발송하시겠습니까?\n대상: ${getSegmentText(targetSegment)}\n채널: ${getChannelText(targetChannel)}`
+        : `메시지 발송을 예약하시겠습니까?\n발송 시간: ${scheduledAt}`;
+    
+    if (!confirm(confirmMsg)) {
+        return;
+    }
+    
+    // 발송 버튼 비활성화
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = '발송 중...';
+    
+    // API 호출
+    fetch('/company/api/marketing/message/send', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            targetSegment,
+            targetChannel,
+            title,
+            content,
+            linkUrl,
+            sendType,
+            scheduledAt
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('메시지 발송 응답:', data);
+        submitBtn.disabled = false;
+        submitBtn.textContent = '발송 요청';
+        
+        if (data.success) {
+            alert(`메시지가 성공적으로 발송되었습니다!\n대상 고객: ${data.targetCount}명`);
+            // 폼 초기화
+            event.target.reset();
+            toggleScheduledTime();
+        } else {
+            alert('메시지 발송 실패: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('메시지 발송 에러:', error);
+        submitBtn.disabled = false;
+        submitBtn.textContent = '발송 요청';
+        alert('메시지 발송 중 오류가 발생했습니다: ' + error.message);
+    });
+}
+
+// 세그먼트 텍스트 변환
+function getSegmentText(segment) {
+    const map = {
+        'ALL': '전체 고객',
+        'RECENT_30DAYS': '최근 30일 예약 고객',
+        'VIP': 'VIP 고객',
+        'INACTIVE': '장기 미방문 고객',
+        'FIRST_TIME': '첫 방문 고객'
+    };
+    return map[segment] || segment;
+}
+
+// 채널 텍스트 변환
+function getChannelText(channel) {
+    const map = {
+        'PUSH': '앱 푸시',
+        'SMS': 'SMS',
+        'EMAIL': '이메일'
+    };
+    return map[channel] || channel;
 }
 
 // 모달 외부 클릭 시 닫기

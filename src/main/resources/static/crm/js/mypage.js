@@ -23,46 +23,45 @@ document.addEventListener('DOMContentLoaded', function() {
 // 알림 데이터 로드
 async function loadNotifications() {
     try {
-        // 임시 데이터 (실제로는 서버에서 가져옴)
-        notifications = [
-            {
-                id: 1,
-                type: 'CHAT',
-                title: '새로운 채팅이 왔습니다',
-                message: '병원명에서 채팅 메시지를 보냈습니다.',
-                companyName: '서울치과',
+        console.log('===== 마케팅 알림 로드 시작 =====');
+        
+        // 서버에서 마케팅 메시지 가져오기
+        const response = await fetch('/api/marketing-notifications/my-notifications');
+        if (!response.ok) {
+            console.error('알림 조회 실패:', response.status);
+            notifications = [];
+            renderNotifications();
+            return;
+        }
+        
+        const marketingMessages = await response.json();
+        console.log('조회된 마케팅 메시지 수:', marketingMessages.length);
+        console.log('마케팅 메시지 원본:', marketingMessages);
+        
+        // MarketingMessage를 알림 형식으로 변환
+        notifications = marketingMessages.map(msg => {
+            const notification = {
+                id: msg.messageId,
+                type: 'MARKETING',
+                title: msg.title || '제목 없음',
+                message: msg.content || '',
+                companyName: msg.company ? msg.company.companyName : '업체',
+                linkUrl: msg.linkUrl || null,
                 read: false,
-                createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000) // 2시간 전
-            },
-            {
-                id: 2,
-                type: 'RESERVATION_CONFIRMED',
-                title: '새로운 예약이 확정되었습니다',
-                message: '화이트닝 패키지 예약이 확정되었습니다.',
-                reservationTitle: '화이트닝 패키지',
-                reservationDate: '2024.10.25 14:00',
-                companyName: '강남치과',
-                read: false,
-                createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) // 1일 전
-            },
-            {
-                id: 3,
-                type: 'RESERVATION_UPDATED',
-                title: '예약일정이 변경되었습니다',
-                message: '임플란트 상담 예약 시간이 변경되었습니다.',
-                reservationTitle: '임플란트 상담',
-                oldDate: '2024.10.20 10:00',
-                newDate: '2024.10.22 14:00',
-                companyName: '서초치과',
-                read: false,
-                createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) // 3일 전
-            }
-        ];
+                createdAt: new Date(msg.sentAt || msg.createdAt)
+            };
+            console.log('변환된 알림:', notification);
+            return notification;
+        });
+        
+        console.log('최종 알림 목록:', notifications);
         
         // 알림 렌더링
         renderNotifications();
     } catch (error) {
         console.error('알림 로드 실패:', error);
+        notifications = [];
+        renderNotifications();
     }
 }
 
@@ -109,6 +108,8 @@ function getNotificationIcon(type) {
             return '<i class="fas fa-bell"></i>';
         case 'RESERVATION_UPDATED':
             return '<i class="fas fa-calendar-alt"></i>';
+        case 'MARKETING':
+            return '<i class="fas fa-bullhorn"></i>';
         default:
             return '<i class="fas fa-info-circle"></i>';
     }
@@ -134,13 +135,15 @@ function getTimeAgo(date) {
 // 알림 읽음 처리
 async function markAsRead(notificationId) {
     try {
-        // 서버에 읽음 처리 요청 (실제 구현 시)
-        // await fetch(`/api/notifications/${notificationId}/read`, { method: 'POST' });
+        console.log('알림 클릭 - notificationId:', notificationId);
         
         // 로컬에서 읽음 처리
         const notification = notifications.find(n => n.id === notificationId);
         if (notification) {
             notification.read = true;
+            
+            console.log('알림 타입:', notification.type);
+            console.log('링크 URL:', notification.linkUrl);
             
             // 알림 타입에 따라 다른 동작
             switch(notification.type) {
@@ -151,14 +154,20 @@ async function markAsRead(notificationId) {
                 case 'RESERVATION_UPDATED':
                     window.location.href = '/booking';
                     break;
+                case 'MARKETING':
+                    // 마케팅 메시지의 링크 URL이 있으면 해당 페이지로 이동
+                    if (notification.linkUrl) {
+                        window.open(notification.linkUrl, '_blank');
+                    } else {
+                        showMessage(notification.message);
+                    }
+                    break;
                 default:
                     break;
             }
             
             // 알림 다시 렌더링
             renderNotifications();
-            
-            showMessage('알림을 확인했습니다.');
         }
     } catch (error) {
         console.error('알림 읽음 처리 실패:', error);
@@ -411,6 +420,14 @@ function renderNotificationModal() {
                 <div class="notification-details">
                     <p><strong>업체명:</strong> ${notification.companyName}</p>
                     <p>${notification.message}</p>
+                </div>
+            `;
+        } else if (notification.type === 'MARKETING') {
+            detailHtml = `
+                <div class="notification-details">
+                    <p><strong>업체명:</strong> ${notification.companyName}</p>
+                    <p style="white-space: pre-wrap;">${notification.message}</p>
+                    ${notification.linkUrl ? `<p><a href="${notification.linkUrl}" target="_blank" style="color: #3498db;">자세히 보기 →</a></p>` : ''}
                 </div>
             `;
         }

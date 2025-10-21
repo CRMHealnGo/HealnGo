@@ -1,5 +1,6 @@
 package com.example.ApiRound.crm.hyeonah.Repository;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -63,6 +64,10 @@ public interface SocialUsersRepository extends JpaRepository<SocialUsers, Intege
 
     // 상세 수정용 조회
     Optional<SocialUsers> findByUserIdAndIsDeletedFalse(Integer userId);
+    
+    // 마케팅 메시지용: 장기 미방문 고객 (90일 이상 로그인하지 않음)
+    long countByLastLoginAtBeforeAndIsDeletedFalse(LocalDateTime lastLoginBefore);
 
 }
+
 

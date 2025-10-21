@@ -14,7 +14,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.example.ApiRound.crm.hyeonah.entity.CompanyUser;
-import com.example.ApiRound.crm.yoyo.reservation.Reservation;
 import com.example.ApiRound.crm.hyeonah.entity.SocialUsers;
 
 @Repository
@@ -118,4 +117,23 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     // 업체와 특정 날짜로 예약 조회 (일일 시간별 통계용)
     List<Reservation> findByCompanyAndDate(CompanyUser company, LocalDate date);
+    
+    // 마케팅 메시지 발송 대상 계산용 쿼리들
+    
+    // 최근 30일 이내 예약한 고유 사용자 수
+    @Query("SELECT COUNT(DISTINCT r.user.userId) FROM Reservation r WHERE r.createdAt >= :startDate")
+    Long countDistinctUsersByDateAfter(@Param("startDate") LocalDateTime startDate);
+    
+    // 예약 건수가 N회 이상인 사용자 수 (VIP 고객)
+    @Query(value = "SELECT COUNT(DISTINCT user_id) FROM (" +
+           "SELECT user_id FROM reservations " +
+           "GROUP BY user_id " +
+           "HAVING COUNT(*) >= :count" +
+           ") AS vip_users", nativeQuery = true)
+    Long countUsersWithReservationsGreaterThan(@Param("count") int count);
+    
+    // 예약이 없는 사용자 수 (첫 방문 고객)
+    @Query("SELECT COUNT(s.userId) FROM SocialUsers s WHERE s.isDeleted = false " +
+           "AND s.userId NOT IN (SELECT DISTINCT r.user.userId FROM Reservation r)")
+    Long countUsersWithNoReservations();
 }
