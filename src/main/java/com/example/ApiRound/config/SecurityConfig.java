@@ -56,7 +56,7 @@ public class SecurityConfig {
                     "/crm/images/**"
                 ).permitAll()
                 // 세션 기반 인증 페이지 (컨트롤러에서 체크)
-                .requestMatchers("/admin/**").permitAll()
+                .requestMatchers("/admin/**").authenticated()
                 // /company/** 경로는 인증 필요
                 .requestMatchers("/company/**").authenticated()
                 // 나머지 CRM 경로는 인증 필요
