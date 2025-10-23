@@ -8,6 +8,11 @@
 
 name: Java CI with Maven
 
+env:
+  EC2_USER: ${{ secrets.EC2_USER }}
+  EC2_HOST: ${{ secrets.EC2_HOST }}
+  EC2_KEY: ${{ secrets.EC2_KEY }}
+
 on:
   push:
     branches: [ "main" ]
@@ -29,7 +34,13 @@ jobs:
         cache: maven
     - name: Build with Maven
       run: mvn -B package --file pom.xml
-      
+    - name: env print
+      run: |
+          echo "User: $EC2_USER"
+          echo "Host: $EC2_HOST"
+          echo "Key: $EC2_KEY"
+
+    
     # pem 파일 만들기
     - name: EC2서버 키 파일 생성
       run: |
