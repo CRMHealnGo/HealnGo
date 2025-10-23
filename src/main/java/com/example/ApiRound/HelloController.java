@@ -38,7 +38,7 @@ public class HelloController {
         this.userReviewService = userReviewService;
         this.itemListRepository = itemListRepository;
     }
-    @GetMapping("/main")
+    @GetMapping("/")
     public String main(Model model) {
         // 클릭로그 기반 TOP3 업체 조회 (Object[] = [companyId, clickCount])
         List<Object[]> topCompaniesData = clickLogService.getTop3CompaniesLast7Days();
