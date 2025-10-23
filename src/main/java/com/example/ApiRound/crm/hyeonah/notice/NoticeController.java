@@ -39,7 +39,7 @@ public class NoticeController {
      * 공지사항 목록 페이지 (사용자용)
      * GET /notice
      */
-    @GetMapping({"", "/"})
+    @GetMapping("")
     public String noticePage(
             @RequestParam(defaultValue = "1") int page,
             Model model) {
