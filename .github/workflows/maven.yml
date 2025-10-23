@@ -53,21 +53,26 @@ jobs:
         scp -i ec2-key.pem -o StrictHostKeyChecking=no \
         target/*.jar \
         ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/app.jar
-
+        
     # 실행중인 프로세스 종료
     - name: 실행중인 프로세서(app.jar) 종료
       run: |
         ssh -i ec2-key.pem -o StrictHostKeyChecking=no \
         ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "
           echo '🛑 기존 실행 중인 애플리케이션 종료 중...'
-          pids=\$(pgrep -f app.jar | grep -v $$ | grep -v \$PPID | tr '\n' ' ')
-          echo \"pid : \$pids\"
-          if [ -n \"\$pids\" ]; then
-            echo \"Would terminate PIDs: \$pids\"
-            kill $pids
+          pids=\$(pgrep -f app.jar)
+          current_pid=\$\$
+          parent_pid=\$PPID
+          echo \"현재 세션 PID: \$current_pid, 부모 PID: \$parent_pid\"
+          # 현재 세션과 부모 PID를 제거
+          safe_pids=\$(echo \$pids | tr ' ' '\n' | grep -v \"^\$current_pid\$\" | grep -v \"^\$parent_pid\$\" | tr '\n' ' ')
+          echo \"pid : \$safe_pids\"
+          if [ -n \"\$safe_pids\" ]; then
+            echo \"Would terminate PIDs: \$safe_pids\"
+            sudo kill \$safe_pids
             echo '프로세스 종료'
           else
-            echo '프로세스 없음'
+            echo '종료할 프로세스 없음'
           fi
         "
     
