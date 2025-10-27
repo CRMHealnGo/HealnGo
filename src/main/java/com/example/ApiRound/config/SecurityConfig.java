@@ -57,16 +57,10 @@ public class SecurityConfig {
                 ).permitAll()
                 // 세션 기반 인증 페이지 (컨트롤러에서 체크)
                 .requestMatchers("/admin/**").permitAll()
-
-                // /company/** 경로는 인증 필요
-                .requestMatchers("/company/**").permitAll()
                 // 나머지 CRM 경로는 인증 필요
                 .anyRequest().authenticated()
             )
-            .formLogin(form -> form
-                .loginPage("/crm/crm_login")  // 인증 필요시 이 페이지로 리다이렉트
-                .permitAll()
-            )
+            .formLogin(form -> form.disable())  // 커스텀 로그인 컨트롤러 사용
             .logout(logout -> logout
                 .logoutUrl("/crm/logout")
                 .logoutSuccessUrl("/crm/crm_login")
