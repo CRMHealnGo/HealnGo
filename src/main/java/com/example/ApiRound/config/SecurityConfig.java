@@ -59,7 +59,7 @@ public class SecurityConfig {
                 .requestMatchers("/admin/**").permitAll()
 
                 // /company/** 경로는 인증 필요
-                .requestMatchers("/company/**").authenticated()
+                .requestMatchers("/company/**").permitAll()
                 // 나머지 CRM 경로는 인증 필요
                 .anyRequest().authenticated()
             )
